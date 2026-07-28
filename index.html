@@ -5,9 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="format-detection" content="telephone=no" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="温欣随记" />
 <meta name="theme-color" content="#FB7299" />
+<meta name="application-name" content="温欣随记" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <title>温欣随记</title>
 <meta name="description" content="温欣随记，一款温馨的备忘录应用，支持分组管理、图片上传、旅游攻略模板，手机端友好的笔记工具。" />
 <meta itemprop="name" content="温欣随记" />
@@ -3176,6 +3181,37 @@ function init() {
     init();
   }
 })();
+
+/* ===== PWA Service Worker 注册（添加到桌面 + 离线访问） ===== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      console.log('SW 注册成功，可添加到桌面');
+    }).catch(e => console.warn('SW 注册失败:', e));
+  });
+}
+
+/* ===== 首次访问引导"添加到桌面"（仅提示一次） ===== */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const shown = localStorage.getItem('wenxin_a2hs_hinted');
+  if (!shown) {
+    setTimeout(() => {
+      if (deferredPrompt && confirm('是否将"温欣随记"添加到桌面？\n\n添加后可像 App 一样使用：\n• 不再有微信"非官方网页"提示\n• 启动更快，体验更流畅\n• 离线也能查看笔记')) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => { localStorage.setItem('wenxin_a2hs_hinted', '1'); deferredPrompt = null; });
+      } else {
+        localStorage.setItem('wenxin_a2hs_hinted', '1');
+      }
+    }, 3000);
+  }
+});
+window.addEventListener('appinstalled', () => {
+  localStorage.setItem('wenxin_a2hs_hinted', '1');
+  console.log('已添加到桌面');
+});
 </script>
 </body>
 </html>
