@@ -1142,21 +1142,22 @@ async function giteeGetShare(sid) {
   if (!useGitee()) throw new Error('Gitee 未配置');
   const path = `wenxin/${sid}.json`;
   const apiUrl = giteeUrl(path);
-  // 先尝试用 API 获取文件信息（含 sha 和 size）
+  // 先用 contents API 获取文件信息（含 sha 和 size）
   const res = await fetchWithTimeout(apiUrl, {}, 10000);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const result = await res.json();
   if (Array.isArray(result)) throw new Error('文件不存在');
   giteeSha = result.sha;
   const fileSize = result.size || 0;
-  // 对于大文件（>500KB），使用 raw URL 直接下载内容，避免 API 截断
+  // 对于大文件（>500KB），使用 blob API 下载完整内容，避免 contents API 截断
   if (fileSize > 500000) {
-    console.log(`文件较大 (${(fileSize/1024/1024).toFixed(2)} MB)，使用 raw URL 下载...`);
-    const rawUrl = `https://gitee.com/${giteeConfig.owner}/${giteeConfig.repo}/raw/${giteeConfig.branch || 'master'}/${path}?_t=${Date.now()}`;
-    const rawRes = await fetchWithTimeout(rawUrl, { cache: 'no-store' }, 60000);
-    if (!rawRes.ok) throw new Error(`Raw 下载失败: HTTP ${rawRes.status}`);
-    const rawText = await rawRes.text();
-    const data = JSON.parse(rawText);
+    console.log(`文件较大 (${(fileSize/1024/1024).toFixed(2)} MB)，使用 blob API 下载...`);
+    const blobUrl = `https://gitee.com/api/v5/repos/${giteeConfig.owner}/${giteeConfig.repo}/git/blobs/${giteeSha}?access_token=${giteeConfig.token}`;
+    const blobRes = await fetchWithTimeout(blobUrl, {}, 60000);
+    if (!blobRes.ok) throw new Error(`Blob 下载失败: HTTP ${blobRes.status}`);
+    const blob = await blobRes.json();
+    const blobContent = blob.content || '';
+    const data = JSON.parse(b64decode(blobContent.replace(/\n/g, '')));
     return data;
   }
   // 小文件直接用 API 返回的 content
