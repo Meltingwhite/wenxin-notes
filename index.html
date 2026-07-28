@@ -204,11 +204,12 @@
   }
 
   /* ===== 卡片网格 ===== */
-  main { padding: 12px; }
+  main { padding: 12px; min-height: 50vh; }
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 10px;
+    min-height: 50vh;
   }
   .card {
     background: var(--card);
@@ -3880,18 +3881,21 @@ function bind() {
     return true;
   }
   document.getElementById('grid').addEventListener('touchstart', e => {
-    const card = e.target.closest('.card');
-    if (!card || e.target.closest('[data-del]') || e.target.closest('.card-group')) return;
-    cardTouchMoved = false;
+    // 滑动检测：只要在 grid 区域内触摸就记录起点（不依赖卡片存在）
     swipeStartX = e.touches[0].clientX;
     swipeStartY = e.touches[0].clientY;
     swipeTracking = true;
-    cardTouchTimer = setTimeout(() => {
-      if (!cardTouchMoved) {
-        navigator.vibrate && navigator.vibrate(30);
-        openMoveSheet(card.dataset.id);
-      }
-    }, 550);
+    cardTouchMoved = false;
+    // 长按逻辑：仅在卡片上触发
+    const card = e.target.closest('.card');
+    if (card && !e.target.closest('[data-del]') && !e.target.closest('.card-group')) {
+      cardTouchTimer = setTimeout(() => {
+        if (!cardTouchMoved) {
+          navigator.vibrate && navigator.vibrate(30);
+          openMoveSheet(card.dataset.id);
+        }
+      }, 550);
+    }
   }, { passive: true });
   document.getElementById('grid').addEventListener('touchmove', e => {
     if (!swipeTracking) { cardTouchMoved = true; clearTimeout(cardTouchTimer); return; }
