@@ -1129,7 +1129,7 @@ const MKEY = 'memo_data_v2';
 const CACHE_KEY = 'wenxin_cache_v1';
 let groups = [], memos = [], activeGroup = 'all', keyword = '', editingId = null, editingGroupId = null;
 let curCover = null, curTags = [], curPinned = false, savedRange = null, autoCoverSrc = false;
-let shareId = null, isCloudMode = false, lastSyncTime = 0, syncTimer = null, localDirty = false;
+let shareId = null, isCloudMode = false, lastSyncTime = 0, syncTimer = null, localDirty = false, syncInProgress = false;
 let giteeConfig = null, giteeSha = null;
 let syncRetryCount = 0, syncLastAttempt = 0;
 
@@ -1221,11 +1221,56 @@ async function collectSyncData() {
 /* 应用云端数据到本地 */
 async function applySyncData(data) {
   if (!data) return;
-  groups = data.groups || [];
-  memos = data.memos || [];
+  const cloudGroups = data.groups || [];
+  const cloudMemos = data.memos || [];
+
+  // 合并分组：以云端分组为基准，补充本地新增的分组
+  const localGroupIds = new Set(groups.map(g => g.id));
+  const cloudGroupIds = new Set(cloudGroups.map(g => g.id));
+  const mergedGroups = cloudGroups.slice();
+  for (const g of groups) {
+    if (!cloudGroupIds.has(g.id)) mergedGroups.push(g);
+  }
+  groups = mergedGroups;
+
+  // 合并备忘录：按 id 合并，保留 updatedAt 较新的版本（本地新数据优先）
+  const localMemoMap = new Map(memos.map(m => [m.id, m]));
+  const mergedMemos = [];
+  const seenIds = new Set();
+
+  // 1. 先处理云端笔记
+  for (const cm of cloudMemos) {
+    seenIds.add(cm.id);
+    const lm = localMemoMap.get(cm.id);
+    if (lm) {
+      // 两端都有：比较更新时间，保留较新的（本地相同时优先本地，防止意外覆盖）
+      const localT = lm.updatedAt || 0;
+      const cloudT = cm.updatedAt || 0;
+      if (localT >= cloudT) {
+        mergedMemos.push(lm); // 本地较新或相等，保留本地
+      } else {
+        mergedMemos.push(cm); // 云端较新，用云端
+      }
+    } else {
+      mergedMemos.push(cm); // 本地没有，用云端
+    }
+  }
+  // 2. 补充本地新增的笔记（云端没有的，绝不能丢失）
+  for (const lm of memos) {
+    if (!seenIds.has(lm.id)) {
+      mergedMemos.push(lm);
+    }
+  }
+
+  memos = mergedMemos;
+
+  // 合并内容：只更新本地没有的（本地已有的不动，避免覆盖未保存的编辑）
   if (data.contents) {
     for (const [id, content] of Object.entries(data.contents)) {
-      await dbSet('memo_content_' + id, content);
+      const localContent = await dbGet('memo_content_' + id);
+      if (!localContent) {
+        await dbSet('memo_content_' + id, content);
+      }
     }
   }
   lastSyncTime = data.lastUpdated || Date.now();
@@ -1504,24 +1549,40 @@ function stopAutoSync() {
 
 async function pullFromCloud() {
   if (!isCloudMode || !shareId) return;
+  if (syncInProgress) return; // 防止并发
+  syncInProgress = true;
   try {
     const data = await giteeGetShare(shareId);
     const serverTime = data.lastUpdated || 0;
     if (serverTime > lastSyncTime) {
+      // 本地有未同步的改动时，合并而不是覆盖
       await applySyncData(data);
+      // 合并后如果本地仍有未同步数据，触发推送
+      if (localDirty) {
+        setTimeout(() => { if (localDirty) pushToCloud(); }, 1000);
+      }
       showSyncStatus('已更新', false);
       setTimeout(() => showSyncStatus('已同步', false), 2000);
     }
   } catch(e) {
     console.warn('拉取失败:', e.message);
+  } finally {
+    syncInProgress = false;
   }
 }
 
 async function pushToCloud() {
   if (!isCloudMode || !shareId) return;
+  if (syncInProgress) {
+    // 已有同步在进行，延后重试
+    setTimeout(() => { if (localDirty) pushToCloud(); }, 3000);
+    return;
+  }
+  syncInProgress = true;
 
   const now = Date.now();
   if (now - syncLastAttempt < 2000) {
+    syncInProgress = false;
     setTimeout(() => { if (localDirty) pushToCloud(); }, 2000 - (now - syncLastAttempt));
     return;
   }
@@ -1545,22 +1606,23 @@ async function pushToCloud() {
         lastSyncTime = created.lastUpdated || Date.now();
         showSyncStatus('已同步', false);
         syncRetryCount = 0;
+        syncInProgress = false;
         return;
       }
 
       const serverTime = serverData.lastUpdated || 0;
       if (serverTime > lastSyncTime && serverTime > 0) {
-        // 云端有更新，先合并
+        // 云端有更新，先合并（合并会保留本地较新的数据）
         await applySyncData(serverData);
-        showSyncStatus('已同步', false);
-        return;
+        // 合并后继续推送本地数据，确保本地新数据上传
       }
 
-      // 推送本地数据
+      // 推送本地数据（合并后的）
       const resultData = await giteeUpdateShare(shareId);
       lastSyncTime = resultData.lastUpdated || Date.now();
       showSyncStatus('已同步', false);
       syncRetryCount = 0;
+      syncInProgress = false;
       return;
     } catch(e) {
       lastError = e;
@@ -1573,9 +1635,10 @@ async function pushToCloud() {
   }
 
   console.warn('推送最终失败:', lastError);
-  localDirty = true;
+  localDirty = true; // 推送失败，重新标记为脏数据，等待重试
   syncRetryCount++;
   showSyncStatus('同步失败(稍后重试)', false);
+  syncInProgress = false;
 
   const nextDelay = Math.min(10000 * Math.pow(2, syncRetryCount), 120000);
   setTimeout(() => { if (localDirty && isCloudMode) pushToCloud(); }, nextDelay);
