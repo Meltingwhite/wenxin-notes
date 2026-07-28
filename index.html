@@ -1257,14 +1257,17 @@ async function giteeUpdateShare(sid) {
 }
 
 async function load() {
-  // 自动启用云端模式：URL > localStorage > 自动生成
+  // 自动启用云端模式：URL 指定的 shareId 优先；否则统一使用默认固定 ID（保证多端数据一致）
   shareId = getShareIdFromUrl();
   if (!shareId) {
-    shareId = localStorage.getItem(SHARE_ID_KEY);
-  }
-  if (!shareId) {
-    shareId = 'wx_' + uid() + uid();
-    localStorage.setItem(SHARE_ID_KEY, shareId);
+    const saved = localStorage.getItem(SHARE_ID_KEY);
+    // 如果之前自动生成过随机 ID（wx_ 开头），迁移到默认 ID，确保数据集中
+    if (saved && !saved.startsWith('wx_')) {
+      shareId = saved;
+    } else {
+      shareId = 'wenxin_main';
+      localStorage.setItem(SHARE_ID_KEY, shareId);
+    }
   }
   isCloudMode = true;
   await loadFromCloud();
