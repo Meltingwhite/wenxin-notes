@@ -339,35 +339,6 @@
     }
     .group-add { padding: 6px 8px; font-size: 16px; }
     main { padding: 10px; }
-    .grid {
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
-    .card {
-      display: flex;
-      align-items: stretch;
-    }
-    .card-cover, .card-cover-ph {
-      width: 100px;
-      flex-shrink: 0;
-      aspect-ratio: 1;
-    }
-    .card-body {
-      flex: 1;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .card-title {
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-    .card-excerpt {
-      font-size: 12px;
-      margin-bottom: 4px;
-      -webkit-line-clamp: 2;
-    }
     .card-meta {
       gap: 4px;
       margin-top: auto;
@@ -723,13 +694,95 @@
   @media (max-width: 480px) {
     .grid { grid-template-columns: repeat(2, 1fr); }
   }
+
+  /* ===== 布局切换器 ===== */
+  .layout-switcher {
+    display: flex;
+    gap: 2px;
+    background: var(--bg);
+    padding: 2px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .layout-btn {
+    background: none;
+    border: none;
+    width: 30px; height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.15s;
+  }
+  .layout-btn svg { width: 16px; height: 16px; }
+  .layout-btn.active { background: #fff; color: var(--bili-pink); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+  .layout-btn:active { transform: scale(0.92); }
+
+  /* 布局1: 单列大图(默认,信息最全) */
+  body.layout-list .grid { grid-template-columns: 1fr; }
+  body.layout-list .card { display: flex; align-items: stretch; }
+  body.layout-list .card-cover, body.layout-list .card-cover-ph { width: 120px; flex-shrink: 0; aspect-ratio: 1; }
+  body.layout-list .card-body { flex: 1; padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between; }
+  body.layout-list .card-title { font-size: 15px; -webkit-line-clamp: 2; }
+  body.layout-list .card-excerpt { font-size: 13px; -webkit-line-clamp: 2; }
+
+  /* 布局2: 双列卡片(瀑布流) */
+  body.layout-grid .grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  body.layout-grid .card { display: block; }
+  body.layout-grid .card-cover, body.layout-grid .card-cover-ph { width: 100%; aspect-ratio: 4/3; }
+  body.layout-grid .card-body { padding: 8px; }
+  body.layout-grid .card-title { font-size: 13px; -webkit-line-clamp: 2; }
+  body.layout-grid .card-excerpt { font-size: 11px; -webkit-line-clamp: 3; }
+
+  /* 布局3: 紧凑列表(无封面) */
+  body.layout-compact .grid { grid-template-columns: 1fr; gap: 6px; }
+  body.layout-compact .card { display: block; }
+  body.layout-compact .card-cover, body.layout-compact .card-cover-ph { display: none; }
+  body.layout-compact .card-pin { top: 4px; right: 4px; }
+  body.layout-compact .card-body { padding: 10px 12px; }
+  body.layout-compact .card-title { font-size: 14px; -webkit-line-clamp: 1; margin-bottom: 2px; }
+  body.layout-compact .card-excerpt { font-size: 12px; -webkit-line-clamp: 1; margin-bottom: 4px; }
+  body.layout-compact .card-created { display: none; }
+
+  /* 布局4: 宽松卡片(大图,适合图片笔记) */
+  body.layout-comfort .grid { grid-template-columns: 1fr; gap: 12px; }
+  body.layout-comfort .card { display: block; }
+  body.layout-comfort .card-cover, body.layout-comfort .card-cover-ph { width: 100%; aspect-ratio: 16/9; }
+  body.layout-comfort .card-body { padding: 12px 14px; }
+  body.layout-comfort .card-title { font-size: 16px; -webkit-line-clamp: 2; margin-bottom: 6px; }
+  body.layout-comfort .card-excerpt { font-size: 13px; -webkit-line-clamp: 3; margin-bottom: 8px; }
+  body.layout-comfort .card-created { font-size: 11px; }
+
+  /* 移动端布局按钮更小 */
+  @media (max-width: 640px) {
+    .layout-btn { width: 28px; height: 26px; }
+    .layout-btn svg { width: 14px; height: 14px; }
+    body.layout-grid .grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  }
 </style>
 </head>
-<body>
+<body class="layout-list">
 
 <header>
   <div class="header-top">
     <div class="logo" id="logoBtn">🌸 温欣随记</div>
+    <div class="layout-switcher" id="layoutSwitcher" title="切换布局">
+      <button class="layout-btn active" data-layout="list" title="单列大图">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg>
+      </button>
+      <button class="layout-btn" data-layout="grid" title="双列卡片">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
+      </button>
+      <button class="layout-btn" data-layout="compact" title="紧凑列表">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </button>
+      <button class="layout-btn" data-layout="comfort" title="宽松大图">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="13" rx="2"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
+      </button>
+    </div>
     <div class="sync-status" id="syncStatus" style="display:none;">
       <span class="sync-dot"></span>
       <span id="syncText">云端同步中</span>
@@ -2563,6 +2616,22 @@ function bind() {
       openShareModal();
     }
   };
+  /* 布局切换 */
+  const LAYOUT_KEY = 'wenxin_layout';
+  function applyLayout(name) {
+    ['list','grid','compact','comfort'].forEach(n => document.body.classList.remove('layout-' + n));
+    document.body.classList.add('layout-' + name);
+    document.querySelectorAll('.layout-btn').forEach(b => b.classList.toggle('active', b.dataset.layout === name));
+    localStorage.setItem(LAYOUT_KEY, name);
+  }
+  applyLayout(localStorage.getItem(LAYOUT_KEY) || 'list');
+  document.querySelectorAll('.layout-btn').forEach(b => {
+    b.onclick = () => {
+      applyLayout(b.dataset.layout);
+      const names = { list: '单列大图', grid: '双列卡片', compact: '紧凑列表', comfort: '宽松大图' };
+      toast('已切换：' + names[b.dataset.layout]);
+    };
+  });
   document.getElementById('delBtn').onclick = () => {
     if (!editingId) return;
     if (!confirm('确定删除?')) return;
