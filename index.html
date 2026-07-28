@@ -3719,6 +3719,7 @@ function bind() {
   document.getElementById('newBtn').onclick = () => openEditor(null);
   document.getElementById('backBtn').onclick = closeEditor;
   document.getElementById('saveBtn').onclick = saveMemo;
+  document.getElementById('modeToggleBtn').onclick = () => setEditorMode(!editMode);
   document.getElementById('shareBtn').onclick = openShareModal;
   document.getElementById('syncStatus').onclick = () => {
     if (isCloudMode) {
