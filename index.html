@@ -242,6 +242,11 @@
   }
   .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .card-tag { font-size: 10px; color: var(--bili-pink); background: var(--bili-pink-light); padding: 1px 6px; border-radius: 8px; }
+  .card-group { font-size: 10px; color: #fff; background: var(--bili-pink); padding: 1px 7px; border-radius: 8px; cursor: pointer; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-group:active { opacity: 0.7; }
+  .card[draggable="true"] { cursor: grab; }
+  .card[draggable="true"].dragging { opacity: 0.5; transform: scale(0.95); }
+  .group-tab.drag-over { background: var(--bili-pink-light); color: var(--bili-pink); transform: scale(1.05); transition: all 0.15s; }
   .card-time { font-size: 11px; color: var(--muted); margin-left: auto; }
   .card-created { font-size: 10px; color: var(--muted); margin-top: 4px; opacity: 0.8; }
   .card-del {
@@ -766,6 +771,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1"/></svg>
       标签
     </button>
+    <button class="tool-btn" id="moveGroupBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/><path d="M15 7l3-3 3 3M15 17l3 3 3-3"/></svg>
+      分组
+    </button>
     <button class="tool-btn" id="pinBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5"/><path d="M9 10.76V6h6v4.76a2 2 0 0 0 .59 1.41l2.41 2.41A2 2 0 0 1 17 18H7a2 2 0 0 1-.59-2.42l2.41-2.41A2 2 0 0 0 9 10.76z"/></svg>
       置顶
@@ -886,10 +895,24 @@
         <button class="sheet-btn outline" id="aiStyleTravel">✈️ 旅游攻略</button>
         <button class="sheet-btn outline" id="aiStyleStudy">📚 学习笔记</button>
         <button class="sheet-btn outline" id="aiStyleTodo">✅ 待办清单</button>
+        <button class="sheet-btn outline" id="aiStyleMenu">🍽️ 菜单生成</button>
       </div>
     </div>
     <div id="aiFormatStatus" style="display:none;color:var(--muted);font-size:12px;margin-bottom:12px;"></div>
     <button class="sheet-btn outline" id="aiFormatSheetClose" style="margin-top:8px;">取消</button>
+  </div>
+</div>
+
+<!-- 移动分组 sheet -->
+<div class="sheet-overlay" id="moveSheet">
+  <div class="sheet">
+    <div class="sheet-grab"></div>
+    <div class="sheet-title">移动到分组</div>
+    <div class="sheet-section">
+      <div class="sheet-label">选择目标分组</div>
+      <div id="moveGroupList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+    <button class="sheet-btn outline" id="moveSheetClose" style="margin-top:8px;">取消</button>
   </div>
 </div>
 
@@ -1010,11 +1033,24 @@ const DEFAULT_GITEE = {
 /* ===== 数据层 ===== */
 const GKEY = 'memo_groups_v2';
 const MKEY = 'memo_data_v2';
+const CACHE_KEY = 'wenxin_cache_v1';
 let groups = [], memos = [], activeGroup = 'all', keyword = '', editingId = null, editingGroupId = null;
 let curCover = null, curTags = [], curPinned = false, savedRange = null;
 let shareId = null, isCloudMode = false, lastSyncTime = 0, syncTimer = null, localDirty = false;
 let giteeConfig = null, giteeSha = null;
 let syncRetryCount = 0, syncLastAttempt = 0;
+
+/* localStorage 快速缓存，加速二次加载 */
+function readCache() {
+  try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || null; } catch { return null; }
+}
+function writeCache() {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      groups, memos, lastSyncTime, t: Date.now()
+    }));
+  } catch(e) { console.warn('缓存写入失败:', e.message); }
+}
 
 const TPL_TRAVEL = `<div>📍 <b>目的地:</b> </div><div>📅 <b>出发日期:</b> </div><div>👥 <b>同行人:</b> </div><div><br></div><div>📋 <b>行程安排</b></div><div>Day 1:<br></div><div>Day 2:<br></div><div><br></div><div>🎒 <b>必备物品</b></div><div>□ 证件/身份证<br></div><div>□ 充电器/数据线<br></div><div>□ 常用药品<br></div><div>□ 换洗衣物<br></div><div><br></div><div>⚠️ <b>注意事项</b></div><div>- <br></div>`;
 
@@ -1109,6 +1145,7 @@ async function applySyncData(data) {
   }
   await saveGroups();
   await saveMemos();
+  writeCache();
   renderGroups();
   renderMemos();
 }
@@ -1247,9 +1284,16 @@ function getShareIdFromUrl() {
 
 async function loadFromLocal() {
   try {
-    try { groups = JSON.parse(await dbGet(GKEY)) || []; } catch { groups = []; }
-    try { memos = JSON.parse(await dbGet(MKEY)) || []; } catch { memos = []; }
-    
+    // 优先用 localStorage 缓存秒开，再异步校正 IndexedDB
+    const cache = readCache();
+    if (cache && Array.isArray(cache.groups) && Array.isArray(cache.memos)) {
+      groups = cache.groups;
+      memos = cache.memos;
+      lastSyncTime = cache.lastSyncTime || 0;
+    }
+    try { groups = JSON.parse(await dbGet(GKEY)) || groups; } catch { /* 保留缓存值 */ }
+    try { memos = JSON.parse(await dbGet(MKEY)) || memos; } catch { /* 保留缓存值 */ }
+
     let needsSave = false;
     for (const m of memos) {
       if (m.content && !m.excerpt) {
@@ -1345,14 +1389,14 @@ async function loadFromCloud() {
 
 function startAutoSync() {
   if (syncTimer) clearInterval(syncTimer);
-  // 30秒间隔，减少API调用
+  // 15秒间隔，兼顾实时性与API调用频率
   syncTimer = setInterval(() => {
     if (localDirty) {
       pushToCloud();
     } else {
       pullFromCloud();
     }
-  }, 30000);
+  }, 15000);
 }
 
 function stopAutoSync() {
@@ -1381,8 +1425,8 @@ async function pushToCloud() {
   if (!isCloudMode || !shareId) return;
 
   const now = Date.now();
-  if (now - syncLastAttempt < 3000) {
-    setTimeout(() => { if (localDirty) pushToCloud(); }, 3000 - (now - syncLastAttempt));
+  if (now - syncLastAttempt < 2000) {
+    setTimeout(() => { if (localDirty) pushToCloud(); }, 2000 - (now - syncLastAttempt));
     return;
   }
   syncLastAttempt = now;
@@ -1446,10 +1490,10 @@ function markDirty() {
   if (isCloudMode) {
     showSyncStatus('待同步', false);
     if (!syncTimer) startAutoSync();
-    // 防抖：1秒内只触发一次
-    if (Date.now() - syncLastAttempt > 1000) {
+    // 防抖：1.5秒内连续操作合并为一次推送
+    if (Date.now() - syncLastAttempt > 800) {
       clearTimeout(window._dirtyTimer);
-      window._dirtyTimer = setTimeout(() => { if (localDirty) pushToCloud(); }, 2000);
+      window._dirtyTimer = setTimeout(() => { if (localDirty) pushToCloud(); }, 1500);
     }
   }
 }
@@ -1532,13 +1576,15 @@ async function dbSet(key, value) {
   }
 }
 
-function saveGroups() { 
+function saveGroups() {
+  writeCache();
   dbSet(GKEY, JSON.stringify(groups)).then(() => markDirty()).catch(e => {
     toast('保存失败');
     console.error('saveGroups error:', e);
   });
 }
-function saveMemos() { 
+function saveMemos() {
+  writeCache();
   dbSet(MKEY, JSON.stringify(memos)).then(() => markDirty()).catch(e => {
     toast('保存失败');
     console.error('saveMemos error:', e);
@@ -1916,6 +1962,205 @@ function applyFormatStyle(style) {
   toast('排版已应用');
 }
 
+/* ===== AI菜单生成 ===== */
+const RECIPE_DB = {
+  '番茄炒蛋': {
+    materials: ['番茄 2-3个', '鸡蛋 3个', '小葱 1根'],
+    seasonings: ['盐 适量', '糖 少许', '食用油 适量'],
+    steps: [
+      '番茄洗净切块，鸡蛋打散加少许盐搅匀，小葱切葱花',
+      '热锅冷油，倒入蛋液，用筷子快速搅散，炒至凝固盛出',
+      '锅中再加少许油，下番茄块翻炒出汁',
+      '加入炒好的鸡蛋，加盐和少许糖调味',
+      '翻炒均匀，撒葱花出锅'
+    ],
+    tips: '番茄可先用开水烫一下去皮口感更好；蛋液加少许水炒出来更嫩'
+  },
+  '红烧肉': {
+    materials: ['五花肉 500g', '姜 3片', '葱 2段', '八角 2个', '桂皮 1小块'],
+    seasonings: ['生抽 2勺', '老抽 1勺', '料酒 2勺', '冰糖 30g', '盐 适量'],
+    steps: [
+      '五花肉切3cm见方块，冷水下锅加料酒焯水，撇沫捞出',
+      '锅中放少许油，下冰糖小火炒糖色至棕红色',
+      '放入肉块翻炒上色，加葱姜八角桂皮',
+      '加生抽、老抽、料酒，倒入热水没过肉块',
+      '大火烧开转小火炖50分钟，最后大火收汁'
+    ],
+    tips: '炒糖色要用小火避免发苦；加水一定用热水，凉水会让肉发柴'
+  },
+  '宫保鸡丁': {
+    materials: ['鸡胸肉 300g', '花生米 50g', '干辣椒 10个', '花椒 1小把', '葱姜蒜 适量'],
+    seasonings: ['生抽 2勺', '老抽 半勺', '醋 2勺', '糖 1勺', '料酒 1勺', '淀粉 适量'],
+    steps: [
+      '鸡胸肉切丁，加料酒、盐、淀粉抓匀腌制15分钟',
+      '调碗汁：生抽、老抽、醋、糖、淀粉加少许水调匀',
+      '花生米用小火炒至酥脆盛出',
+      '热锅凉油，下花椒干辣椒爆香，放鸡丁滑炒至变色',
+      '倒入碗汁翻炒，加葱姜蒜，最后放花生米拌匀出锅'
+    ],
+    tips: '花生米最后放才能保持酥脆；鸡丁腌制时加少许油可防粘'
+  },
+  '麻婆豆腐': {
+    materials: ['嫩豆腐 1块', '牛肉末 100g', '蒜苗 2根', '姜蒜末 适量'],
+    seasonings: ['豆瓣酱 2勺', '生抽 1勺', '花椒粉 适量', '辣椒粉 少许', '淀粉 适量'],
+    steps: [
+      '豆腐切2cm方块，加盐水焯2分钟捞出',
+      '热锅凉油，下牛肉末炒散变色',
+      '加姜蒜末、豆瓣酱炒出红油',
+      '加水烧开，放入豆腐，小火炖3分钟',
+      '加生抽调味，水淀粉勾芡2次，撒蒜苗和花椒粉出锅'
+    ],
+    tips: '豆腐焯水可去豆腥且不易碎；勾芡要分次，口感更醇厚'
+  },
+  '鱼香肉丝': {
+    materials: ['猪里脊 250g', '木耳 适量', '胡萝卜 半根', '青椒 1个', '葱姜蒜 适量'],
+    seasonings: ['生抽 2勺', '醋 2勺', '糖 1.5勺', '豆瓣酱 1勺', '料酒 1勺', '淀粉 适量'],
+    steps: [
+      '里脊切丝，加盐料酒淀粉抓匀腌制10分钟',
+      '木耳胡萝卜青椒切丝，葱姜蒜切末',
+      '调鱼香汁：生抽、醋、糖、淀粉、少许水调匀',
+      '热锅凉油，下肉丝滑散变色盛出',
+      '下葱姜蒜豆瓣酱炒香，放配菜翻炒，倒回肉丝，淋碗汁炒匀出锅'
+    ],
+    tips: '鱼香汁糖醋比例是关键；肉丝冷冻20分钟更易切细'
+  },
+  '回锅肉': {
+    materials: ['五花肉 400g', '青蒜 100g', '青红椒 各1个', '姜片 3片'],
+    seasonings: ['豆瓣酱 2勺', '甜面酱 1勺', '生抽 1勺', '料酒 1勺', '糖 少许'],
+    steps: [
+      '五花肉冷水下锅加姜片料酒煮20分钟，筷子能插透捞出',
+      '晾凉后切薄片，青蒜切段，青红椒切块',
+      '锅中不放油，下肉片小火煸至卷曲出油',
+      '下豆瓣酱甜面酱炒出红油',
+      '加青红椒翻炒，加生抽糖调味，最后放青蒜段炒匀出锅'
+    ],
+    tips: '肉片要煸到微微卷起呈"灯盏窝"才正宗；青蒜最后放保持脆嫩'
+  },
+  '蛋炒饭': {
+    materials: ['隔夜米饭 1碗', '鸡蛋 2个', '葱花 适量', '胡萝卜丁 适量', '火腿丁 适量'],
+    seasonings: ['盐 适量', '生抽 少许', '食用油 适量'],
+    steps: [
+      '鸡蛋打散，米饭提前抓散',
+      '热锅凉油，倒入蛋液炒至半凝固',
+      '迅速下米饭翻炒，使米粒裹上蛋液',
+      '加胡萝卜丁火腿丁翻炒2分钟',
+      '加盐和少许生抽调味，撒葱花炒匀出锅'
+    ],
+    tips: '用隔夜饭炒出来粒粒分明；蛋液下锅后立即放饭更易裹匀'
+  },
+  '糖醋排骨': {
+    materials: ['小排 500g', '姜 3片', '葱 2段', '白芝麻 少许'],
+    seasonings: ['生抽 2勺', '醋 3勺', '糖 2勺', '料酒 2勺', '盐 适量'],
+    steps: [
+      '排骨冷水下锅加料酒焯水，撇沫捞出洗净',
+      '锅中放少许油，下排骨煎至两面金黄',
+      '加葱姜炒香，倒入热水没过排骨',
+      '加生抽、料酒，小火炖30分钟',
+      '加糖和醋大火收汁，汤汁浓稠撒芝麻出锅'
+    ],
+    tips: '糖醋比例糖2醋3口感最佳；收汁时要不停翻炒避免糊锅'
+  },
+  '清蒸鱼': {
+    materials: ['鲈鱼 1条', '葱姜丝 适量', '葱丝 适量', '红椒丝 少许'],
+    seasonings: ['蒸鱼豉油 3勺', '料酒 1勺', '食用油 2勺', '盐 少许'],
+    steps: [
+      '鱼处理干净，两面划刀，抹盐和料酒腌制10分钟',
+      '盘底铺葱姜，鱼肚塞葱姜，鱼身上放葱姜丝',
+      '水开后大火蒸8-10分钟',
+      '倒掉盘中汤汁，去掉葱姜，重新铺葱丝红椒丝',
+      '淋蒸鱼豉油，烧2勺热油浇在葱丝上激香'
+    ],
+    tips: '蒸鱼时间按1斤8分钟计算；一定要倒掉蒸出的腥水'
+  },
+  '酸辣土豆丝': {
+    materials: ['土豆 2个', '干辣椒 5个', '花椒 少许', '葱姜蒜 适量', '青红椒 各半个'],
+    seasonings: ['盐 适量', '醋 2勺', '生抽 1勺', '食用油 适量'],
+    steps: [
+      '土豆去皮切细丝，泡清水去除淀粉，沥干',
+      '热锅凉油，下花椒干辣椒葱姜蒜爆香',
+      '下土豆丝大火快炒1分钟',
+      '沿锅边淋醋，加生抽盐调味',
+      '加青红椒丝翻炒均匀出锅'
+    ],
+    tips: '土豆丝泡水去淀粉才爽脆；大火快炒保持脆感'
+  }
+};
+
+function findRecipe(dishName) {
+  if (!dishName) return null;
+  const name = dishName.trim();
+  if (RECIPE_DB[name]) return { recipe: RECIPE_DB[name], exact: name };
+  for (const key of Object.keys(RECIPE_DB)) {
+    if (name.includes(key) || key.includes(name)) {
+      return { recipe: RECIPE_DB[key], exact: key };
+    }
+  }
+  return null;
+}
+
+function generateMenu() {
+  const content = document.getElementById('contentInput');
+  const title = document.getElementById('titleInput');
+  const status = document.getElementById('aiFormatStatus');
+  status.style.display = 'block';
+
+  const dishName = prompt('请输入菜名（如：番茄炒蛋、红烧肉、宫保鸡丁）');
+  if (!dishName || !dishName.trim()) {
+    status.textContent = '已取消';
+    return;
+  }
+
+  const name = dishName.trim();
+  const match = findRecipe(name);
+  let html = '';
+
+  if (match) {
+    const r = match.recipe;
+    const displayName = match.exact;
+    html += `<div>🍽️ <b>菜名:</b> ${escapeHtml(displayName)}</div>`;
+    html += `<div><br></div>`;
+    html += `<div>📝 <b>所需材料</b></div>`;
+    r.materials.forEach(m => { html += `<div>- ${escapeHtml(m)}</div>`; });
+    html += `<div><br></div>`;
+    html += `<div>🧂 <b>调料</b></div>`;
+    r.seasonings.forEach(s => { html += `<div>- ${escapeHtml(s)}</div>`; });
+    html += `<div><br></div>`;
+    html += `<div>👨‍🍳 <b>制作过程</b></div>`;
+    r.steps.forEach((s, i) => { html += `<div>${i + 1}. ${escapeHtml(s)}</div>`; });
+    html += `<div><br></div>`;
+    html += `<div>💡 <b>小贴士</b></div>`;
+    html += `<div>- ${escapeHtml(r.tips)}</div>`;
+    if (!title.value) title.value = displayName;
+    status.textContent = `✓ 已生成「${displayName}」菜单`;
+    toast(`已生成「${displayName}」菜单`);
+  } else {
+    // 未知菜品生成空模板
+    html += `<div>🍽️ <b>菜名:</b> ${escapeHtml(name)}</div>`;
+    html += `<div><br></div>`;
+    html += `<div>📝 <b>所需材料</b></div>`;
+    html += `<div>- 主料：<br></div>`;
+    html += `<div>- 配料：<br></div>`;
+    html += `<div><br></div>`;
+    html += `<div>🧂 <b>调料</b></div>`;
+    html += `<div>- 盐 适量<br></div>`;
+    html += `<div>- 生抽 适量<br></div>`;
+    html += `<div>- 食用油 适量<br></div>`;
+    html += `<div><br></div>`;
+    html += `<div>👨‍🍳 <b>制作过程</b></div>`;
+    html += `<div>1. <br></div>`;
+    html += `<div>2. <br></div>`;
+    html += `<div>3. <br></div>`;
+    html += `<div><br></div>`;
+    html += `<div>💡 <b>小贴士</b></div>`;
+    html += `<div>- <br></div>`;
+    if (!title.value) title.value = name;
+    status.textContent = `暂未收录「${name}」，已生成菜单模板，请补充内容`;
+    toast(`已生成菜单模板`);
+  }
+
+  content.innerHTML = html;
+}
+
 /* ===== 图片处理 ===== */
 function compressImage(file, max=1000, q=0.82) {
   return new Promise((resolve, reject) => {
@@ -2016,18 +2261,73 @@ function renderMemos() {
     const cover = m.cover ? `<img class="card-cover" src="${esc(m.cover)}" />` : `<div class="card-cover-ph">${m.pinned?'📌':'📄'}</div>`;
     const pin = m.pinned ? `<div class="card-pin">置顶</div>` : '';
     const tags = (m.tags||[]).map(t => `<span class="card-tag">${esc(t)}</span>`).join('');
-    return `<div class="card" data-id="${m.id}">
+    const grp = groups.find(g => g.id === m.groupId);
+    const groupTag = grp ? `<span class="card-group" data-gid="${grp.id}">${grp.icon||''} ${esc(grp.name)}</span>` : '';
+    return `<div class="card" data-id="${m.id}" draggable="true">
       ${pin}
       <button class="card-del" data-del="${m.id}">×</button>
       ${cover}
       <div class="card-body">
         <div class="card-title">${esc(m.title||'无标题')}</div>
         <div class="card-excerpt">${esc(m.excerpt||'无内容')}</div>
-        <div class="card-meta">${tags}<span class="card-time">${fmtTime(m.updatedAt)}</span></div>
+        <div class="card-meta">${groupTag}${tags}<span class="card-time">${fmtTime(m.updatedAt)}</span></div>
         <div class="card-created">创建于 ${fmtTime(m.createdAt)}</div>
       </div>
     </div>`;
   }).join('');
+  bindCardDrag();
+}
+
+/* ===== 笔记移动分组 ===== */
+let movingMemoId = null;
+function moveMemo(id, newGroupId) {
+  const m = memos.find(x => x.id === id);
+  if (!m) return;
+  if (m.groupId === newGroupId) { toast('已在当前分组'); return; }
+  m.groupId = newGroupId;
+  m.updatedAt = Date.now();
+  saveMemos();
+  renderMemos();
+  const g = groups.find(x => x.id === newGroupId);
+  toast(`已移动到「${g ? g.name : '分组'}」`);
+}
+function openMoveSheet(id) {
+  movingMemoId = id;
+  const box = document.getElementById('moveGroupList');
+  if (!box) return;
+  box.innerHTML = groups.map(g => `<button class="sheet-btn outline" data-gid="${g.id}">${g.icon||''} ${esc(g.name)}</button>`).join('');
+  box.querySelectorAll('button').forEach(b => {
+    b.onclick = () => {
+      moveMemo(movingMemoId, b.dataset.gid);
+      closeSheet('moveSheet');
+    };
+  });
+  openSheet('moveSheet');
+}
+function bindCardDrag() {
+  const cards = document.querySelectorAll('.card[draggable="true"]');
+  cards.forEach(card => {
+    card.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  });
+  const tabs = document.querySelectorAll('.group-tab[data-gid]');
+  tabs.forEach(tab => {
+    tab.addEventListener('dragover', e => {
+      e.preventDefault();
+      tab.classList.add('drag-over');
+    });
+    tab.addEventListener('dragleave', () => tab.classList.remove('drag-over'));
+    tab.addEventListener('drop', e => {
+      e.preventDefault();
+      tab.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain');
+      const gid = tab.dataset.gid;
+      if (id && gid) moveMemo(id, gid);
+    });
+  });
 }
 
 /* ===== 编辑器 ===== */
@@ -2171,7 +2471,7 @@ function saveMemo() {
 /* ===== Sheet 控制 ===== */
 function openSheet(id) { document.getElementById(id).classList.add('active'); }
 function closeSheet(id) { document.getElementById(id).classList.remove('active'); }
-function closeAllSheets() { ['imgSheet','coverSheet','tagsSheet','importSheet','ocrSheet','aiFormatSheet'].forEach(closeSheet); }
+function closeAllSheets() { ['imgSheet','coverSheet','tagsSheet','importSheet','ocrSheet','aiFormatSheet','moveSheet'].forEach(closeSheet); }
 
 /* ===== 分组弹窗 ===== */
 let actionGroupId = null;
@@ -2236,9 +2536,32 @@ function bind() {
       saveMemos(); renderMemos(); toast('已删除');
       return;
     }
+    const grpTag = e.target.closest('.card-group');
+    if (grpTag) {
+      e.stopPropagation();
+      const card = grpTag.closest('.card');
+      if (card) openMoveSheet(card.dataset.id);
+      return;
+    }
     const card = e.target.closest('.card');
     if (card) openEditor(card.dataset.id);
   });
+  // 长按卡片弹出移动分组(移动端友好)
+  let cardTouchTimer = null;
+  let cardTouchMoved = false;
+  document.getElementById('grid').addEventListener('touchstart', e => {
+    const card = e.target.closest('.card');
+    if (!card || e.target.closest('[data-del]') || e.target.closest('.card-group')) return;
+    cardTouchMoved = false;
+    cardTouchTimer = setTimeout(() => {
+      if (!cardTouchMoved) {
+        navigator.vibrate && navigator.vibrate(30);
+        openMoveSheet(card.dataset.id);
+      }
+    }, 550);
+  }, { passive: true });
+  document.getElementById('grid').addEventListener('touchmove', () => { cardTouchMoved = true; clearTimeout(cardTouchTimer); }, { passive: true });
+  document.getElementById('grid').addEventListener('touchend', () => clearTimeout(cardTouchTimer), { passive: true });
   const ce = document.getElementById('contentInput');
   ce.addEventListener('keyup', saveRange);
   ce.addEventListener('mouseup', saveRange);
@@ -2268,6 +2591,11 @@ function bind() {
   
   document.getElementById('tagsBtn').onclick = () => openSheet('tagsSheet');
   document.getElementById('tagsSheetClose').onclick = () => closeSheet('tagsSheet');
+  document.getElementById('moveGroupBtn').onclick = () => {
+    if (editingId) openMoveSheet(editingId);
+    else toast('请先保存笔记');
+  };
+  document.getElementById('moveSheetClose').onclick = () => closeSheet('moveSheet');
   document.getElementById('tagsInput').addEventListener('input', e => {
     const r = e.target.value.trim();
     curTags = r ? r.split(/[,，]/).map(t=>t.trim()).filter(Boolean) : [];
@@ -2352,6 +2680,7 @@ function bind() {
   document.getElementById('aiStyleTravel').onclick = () => { applyFormatStyle('travel'); closeSheet('aiFormatSheet'); };
   document.getElementById('aiStyleStudy').onclick = () => { applyFormatStyle('study'); closeSheet('aiFormatSheet'); };
   document.getElementById('aiStyleTodo').onclick = () => { applyFormatStyle('todo'); closeSheet('aiFormatSheet'); };
+  document.getElementById('aiStyleMenu').onclick = () => { generateMenu(); closeSheet('aiFormatSheet'); };
 
   /* 粘贴图片 */
   document.addEventListener('paste', async e => {
