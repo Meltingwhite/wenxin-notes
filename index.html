@@ -503,6 +503,34 @@
     gap: 4px;
   }
 
+  /* 预览/编辑模式切换按钮 */
+  .eh-mode {
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .eh-mode.active { color: var(--bili-pink); }
+  /* 预览模式样式 */
+  body.preview-mode .editor-title {
+    background: var(--bg);
+    color: var(--text);
+    pointer-events: none;
+    border-bottom-color: transparent;
+  }
+  body.preview-mode .editor-content {
+    pointer-events: none;
+    color: var(--text);
+  }
+  body.preview-mode .editor-content:empty:before { content: '（空内容）'; }
+  body.preview-mode .editor-toolbar { display: none; }
+  body.preview-mode .eh-save { display: none; }
+  body.preview-mode .editor-cover-ph {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  body.preview-mode .editor-cover { pointer-events: none; }
+
   /* 工具栏 */
   .editor-toolbar {
     display: flex;
@@ -687,6 +715,260 @@
   }
   .modal-box input:focus { border-color: var(--bili-pink); }
   .modal-box .sheet-row { gap: 8px; }
+
+  /* ===== 精美分享弹窗 ===== */
+  .share-box {
+    max-width: 360px;
+    padding: 0;
+    overflow: hidden;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 24px 64px rgba(251, 114, 153, 0.22), 0 8px 24px rgba(0,0,0,0.1);
+    animation: sharePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes sharePop {
+    from { opacity: 0; transform: translateY(20px) scale(0.92); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .share-header {
+    background: linear-gradient(135deg, #fb7299 0%, #ff8fab 50%, #ffa3b8 100%);
+    padding: 28px 20px 22px;
+    text-align: center;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .share-header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 50%;
+  }
+  .share-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -30px;
+    width: 80px; height: 80px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+  .share-icon {
+    width: 60px; height: 60px;
+    background: rgba(255,255,255,0.22);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(255,255,255,0.4);
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.3);
+    animation: shareIconFloat 3s ease-in-out infinite;
+  }
+  @keyframes shareIconFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+  .share-header h3 {
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+  .share-subtitle {
+    font-size: 12px;
+    opacity: 0.95;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 0.3px;
+  }
+  .share-content {
+    padding: 22px 20px 18px;
+    background: linear-gradient(180deg, #fff 0%, #fffafc 100%);
+  }
+  .share-qr-wrap { text-align: center; margin-bottom: 20px; }
+  .share-qr-frame {
+    display: inline-block;
+    padding: 14px;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 6px 20px rgba(251, 114, 153, 0.18), 0 0 0 1px var(--bili-pink-light), inset 0 1px 0 rgba(255,255,255,0.5);
+    margin-bottom: 10px;
+    position: relative;
+    transition: transform 0.3s;
+  }
+  .share-qr-frame:active { transform: scale(0.97); }
+  .share-qr-frame::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(251,114,153,0.3), rgba(255,143,171,0.1));
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .share-qr-frame:hover::before { opacity: 1; }
+  .share-qr-frame img {
+    width: 184px; height: 184px;
+    border-radius: 10px;
+    display: block;
+  }
+  .share-qr-placeholder {
+    width: 184px; height: 184px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bili-pink);
+    background: linear-gradient(135deg, var(--bili-pink-light) 0%, #fff5f8 100%);
+    border-radius: 10px;
+    animation: qrPulse 2s ease-in-out infinite;
+  }
+  @keyframes qrPulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+  }
+  .share-qr-tip {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .share-link-row { margin-bottom: 18px; }
+  .share-link-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .share-link-input-wrap {
+    display: flex;
+    gap: 6px;
+    background: var(--bg);
+    padding: 5px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    transition: all 0.2s;
+  }
+  .share-link-input-wrap:focus-within {
+    border-color: var(--bili-pink);
+    box-shadow: 0 0 0 3px rgba(251, 114, 153, 0.1);
+  }
+  .share-link-input {
+    flex: 1;
+    border: none !important;
+    background: transparent !important;
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+    margin-bottom: 0 !important;
+    color: var(--text);
+    min-width: 0;
+    letter-spacing: 0.2px;
+  }
+  .share-copy-btn {
+    background: linear-gradient(135deg, var(--bili-pink) 0%, #ff8fab 100%);
+    color: #fff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-family: inherit;
+    box-shadow: 0 2px 6px rgba(251, 114, 153, 0.3);
+    letter-spacing: 0.3px;
+  }
+  .share-copy-btn:active { transform: scale(0.94); }
+  .share-copy-btn.copied {
+    background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+    box-shadow: 0 2px 6px rgba(82, 196, 26, 0.3);
+  }
+  .share-features {
+    display: flex;
+    justify-content: space-around;
+    padding: 14px 8px;
+    background: linear-gradient(135deg, var(--bili-pink-light) 0%, #fff5f8 100%);
+    border-radius: 14px;
+    margin-bottom: 4px;
+    border: 1px solid rgba(251, 114, 153, 0.08);
+  }
+  .share-feature {
+    text-align: center;
+    flex: 1;
+    position: relative;
+    transition: transform 0.2s;
+  }
+  .share-feature:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 24px;
+    background: rgba(251, 114, 153, 0.15);
+  }
+  .share-feature:active { transform: scale(0.95); }
+  .share-feature-icon {
+    width: 36px; height: 36px;
+    margin: 0 auto 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.6);
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(251, 114, 153, 0.1);
+  }
+  .share-feature-text { font-size: 11px; color: #c4567c; font-weight: 600; letter-spacing: 0.3px; }
+  .share-loading {
+    text-align: center;
+    padding: 36px 20px;
+    color: var(--muted);
+    font-size: 13px;
+    background: linear-gradient(180deg, #fff 0%, #fffafc 100%);
+    letter-spacing: 0.3px;
+  }
+  .share-loading-spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--bili-pink-light);
+    border-top-color: var(--bili-pink);
+    border-radius: 50%;
+    margin: 0 auto 14px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .share-close-btn {
+    width: 100%;
+    padding: 15px;
+    background: #fff;
+    color: var(--muted);
+    border: none;
+    border-top: 1px solid var(--border);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+    letter-spacing: 0.5px;
+  }
+  .share-close-btn:active { background: #fafafa; color: var(--text); }
   .group-action-btns { display: flex; flex-direction: column; gap: 8px; }
   .group-action-btns .sheet-btn { display: flex; align-items: center; justify-content: center; padding: 12px; }
   .sheet-btn.danger:hover { background: var(--bili-pink-light); }
@@ -824,6 +1106,9 @@
   <div class="editor-header">
     <button class="eh-btn eh-back" id="backBtn">返回</button>
     <span class="eh-title" id="ehTitle">新建</span>
+    <button class="eh-btn eh-mode" id="modeToggleBtn" title="切换预览/编辑模式">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    </button>
     <button class="eh-btn eh-save" id="saveBtn">保存</button>
   </div>
   <div class="editor-body">
@@ -877,7 +1162,6 @@
       删除
     </button></div>
   </div>
-</div>
 
 <!-- 图片放大预览 -->
 <div class="lightbox-overlay" id="lightbox">
@@ -1029,26 +1313,63 @@
 
 <!-- 分享弹窗 -->
 <div class="modal-bg" id="shareModal">
-  <div class="modal-box">
-    <h3>分享笔记</h3>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;text-align:center;">生成分享链接，他人打开即可共享笔记，实时同步更新</p>
-    <div id="shareLinkBox" style="display:none;margin-bottom:12px;">
-      <div class="sheet-label" style="font-size:12px;color:var(--muted);margin-bottom:6px;">分享链接</div>
-      <div style="display:flex;gap:8px;">
-        <input class="sheet-input" id="shareLinkInput" readonly style="flex:1;font-size:12px;" />
-        <button class="sheet-btn" id="copyLinkBtn" style="padding:8px 14px;white-space:nowrap;">复制</button>
+  <div class="modal-box share-box">
+    <div class="share-header">
+      <div class="share-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
       </div>
-      <div style="text-align:center;margin-top:12px;">
-        <img id="shareQRImg" style="display:none;width:200px;height:200px;border-radius:8px;border:1px solid var(--border);" alt="二维码" />
+      <h3>分享笔记</h3>
+      <p class="share-subtitle">生成专属链接，多端实时同步共享</p>
+    </div>
+    <div id="shareLinkBox" class="share-content" style="display:none;">
+      <div class="share-qr-wrap">
+        <div class="share-qr-frame">
+          <img id="shareQRImg" style="display:none;" alt="二维码" />
+          <div id="shareQrPlaceholder" class="share-qr-placeholder">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h2v2h-2z" fill="currentColor"/><path d="M18 14h2v2h-2z" fill="currentColor"/><path d="M14 18h2v2h-2z" fill="currentColor"/><path d="M18 18h2v2h-2z" fill="currentColor"/></svg>
+          </div>
+        </div>
+        <div class="share-qr-tip">手机扫码即可访问</div>
       </div>
-      <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">💡 手机扫码或点击链接即可访问，所有修改自动同步</p>
+      <div class="share-link-row">
+        <div class="share-link-label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          分享链接
+        </div>
+        <div class="share-link-input-wrap">
+          <input class="share-link-input" id="shareLinkInput" readonly />
+          <button class="share-copy-btn" id="copyLinkBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>复制</span>
+          </button>
+        </div>
+      </div>
+      <div class="share-features">
+        <div class="share-feature">
+          <div class="share-feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fb7299" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </div>
+          <div class="share-feature-text">实时同步</div>
+        </div>
+        <div class="share-feature">
+          <div class="share-feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fb7299" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2.5"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
+          </div>
+          <div class="share-feature-text">多端访问</div>
+        </div>
+        <div class="share-feature">
+          <div class="share-feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fb7299" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div class="share-feature-text">安全私密</div>
+        </div>
+      </div>
     </div>
-    <div id="shareLoading" style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px;">
-      正在生成分享链接...
+    <div id="shareLoading" class="share-loading">
+      <div class="share-loading-spinner"></div>
+      <div>正在生成分享链接...</div>
     </div>
-    <div class="sheet-row">
-      <button class="sheet-btn outline" id="shareCancelBtn">关闭</button>
-    </div>
+    <button class="share-close-btn" id="shareCancelBtn">关闭</button>
   </div>
 </div>
 
@@ -1129,7 +1450,7 @@ const MKEY = 'memo_data_v2';
 const CACHE_KEY = 'wenxin_cache_v1';
 let groups = [], memos = [], activeGroup = 'all', keyword = '', editingId = null, editingGroupId = null;
 let curCover = null, curTags = [], curPinned = false, savedRange = null, autoCoverSrc = false;
-let shareId = null, isCloudMode = false, lastSyncTime = 0, syncTimer = null, localDirty = false, syncInProgress = false;
+let shareId = null, isCloudMode = false, lastSyncTime = 0, syncTimer = null, localDirty = false, syncInProgress = false, editMode = false;
 let giteeConfig = null, giteeSha = null;
 let syncRetryCount = 0, syncLastAttempt = 0;
 
@@ -3245,7 +3566,31 @@ async function openEditor(id) {
   document.getElementById('tagsInput').value = curTags.join(', ');
   updatePinBtn(); updateTagsBtn();
   document.getElementById('editorOverlay').classList.add('active');
-  setTimeout(() => document.getElementById('titleInput').focus(), 100);
+  // 查看已有笔记默认预览模式，新建默认编辑模式
+  setEditorMode(!!id ? false : true);
+}
+
+/* 切换编辑器模式：true=编辑模式，false=预览模式 */
+function setEditorMode(isEdit) {
+  editMode = isEdit;
+  const btn = document.getElementById('modeToggleBtn');
+  const titleInput = document.getElementById('titleInput');
+  const contentInput = document.getElementById('contentInput');
+  if (isEdit) {
+    document.body.classList.remove('preview-mode');
+    btn.classList.add('active');
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+    btn.title = '当前：编辑模式，点击切换为预览';
+    titleInput.removeAttribute('readonly');
+    contentInput.setAttribute('contenteditable', 'true');
+  } else {
+    document.body.classList.add('preview-mode');
+    btn.classList.remove('active');
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    btn.title = '当前：预览模式，点击切换为编辑';
+    titleInput.setAttribute('readonly', 'readonly');
+    contentInput.setAttribute('contenteditable', 'false');
+  }
 }
 function closeEditor() {
   document.getElementById('editorOverlay').classList.remove('active');
@@ -3690,14 +4035,31 @@ function bind() {
       e.target.classList.remove('active');
     }
   });
-  document.getElementById('copyLinkBtn').onclick = () => {
+  document.getElementById('copyLinkBtn').onclick = async () => {
     const input = document.getElementById('shareLinkInput');
-    input.select();
+    const btn = document.getElementById('copyLinkBtn');
+    const value = input.value;
+    let ok = false;
     try {
-      document.execCommand('copy');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(value);
+        ok = true;
+      } else {
+        input.select();
+        ok = document.execCommand('copy');
+      }
+    } catch(e) { ok = false; }
+    if (ok) {
+      btn.classList.add('copied');
+      btn.querySelector('span').textContent = '已复制';
       toast('链接已复制');
-    } catch {
-      navigator.clipboard?.writeText(input.value).then(() => toast('链接已复制')).catch(() => toast('请手动复制'));
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.querySelector('span').textContent = '复制';
+      }, 2000);
+    } else {
+      input.select();
+      toast('请手动长按复制');
     }
   };
 
