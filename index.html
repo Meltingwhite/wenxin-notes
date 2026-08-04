@@ -9104,6 +9104,26 @@ function renderRecipe(r, displayName, content, title, status) {
   status.textContent = `✓ 已生成「${displayName}」菜单`;
   toast(`已生成「${displayName}」菜单`);
   content.innerHTML = html;
+  // 自动生成菜品封面（精准美食摄影 prompt，确保与菜名匹配）
+  if (!curCover) {
+    const ph = document.getElementById('coverPh');
+    const origText = ph.innerHTML;
+    ph.innerHTML = '<span style="font-size:12px;">🎨 AI生成菜品封面中...</span>';
+    generateDishCover(displayName).then(r => {
+      // 生成期间用户可能手动设置了封面，需再次检查
+      if (curCover) { ph.innerHTML = origText; return; }
+      if (r && r.src) {
+        autoCoverSrc = true;
+        setCover(r.src);
+        toast('已生成菜品封面');
+      } else {
+        ph.innerHTML = origText;
+      }
+    }).catch(e => {
+      console.warn('菜品封面生成失败:', e);
+      ph.innerHTML = origText;
+    });
+  }
 }
 
 function renderEmptyTemplate(name, content, title, status) {
@@ -9177,7 +9197,9 @@ function compressImage(file, max=1000, q=0.82) {
   });
 }
 async function generateAICover(prompt, onP) {
-  const url = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(prompt) + '?width=640&height=360&nologo=true&seed=' + Math.floor(Math.random()*1e6);
+  // 增强 prompt：确保生成的是图片而非人像，避免文字干扰
+  const enhanced = prompt + ', high quality, detailed, no people, no hands, no face, no text, no watermark';
+  const url = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(enhanced) + '?width=640&height=360&nologo=true&seed=' + Math.floor(Math.random()*1e6);
   onP && onP('AI 生成中(约5-15秒)...');
   try {
     const res = await fetchWithTimeout(url, {}, 15000);
@@ -9190,6 +9212,20 @@ async function generateAICover(prompt, onP) {
     const d = await imgToDataURL(url);
     return { src: d, ok: true };
   } catch(e2) { return { src: url, ok: false }; }
+}
+
+/* 生成菜品封面：精准构造美食摄影 prompt，确保画面是菜品本身且与菜名匹配 */
+async function generateDishCover(dishName, onP) {
+  // 从菜谱库提取该菜品的食材，用于增强 prompt 准确性
+  let ingredientsHint = '';
+  const match = findRecipe(dishName);
+  if (match && match.recipe && match.recipe.materials) {
+    // 取前3个食材名（去掉克数）
+    const mats = match.recipe.materials.slice(0, 3).map(m => m.replace(/\s*\d+.*$/, '').trim());
+    ingredientsHint = `, featuring ${mats.join(', ')}`;
+  }
+  const prompt = `Professional food photography of Chinese dish "${dishName}"${ingredientsHint}, authentic Chinese cuisine, appetizing presentation, top-down view, served on white ceramic plate, natural soft lighting, shallow depth of field, high resolution restaurant style, only the food on plate, no people, no hands, no face, no text, no watermark`;
+  return await generateAICover(prompt, onP);
 }
 function blobToDataURL(blob) { return new Promise((res,rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); }); }
 function imgToDataURL(url) {
@@ -9763,7 +9799,11 @@ function bind() {
       const origText = ph.innerHTML;
       ph.innerHTML = '<span style="font-size:12px;">🎨 AI生成封面中...</span>';
       try {
-        const r = await generateAICover(t + ' 笔记封面 简约温馨插画风格', m => {});
+        // 如果标题匹配菜谱库，用精准菜品封面 prompt；否则用通用笔记封面
+        const recipeMatch = findRecipe(t);
+        const r = recipeMatch
+          ? await generateDishCover(t, m => {})
+          : await generateAICover(t + ' 笔记封面 简约温馨插画风格', m => {});
         // 再次检查：生成期间用户可能手动设置了封面
         if (curCover) return;
         if (r.src) {
