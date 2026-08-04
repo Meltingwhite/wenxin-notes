@@ -1525,6 +1525,7 @@ const MKEY = 'memo_data_v2';
 const CACHE_KEY = 'wenxin_cache_v1';
 let groups = [], memos = [], activeGroup = 'all', keyword = '', editingId = null, editingGroupId = null;
 let curCover = null, curTags = [], curPinned = false, savedRange = null, autoCoverSrc = false;
+let autoCoverTimer = null;
 let shareId = null, isCloudMode = false, lastSyncTime = 0, syncTimer = null, localDirty = false, syncInProgress = false, editMode = false;
 let giteeConfig = null, giteeSha = null;
 let syncRetryCount = 0, syncLastAttempt = 0;
@@ -9105,6 +9106,8 @@ function renderRecipe(r, displayName, content, title, status) {
   toast(`已生成「${displayName}」菜单`);
   content.innerHTML = html;
   // 自动生成菜品封面（精准美食摄影 prompt，确保与菜名匹配）
+  // 清除标题输入的防抖定时器，避免重复生成
+  clearTimeout(autoCoverTimer);
   if (!curCover) {
     const ph = document.getElementById('coverPh');
     const origText = ph.innerHTML;
@@ -9785,7 +9788,6 @@ function bind() {
   });
 
   /* 标题输入后自动生成封面（防抖3秒，不覆盖手动设置的封面） */
-  let autoCoverTimer = null;
   document.getElementById('titleInput').addEventListener('input', () => {
     clearTimeout(autoCoverTimer);
     const t = document.getElementById('titleInput').value.trim();
