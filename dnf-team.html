@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>薄纱末世录 · 4人团本排表协作工具</title>
+<title>薄纱团本 · 排表协作工具</title>
 <style>
 :root{
   --bg:#0f1117; --panel:#1a1d27; --panel2:#222633; --line:#333a4a;
@@ -66,7 +66,14 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .owner-header:first-child{margin-top:0}
 .owner-header .cnt{font-size:11px;color:var(--mut);font-weight:400;margin-left:6px}
 .team-block{background:var(--panel2);padding:12px;border-radius:9px;margin-bottom:12px;border:1px solid var(--line)}
+.team-block.raid-red{border:2px solid #e74c3c;background:#2a1515}
+.team-block.raid-yellow{border:2px solid #f1c40f;background:#2a2a15}
+.team-block.raid-green{border:2px solid #2ecc71;background:#152a1a}
 .team-title{margin-bottom:9px;color:var(--blue2);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;font-size:14px}
+.team-title .raid-tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-right:6px}
+.raid-tag.red{background:#e74c3c;color:#fff}
+.raid-tag.yellow{background:#f1c40f;color:#222}
+.raid-tag.green{background:#2ecc71;color:#fff}
 .team-title .tsum{font-size:12px;color:var(--mut)}
 .team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
 .slot{padding:9px;border-radius:7px;min-height:74px;border:1px solid var(--line)}
@@ -127,7 +134,11 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
 
   <!-- 顶栏 -->
   <div class="top-bar">
-    <h2>薄纱末世录 · 4人固定队自动排表</h2>
+    <h2>薄纱团本 · 排表协作工具</h2>
+    <div style="display:flex;gap:4px;align-items:center;background:var(--panel2);border-radius:6px;padding:3px;border:1px solid var(--line)">
+      <button class="mode-btn active" id="mode4" data-mode="4" style="padding:5px 12px;border-radius:4px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-size:13px">4人团本</button>
+      <button class="mode-btn" id="mode12" data-mode="12" style="padding:5px 12px;border-radius:4px;border:none;background:transparent;color:var(--mut);cursor:pointer;font-size:13px">12人团本</button>
+    </div>
     <div class="acts">
       <button id="autoArrange">一键均衡排完所有角色</button>
       <button class="secondary" id="exportData">导出 JSON</button>
@@ -252,6 +263,7 @@ const LS_BACK = "busha_backup";
 let charList = [];
 let teamList = [];
 let editTargetId = null;
+let raidMode = 4; /* 4=四人次本, 12=十二人团本(3队红黄绿) */
 
 /* ---------- 原始数据 ---------- */
 function getInitData(){
@@ -362,29 +374,37 @@ function randId(){ return Math.random().toString(36).slice(2,10); }
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 /* ---------- 本地存储 ---------- */
-function saveStorage(){ try{ localStorage.setItem(LS_CHAR, JSON.stringify({charList,teamList})); }catch(e){} }
+function saveStorage(){ try{ localStorage.setItem(LS_CHAR, JSON.stringify({charList,teamList,raidMode})); }catch(e){} }
 function loadStorage(){
   try{
     const s = JSON.parse(localStorage.getItem(LS_CHAR));
-    if(s && Array.isArray(s.charList)){ charList = s.charList; teamList = s.teamList && s.teamList.length ? s.teamList : arrange(charList); return true; }
+    if(s && Array.isArray(s.charList)){ charList = s.charList; raidMode = s.raidMode||4; teamList = s.teamList && s.teamList.length ? s.teamList : arrange(charList); return true; }
   }catch(e){}
   return false;
 }
 
 /* ---------- 排表（纯函数） ---------- */
-function arrange(chars){
+function arrange(chars, mode){
+  const m = mode || raidMode || 4;
+  if(m===12) return arrange12(chars);
+  return arrange4(chars);
+}
+
+/* 12人团本：3队×4人，红>黄>绿战力梯度 */
+function arrange12(chars){
   const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
   const H = chars.filter(c=>c.type==="healer").slice().sort((a,b)=>b.power-a.power);
+  if(H.length<3 || C.length<9) return []; // 不足3奶9C无法组12人
   const used = new Set();
-  if(H.length===0) return [];
-  const n = H.length;
-  // Phase 1: 每队分配一个奶（按战力降序，最高奶→team[0]）
+  // Phase 1: 取最高3奶，红队拿最高奶，绿队最低奶
   const teams = [];
-  for(let i=0;i<n;i++){
+  for(let i=0;i<3;i++){
     used.add(H[i].id);
     teams.push({slots:[{charId:H[i].id}], owners:new Set([H[i].owner]), total:H[i].power});
   }
-  // teams[0]=最高奶, teams[n-1]=最低奶
+  // teams[0]=红(最高奶), teams[1]=黄, teams[2]=绿(最低奶)
+  // Phase 2: C从高到低，红队先选最强C，然后黄队，再绿队，循环3轮
+  // 这样红队自然拿到最强C，形成红>黄>绿梯度
   function pickAssign(ti, preferHigh){
     for(let k=preferHigh?0:C.length-1; preferHigh?k<C.length:k>=0; k+=preferHigh?1:-1){
       const c=C[k];
@@ -395,15 +415,58 @@ function arrange(chars){
     }
     return false;
   }
-  // Phase 2: 轮次1-2 —— 每队先保证拿到2个C
-  // 从最低奶队开始选最高C：低奶拿高C，高奶拿低C
-  for(let round=0;round<2;round++){
-    for(let ti=n-1;ti>=0;ti--){
-      if(teams[ti].slots.length>=3) continue; // 已有 奶+2C
+  for(let round=0;round<3;round++){
+    for(let ti=0;ti<3;ti++){
+      if(teams[ti].slots.length>=4) continue;
       pickAssign(ti,true);
     }
   }
-  // Phase 3: 剩余C贪心分配 —— 每次给当前总战力最低且不冲突的队
+  // 补位：如果某队还没满4人（因玩家冲突），放宽限制
+  for(let ti=0;ti<3;ti++){
+    while(teams[ti].slots.length<4){
+      let placed=false;
+      for(let k=0;k<C.length;k++){
+        if(!used.has(C[k].id)){
+          teams[ti].slots.push({charId:C[k].id}); teams[ti].total+=C[k].power; used.add(C[k].id);
+          placed=true; break;
+        }
+      }
+      if(!placed) break;
+    }
+  }
+  // 确保红>黄>绿：按总战力降序排列后映射到红黄绿
+  teams.sort((a,b)=>b.total-a.total);
+  return teams.map((t,i)=>({slots:t.slots, raidColor:["red","yellow","green"][i]}));
+}
+
+/* 4人团本：全部角色均衡排表 */
+function arrange4(chars){
+  const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
+  const H = chars.filter(c=>c.type==="healer").slice().sort((a,b)=>b.power-a.power);
+  const used = new Set();
+  if(H.length===0) return [];
+  const n = H.length;
+  const teams = [];
+  for(let i=0;i<n;i++){
+    used.add(H[i].id);
+    teams.push({slots:[{charId:H[i].id}], owners:new Set([H[i].owner]), total:H[i].power});
+  }
+  function pickAssign(ti, preferHigh){
+    for(let k=preferHigh?0:C.length-1; preferHigh?k<C.length:k>=0; k+=preferHigh?1:-1){
+      const c=C[k];
+      if(!used.has(c.id) && !teams[ti].owners.has(c.owner)){
+        teams[ti].slots.push({charId:c.id}); teams[ti].owners.add(c.owner);
+        teams[ti].total+=c.power; used.add(c.id); return true;
+      }
+    }
+    return false;
+  }
+  for(let round=0;round<2;round++){
+    for(let ti=n-1;ti>=0;ti--){
+      if(teams[ti].slots.length>=3) continue;
+      pickAssign(ti,true);
+    }
+  }
   for(const c of C){
     if(used.has(c.id)) continue;
     let best=-1,bp=Infinity;
@@ -470,10 +533,11 @@ const SYNC = {
       if(dv > this.room.dataVersion){
         this.room.dataVersion = dv;
         // 备份本地后应用远端
-        try{ localStorage.setItem(LS_BACK, JSON.stringify({charList,teamList})); }catch(e){}
+        try{ localStorage.setItem(LS_BACK, JSON.stringify({charList,teamList,raidMode})); }catch(e){}
         charList = Array.isArray(data.charList)?data.charList:charList;
+        raidMode = data.raidMode||4;
         teamList = Array.isArray(data.teamList)?data.teamList:arrange(charList);
-        saveStorage(); renderAll();
+        saveStorage(); renderAll(); updateModeBtns();
       }
       this.room.presence = data.presence || {};
       this.renderPresence();
@@ -485,10 +549,10 @@ const SYNC = {
     opts = opts||{};
     if(!this.cfg || !this.cfg.token){
       // 本地模式：直接对本地状态应用
-      const st = {charList, teamList, presence:this.room?this.room.presence:{}};
+      const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
       const next = intent(st) || st;
-      charList = next.charList; teamList = next.teamList; this.room.presence = next.presence||{};
-      saveStorage(); renderAll();
+      charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; this.room.presence = next.presence||{};
+      saveStorage(); renderAll(); updateModeBtns();
       return;
     }
     this.writing++;
@@ -517,8 +581,8 @@ const SYNC = {
         const pj = await pr.json();
         this.room.sha = (pj.content && pj.content.sha) || pj.sha;
         this.room.dataVersion = next.dataVersion;
-        charList = next.charList; teamList = next.teamList; this.room.presence = next.presence;
-        saveStorage(); renderAll();
+        charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; this.room.presence = next.presence;
+        saveStorage(); renderAll(); updateModeBtns();
         this.setStatus("已同步","on");
         return;
       }
@@ -554,6 +618,16 @@ function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':
 
 /* ---------- 渲染 ---------- */
 function renderAll(){ renderCharList(); renderTeamTable(); updateStat(); SYNC.renderPresence(); document.getElementById("roomLink").value = location.href; }
+
+function updateModeBtns(){
+  document.querySelectorAll(".mode-btn").forEach(b=>{
+    const m=Number(b.dataset.mode);
+    if(m===raidMode){ b.classList.add("active"); b.style.background="var(--blue)"; b.style.color="#fff"; }
+    else{ b.classList.remove("active"); b.style.background="transparent"; b.style.color="var(--mut)"; }
+  });
+  const autoBtn=document.getElementById("autoArrange");
+  autoBtn.textContent = raidMode===12 ? "一键排表（12人红黄绿）" : "一键均衡排完所有角色";
+}
 
 function updateStat(){
   const all=charList.length, c=charList.filter(x=>x.type==="c").length, h=charList.filter(x=>x.type==="healer").length;
@@ -600,12 +674,17 @@ function renderTeamTable(){
   const wrap=document.getElementById("teamWrap"); wrap.innerHTML="";
   if(!teamList.length){ wrap.innerHTML='<p class="muted">暂无队伍，点击「一键均衡排完所有角色」生成。</p>'; return; }
   const globalUsed=new Set(); teamList.forEach(t=>t.slots.forEach(s=>s.charId&&globalUsed.add(s.charId)));
+  const isRaid12 = raidMode===12;
+  const raidLabels = {red:"红队",yellow:"黄队",green:"绿队"};
   teamList.forEach((team,tIdx)=>{
-    const block=document.createElement("div"); block.className="team-block";
+    const rColor = team.raidColor || (isRaid12 ? ["red","yellow","green"][tIdx] : null);
+    const block=document.createElement("div");
+    block.className = "team-block" + (rColor ? " raid-"+rColor : "");
     const owners=new Set(); let csum=0, hsum=0;
     team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; else hsum+=c.power; } } });
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
-    let html=`<div class="team-title">第${tIdx+1}队（${owners.size}位不同玩家）
+    const teamLabel = rColor ? `${raidLabels[rColor]}` : `第${tIdx+1}队`;
+    let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}位不同玩家）
       <span class="tsum">总战力：<b style="color:var(--yellow)">${hsum+csum}</b> <span style="opacity:.6;font-size:12px">（奶${hsum} + C${csum}）</span> ${ownerOk?'':'<span class=warn>⚠有同队重复玩家</span>'}</span></div><div class="team-grid">`;
     team.slots.forEach((slot,sIdx)=>{
       if(!slot.charId){ html+=`<div class="slot slot-empty">空位</div>`; return; }
@@ -719,10 +798,19 @@ async function delChar(id){
 
 /* ---------- 顶栏动作 ---------- */
 async function doAutoArrange(){ await SYNC.writeState(st=>{ st.teamList=arrange(st.charList); return st; }); }
+async function switchMode(m){
+  if(m===raidMode) return;
+  await SYNC.writeState(st=>{
+    st.raidMode=m; raidMode=m;
+    st.teamList=arrange(st.charList);
+    return st;
+  });
+  updateModeBtns();
+}
 function exportData(){
   const json=JSON.stringify(charList,null,2);
   const blob=new Blob([json],{type:"text/plain"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="薄纱末世录角色数据.json"; a.click();
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="薄纱团本角色数据.json"; a.click();
 }
 async function doImport(){
   const txt=document.getElementById("importText").value;
@@ -818,6 +906,7 @@ function init(){
 
   bindTab();
   document.getElementById("autoArrange").onclick=doAutoArrange;
+  document.querySelectorAll(".mode-btn").forEach(b=>{ b.onclick=()=>switchMode(Number(b.dataset.mode)); });
   document.getElementById("saveChar").onclick=saveChar;
   document.getElementById("cancelEdit").onclick=clearEdit;
   document.getElementById("exportData").onclick=exportData;
@@ -843,6 +932,7 @@ function init(){
   document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{ if(e.target===m) m.classList.remove("show"); }));
 
   SYNC.init();
+  updateModeBtns();
   renderAll();
 }
 init();
