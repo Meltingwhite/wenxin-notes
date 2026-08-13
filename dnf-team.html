@@ -80,7 +80,7 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .slot{padding:9px;border-radius:7px;min-height:74px;border:1px solid var(--line)}
 .slot.c{background:#342318;border-color:var(--orange)}
 .slot.N{background:#15301f;border-color:var(--green)}
-.slot-empty{background:#191c25;border:1px dashed #444;color:#666;display:flex;align-items:center;justify-content:center}
+.slot-empty{background:#191c25;border:1px dashed #444;color:#666}
 .slot .sn{font-weight:600;font-size:13px}
 .slot .sp{font-size:11px;color:var(--mut);margin:2px 0 5px}
 .slot select{font-size:11px;padding:4px}
@@ -364,7 +364,7 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
           <button id="doAcctRegister" style="width:100%;margin-top:8px">注册</button>
         </div>
         <p class="muted" id="acctMsg" style="margin-top:10px;font-size:12px;text-align:center"></p>
-        <div class="admin-link"><a id="openAdminLogin">管理员入口</a></div>
+        <div class="admin-link"><a id="openAdminLogin">管理面板入口</a></div>
       </div>
 
       <!-- 第二步：房间加入/创建 -->
@@ -394,15 +394,15 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
     </div>
   </div>
 
-  <!-- 管理员登录弹窗 -->
+  <!-- 管理员/用户登录弹窗 -->
   <div class="modal" id="adminLoginModal">
     <div class="modal-box" style="max-width:380px">
-      <h3 style="text-align:center">管理员登录</h3>
-      <div class="form-item"><label>账号</label><input id="adminUser" placeholder="管理员账号" onkeydown="if(event.key==='Enter')document.getElementById('adminPwd').focus()"></div>
-      <div class="form-item"><label>密码</label><input type="password" id="adminPwd" placeholder="管理员密码" onkeydown="if(event.key==='Enter')document.getElementById('doAdminLogin').click()"></div>
+      <h3 style="text-align:center">管理面板登录</h3>
+      <div class="form-item"><label>账号</label><input id="adminUser" placeholder="输入账号" onkeydown="if(event.key==='Enter')document.getElementById('adminPwd').focus()"></div>
+      <div class="form-item"><label>密码</label><input type="password" id="adminPwd" placeholder="输入密码" onkeydown="if(event.key==='Enter')document.getElementById('doAdminLogin').click()"></div>
       <button id="doAdminLogin" style="width:100%;margin-top:8px">登录</button>
       <button class="secondary" id="closeAdminLogin" style="width:100%;margin-top:6px">返回</button>
-      <p class="muted" id="adminLoginMsg" style="margin-top:10px;font-size:12px;text-align:center"></p>
+      <p class="muted" id="adminLoginMsg" style="margin-top:10px;font-size:12px;text-align:center">管理员可管理所有房间，普通用户仅可管理自己创建的房间</p>
     </div>
   </div>
 
@@ -1270,8 +1270,33 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${groupLabel}${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
       <span class="tsum">总战力：<b style="color:var(--yellow)">${hsum+csum}</b> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
     team.slots.forEach((slot,sIdx)=>{
-      if(!slot.charId){ html+=`<div class="slot slot-empty">空位</div>`; return; }
-      const c=charList.find(x=>x.id===slot.charId); if(!c){ html+=`<div class="slot slot-empty">空位</div>`; return; }
+      const slotChar = slot.charId ? charList.find(x=>x.id===slot.charId) : null;
+      if(!slotChar){
+        /* 空位也支持选择角色分配 */
+        if(isUltra){ html+=`<div class="slot slot-empty">空位</div>`; return; }
+        const teamOwners=new Set();
+        team.slots.forEach((ss,si)=>{ if(ss.charId && si!==sIdx){ const cc=charList.find(x=>x.id===ss.charId); if(cc) teamOwners.add(cc.owner); } });
+        const available=charList.filter(x=>{
+          return !globalUsed.has(x.id) && !teamOwners.has(x.owner);
+        }).slice().sort((a,b)=>b.power-a.power);
+        let optsHtml=`<option value="">+ 分配角色…</option>`;
+        if(available.length){
+          const byOwner={};
+          available.forEach(x=>{ if(!byOwner[x.owner]) byOwner[x.owner]=[]; byOwner[x.owner].push(x); });
+          Object.keys(byOwner).sort().forEach(owner=>{
+            optsHtml+=`<optgroup label="【${escapeHtml(owner)}】">`;
+            byOwner[owner].forEach(x=>{
+              optsHtml+=`<option value="${x.id}">${escapeHtml(x.name)}(${x.power}) ${x.type==="c"?"C":"奶"}</option>`;
+            });
+            optsHtml+=`</optgroup>`;
+          });
+        } else {
+          optsHtml=`<option value="">无可用角色</option>`;
+        }
+        html+=`<div class="slot slot-empty"><div class="sn" style="color:#555">空位</div><select data-t="${tIdx}" data-s="${sIdx}">${optsHtml}</select></div>`;
+        return;
+      }
+      const c=slotChar;
       if(isUltra){
         html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}"><div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)}</div><div class="sp">${c.power}</div></div>`;
         return;
@@ -1619,9 +1644,9 @@ const ADMIN = {
       saveStorage();renderAll();updateModeBtns();
       SYNC.start();
       document.getElementById("adminPanel").classList.remove("show");
-      // 显示管理员标识
+      // 显示状态标识
       const ss=document.getElementById("syncStatus");
-      ss.textContent="管理员模式 · 已同步";
+      ss.textContent=(ADMIN.active?"管理员模式":"编辑模式")+" · 已同步";
       ss.style.color="var(--orange)";
     }catch(e){ alert("进入失败："+e.message); }
   },
@@ -1657,24 +1682,44 @@ async function doAdminLogin(){
   const msg=document.getElementById("adminLoginMsg");
   if(!u||!p){ msg.textContent="请输入账号和密码"; return; }
   if(ADMIN.login(u,p)){
+    /* 管理员登录：可管理所有房间 */
     closeModal("adminLoginModal");
     document.getElementById("adminPwd").value="";
-    document.getElementById("adminLoginMsg").textContent="";
+    document.getElementById("adminLoginMsg").textContent="管理员可管理所有房间，普通用户仅可管理自己创建的房间";
     document.getElementById("adminPanelTitle").textContent="管理员控制台";
     document.getElementById("adminPanelTag").textContent="Wenby";
     document.getElementById("adminPanel").classList.add("show");
     await loadAdminRooms();
   }else{
-    msg.textContent="✗ 账号或密码错误";
+    /* 尝试普通用户登录 */
+    const err=ACCT.login(u,p);
+    if(err){
+      msg.textContent="✗ 账号或密码错误";
+      return;
+    }
+    /* 普通用户：仅可管理自己创建的房间 */
+    closeModal("adminLoginModal");
+    document.getElementById("adminPwd").value="";
+    document.getElementById("adminLoginMsg").textContent="管理员可管理所有房间，普通用户仅可管理自己创建的房间";
+    document.getElementById("adminPanelTitle").textContent="我的房间管理";
+    document.getElementById("adminPanelTag").textContent=u;
+    document.getElementById("adminPanel").classList.add("show");
+    await loadAdminRooms();
   }
 }
 
 async function loadAdminRooms(){
   const list=document.getElementById("adminRoomList");
   list.innerHTML='<div class="admin-loading">加载房间数据中…</div>';
-  const rooms=await ADMIN.fetchRooms();
+  let rooms=await ADMIN.fetchRooms();
+  const isAdmin = ADMIN.active;
+  const currentUser = ACCT.currentUser() || "";
+  /* 非管理员仅显示自己创建的房间，其他用户的房间完全不可见 */
+  if(!isAdmin){
+    rooms=rooms.filter(r=>r.createdBy===currentUser);
+  }
   if(!rooms.length){
-    list.innerHTML='<div class="admin-loading">暂无房间数据</div>';
+    list.innerHTML=isAdmin?'<div class="admin-loading">暂无房间数据</div>':'<div class="admin-loading">你还没有创建过房间，去新建一个吧</div>';
     document.getElementById("adminRoomCount").textContent="0";
     document.getElementById("adminTotalChars").textContent="0";
     document.getElementById("adminTotalTeams").textContent="0";
@@ -1695,17 +1740,14 @@ async function loadAdminRooms(){
   document.getElementById("adminSearchRoom").value="";
   document.getElementById("adminSearchEditor").value="";
   document.getElementById("adminFilterMode").value="";
-  const isAdmin = ADMIN.active;
-  const currentUser = ACCT.currentUser() || "";
   list.innerHTML=rooms.map(r=>{
     const canManage = isAdmin || r.createdBy===currentUser;
     return `
     <div class="room-card">
       <div class="room-card-head">
-        <input type="checkbox" data-admin-check="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}" ${canManage?"":"disabled"} style="width:auto;margin-right:6px">
+        <input type="checkbox" data-admin-check="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}" style="width:auto;margin-right:6px">
         <span class="rid">${escapeHtml(r.id)}</span>
         <span class="rinfo">v${r.dataVersion} · 创建者：${escapeHtml(r.createdBy)} · 编辑者：${escapeHtml(r.editor)} · ${r.raidMode===12?"12人团本":"4人团本"}${r.online>0?' · <span style="color:var(--green)">'+r.online+'人在线</span>':''}</span>
-        ${!canManage?'<span style="font-size:11px;color:var(--mut);background:var(--panel2);padding:1px 6px;border-radius:8px;border:1px solid var(--line)">只读</span>':''}
       </div>
       <div class="room-card-body">
         <span>角色 <b>${r.charCount}</b></span>
@@ -1867,9 +1909,10 @@ function init(){
   document.getElementById("doAdminLogin").onclick=doAdminLogin;
   document.getElementById("closeAdminLogin").onclick=()=>{
     closeModal("adminLoginModal");
-    // 返回到正确的步骤
+    // 返回到正确的步骤并重新打开登录弹窗
     if(ACCT.isLoggedIn()) showRoomStep();
     else { document.getElementById("acctStep").style.display="block"; document.getElementById("roomStep").style.display="none"; }
+    openModal("loginModal");
   };
   document.getElementById("adminRefresh").onclick=loadAdminRooms;
   document.getElementById("adminBatchDel").onclick=doBatchDelete;
@@ -1912,6 +1955,10 @@ function init(){
   // 不在登录前渲染数据，登录后由 checkRoom/createRoom 触发 renderAll
   document.getElementById("roomIdDisplay").textContent = "-";
   document.getElementById("roomLink").value = "";
+  // 检查是否有已登录会话，有则直接进入房间步骤
+  if(ACCT.isLoggedIn()){
+    showRoomStep();
+  }
 }
 init();
 </script>
