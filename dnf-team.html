@@ -109,6 +109,14 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
 .slot.click-hl{box-shadow:0 0 0 2px var(--blue2),0 0 10px rgba(96,165,250,.5);border-color:var(--blue2)!important;background:#1a2a3a!important;cursor:pointer}
 .slot{cursor:pointer}
 
+/* 12人团本分组容器 */
+.raid-group{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+.raid-group-title{font-size:15px;font-weight:bold;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.raid-group-title .grp-num{background:var(--blue);color:#fff;padding:2px 10px;border-radius:12px;font-size:13px}
+.raid-group-title .grp-info{color:var(--mut);font-size:12px;font-weight:normal}
+.raid-group-body{display:flex;gap:12px;flex-wrap:wrap}
+.raid-group-body .team-block{flex:1;min-width:200px}
+
 /* 紧凑模式 */
 .team-block.view-compact{padding:8px;margin-bottom:8px}
 .team-block.view-compact .team-grid{grid-template-columns:repeat(4,1fr);gap:4px}
@@ -913,13 +921,52 @@ function renderTeamTable(){
   const raidLabels = {red:"红队",yellow:"黄队",green:"绿队"};
   const viewClass = viewMode==="compact" ? " view-compact" : viewMode==="ultra" ? " view-ultra" : "";
   const isUltra = viewMode==="ultra";
-  if(isUltra){
-    const gridWrap=document.createElement("div");
-    gridWrap.className="team-grid-ultra";
-    wrap.appendChild(gridWrap);
-    renderTeamsInto(gridWrap, viewClass, isUltra, globalUsed, isRaid12, raidLabels);
+
+  if(isRaid12){
+    /* 12人团本：按组分区渲染，每组红黄绿三队放一起 */
+    const groups={};
+    teamList.forEach((t,idx)=>{
+      const g=t.group||(Math.floor(idx/3)+1);
+      if(!groups[g]) groups[g]=[];
+      groups[g].push({team:t,tIdx:idx});
+    });
+    const gKeys=Object.keys(groups).sort((a,b)=>Number(a)-Number(b));
+    gKeys.forEach(gk=>{
+      const gTeams=groups[gk];
+      const grpDiv=document.createElement("div");
+      grpDiv.className="raid-group";
+      const allOwners=new Set();
+      let totalPwr=0;
+      gTeams.forEach(({team})=>{
+        team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ allOwners.add(c.owner); totalPwr+=c.power; } } });
+      });
+      const grpTitle=document.createElement("div");
+      grpTitle.className="raid-group-title";
+      grpTitle.innerHTML=`<span class="grp-num">第${gk}团</span><span class="grp-info">${allOwners.size}人 · 总战力 ${totalPwr}</span>`;
+      grpDiv.appendChild(grpTitle);
+      const grpBody=document.createElement("div");
+      grpBody.className="raid-group-body";
+      if(isUltra){
+        const gridWrap=document.createElement("div");
+        gridWrap.className="team-grid-ultra";
+        grpBody.appendChild(gridWrap);
+        renderTeamsInto(gridWrap, viewClass, isUltra, globalUsed, isRaid12, raidLabels, gTeams);
+      } else {
+        renderTeamsInto(grpBody, viewClass, isUltra, globalUsed, isRaid12, raidLabels, gTeams);
+      }
+      grpDiv.appendChild(grpBody);
+      wrap.appendChild(grpDiv);
+    });
   } else {
-    renderTeamsInto(wrap, viewClass, isUltra, globalUsed, isRaid12, raidLabels);
+    /* 4人团本：原逻辑 */
+    if(isUltra){
+      const gridWrap=document.createElement("div");
+      gridWrap.className="team-grid-ultra";
+      wrap.appendChild(gridWrap);
+      renderTeamsInto(gridWrap, viewClass, isUltra, globalUsed, isRaid12, raidLabels, null);
+    } else {
+      renderTeamsInto(wrap, viewClass, isUltra, globalUsed, isRaid12, raidLabels, null);
+    }
   }
   // 绑定更换角色下拉
   if(!isUltra){
@@ -954,7 +1001,7 @@ function renderTeamTable(){
   });
 }
 
-function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, raidLabels){
+function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, raidLabels, gTeams){
   const hl = (document.getElementById("highlightName").value||"").trim().toLowerCase();
   const hlClass = (owner)=>{
     let cls="";
@@ -963,8 +1010,9 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     if(clickHL && ol===clickHL.toLowerCase()) cls+=" click-hl";
     return cls;
   };
-  teamList.forEach((team,tIdx)=>{
-    const rColor = team.raidColor || (isRaid12 ? ["red","yellow","green"][tIdx] : null);
+  const teamsToRender = gTeams || teamList.map((t,i)=>({team:t,tIdx:i}));
+  teamsToRender.forEach(({team,tIdx},idxInGroup)=>{
+    const rColor = team.raidColor || (isRaid12 ? ["red","yellow","green"][idxInGroup%3] : null);
     const block=document.createElement("div");
     block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass;
     const owners=new Set(); let csum=0, hsum=0;
