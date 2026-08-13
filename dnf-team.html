@@ -106,6 +106,8 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
 /* 高亮搜索 */
 .slot.highlight{box-shadow:0 0 0 2px var(--yellow),0 0 8px rgba(234,179,8,.4);border-color:var(--yellow)!important;background:#3a3a15!important}
 .card.highlight{box-shadow:0 0 0 2px var(--yellow),0 0 8px rgba(234,179,8,.4);border-color:var(--yellow)!important}
+.slot.click-hl{box-shadow:0 0 0 2px var(--blue2),0 0 10px rgba(96,165,250,.5);border-color:var(--blue2)!important;background:#1a2a3a!important;cursor:pointer}
+.slot{cursor:pointer}
 
 /* 紧凑模式 */
 .team-block.view-compact{padding:8px;margin-bottom:8px}
@@ -359,6 +361,7 @@ let teamList = [];
 let editTargetId = null;
 let raidMode = 4; /* 4=四人次本, 12=十二人团本(3队红黄绿) */
 let viewMode = "normal"; /* normal=标准, compact=紧凑, ultra=一览 */
+let clickHL = ""; /* 点击高亮的玩家名，空=无 */
 
 /* ---------- 原始数据 ---------- */
 function getInitData(){
@@ -939,10 +942,27 @@ function renderTeamTable(){
       };
     });
   }
+  // 绑定点击高亮：点击角色卡片，高亮该玩家所有角色；再次点击取消
+  document.querySelectorAll(".slot[data-owner]").forEach(el=>{
+    el.addEventListener("click",function(e){
+      if(e.target.tagName==="SELECT"||e.target.tagName==="OPTION") return;
+      const owner=this.dataset.owner;
+      if(clickHL && clickHL===owner){ clickHL=""; }
+      else { clickHL=owner; }
+      renderTeamTable();
+    });
+  });
 }
 
 function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, raidLabels){
   const hl = (document.getElementById("highlightName").value||"").trim().toLowerCase();
+  const hlClass = (owner)=>{
+    let cls="";
+    const ol=owner.toLowerCase();
+    if(hl && ol.includes(hl)) cls+=" highlight";
+    if(clickHL && ol===clickHL.toLowerCase()) cls+=" click-hl";
+    return cls;
+  };
   teamList.forEach((team,tIdx)=>{
     const rColor = team.raidColor || (isRaid12 ? ["red","yellow","green"][tIdx] : null);
     const block=document.createElement("div");
@@ -952,14 +972,13 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
     const teamLabel = rColor ? `${raidLabels[rColor]}` : `第${tIdx+1}队`;
     const groupLabel = team.group ? `组${team.group} ` : '';
-    const hlClass = (owner)=>{ if(hl && owner.toLowerCase().includes(hl)) return " highlight"; return ""; };
     let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${groupLabel}${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
       <span class="tsum">总战力：<b style="color:var(--yellow)">${hsum+csum}</b> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
     team.slots.forEach((slot,sIdx)=>{
       if(!slot.charId){ html+=`<div class="slot slot-empty">空位</div>`; return; }
       const c=charList.find(x=>x.id===slot.charId); if(!c){ html+=`<div class="slot slot-empty">空位</div>`; return; }
       if(isUltra){
-        html+=`<div class="slot ${c.type}${hlClass(c.owner)}"><div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span style="color:var(--yellow)">${c.power}</span></div></div>`;
+        html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}"><div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span style="color:var(--yellow)">${c.power}</span></div></div>`;
         return;
       }
       const teamOwners=new Set();
@@ -989,7 +1008,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
         });
         optsHtml+=`</optgroup>`;
       }
-      html+=`<div class="slot ${c.type}${hlClass(c.owner)}">
+      html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}">
         <div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)}</div>
         <div class="sp">战力 ${c.power} ${c.type==="c"?"C":"奶"}</div>
         <select data-t="${tIdx}" data-s="${sIdx}">${optsHtml}</select></div>`;
