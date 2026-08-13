@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>薄纱末世录 · 4人团本排表协作工具</title>
+<style>
+:root{
+  --bg:#0f1117; --panel:#1a1d27; --panel2:#222633; --line:#333a4a;
+  --txt:#e8eaf0; --mut:#9aa3b2; --blue:#3b82f6; --blue2:#60a5fa;
+  --orange:#f97316; --green:#22c55e; --red:#ef4444; --yellow:#eab308;
+  --radius:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,"Microsoft YaHei",sans-serif}
+body{background:var(--bg);color:var(--txt);padding:12px;min-height:100vh;font-size:14px}
+.container{max-width:1640px;margin:0 auto}
+button{background:var(--blue);color:#fff;border:none;padding:8px 14px;border-radius:7px;cursor:pointer;font-size:13px;transition:.15s}
+button:hover{filter:brightness(1.1)}
+button.secondary{background:#3a3f4d}
+button.danger{background:var(--red)}
+button.success{background:var(--green)}
+button.sm{padding:4px 9px;font-size:12px;border-radius:5px}
+input,select,textarea{width:100%;padding:7px 9px;background:#13161f;border:1px solid var(--line);color:var(--txt);border-radius:6px;font-size:13px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
+.muted{color:var(--mut)}
+
+/* 房间协作栏 */
+.room-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:linear-gradient(135deg,#1b2233,#1a1d27);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px}
+.room-bar .grp{display:flex;align-items:center;gap:6px}
+.room-bar input.nick{width:120px}
+.room-bar .linkbox{flex:1;min-width:240px;display:flex;gap:6px;align-items:center;background:#13161f;border:1px solid var(--line);border-radius:7px;padding:4px 8px}
+.room-bar .linkbox input{border:none;background:transparent;padding:4px;font-size:12px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;font-size:12px;background:#222633;border:1px solid var(--line)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.dot.off{background:var(--mut)}
+.dot.err{background:var(--red)}
+.online-chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:11px;padding:2px 8px;border-radius:14px;background:#2b3550;border:1px solid #3a4a6a;color:#cfe0ff}
+.chip.me{background:#1f3d2a;border-color:var(--green);color:#bff5d0}
+
+/* 顶栏 */
+.top-bar{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.top-bar h2{font-size:18px;letter-spacing:.5px}
+.top-bar .acts{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.stat-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;color:var(--mut);font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.stat-row b{color:var(--txt)}
+.tab-wrap{display:flex;gap:6px;margin-bottom:12px}
+.tab{padding:8px 18px;background:var(--panel);border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:13px}
+.tab.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.panel{display:none;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px}
+.panel.show{display:block}
+.flex-row{display:flex;gap:12px;flex-wrap:wrap}
+.form-box{width:320px;background:var(--panel2);padding:14px;border-radius:9px;border:1px solid var(--line)}
+.form-item{margin:8px 0}
+.char-pool{flex:1;min-width:0}
+.char-pool h3,.form-box h3{margin-bottom:10px;font-size:15px}
+.card{background:var(--panel2);padding:10px;border-radius:8px;width:235px;border:1px solid var(--line);border-left:4px solid var(--orange)}
+.card.healer{border-left-color:var(--green)}
+.card.used{opacity:.45}
+.card h4{margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.card .meta{font-size:11px;color:var(--mut);line-height:1.5}
+.card .pwr{color:var(--yellow);font-weight:600}
+.team-block{background:var(--panel2);padding:12px;border-radius:9px;margin-bottom:12px;border:1px solid var(--line)}
+.team-title{margin-bottom:9px;color:var(--blue2);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;font-size:14px}
+.team-title .tsum{font-size:12px;color:var(--mut)}
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.slot{padding:9px;border-radius:7px;min-height:74px;border:1px solid var(--line)}
+.slot.c{background:#342318;border-color:var(--orange)}
+.slot.healer{background:#15301f;border-color:var(--green)}
+.slot-empty{background:#191c25;border:1px dashed #444;color:#666;display:flex;align-items:center;justify-content:center}
+.slot .sn{font-weight:600;font-size:13px}
+.slot .sp{font-size:11px;color:var(--mut);margin:2px 0 5px}
+.slot select{font-size:11px;padding:4px}
+.warn{color:var(--yellow);font-size:11px}
+textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px solid var(--line);padding:8px;border-radius:7px;font-family:Consolas,monospace}
+
+/* 弹窗 */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);padding:30px;z-index:50}
+.modal.show{display:flex;align-items:flex-start;justify-content:center}
+.modal-box{max-width:640px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:20px;max-height:88vh;overflow:auto}
+.modal-box h3{margin-bottom:12px;font-size:16px}
+.modal-box .row{margin:10px 0}
+.help{font-size:12px;color:var(--mut);line-height:1.7}
+.help code{background:#13161f;padding:1px 5px;border-radius:4px;color:var(--blue2)}
+.help b{color:var(--txt)}
+.notice{background:#2a2418;border:1px solid var(--yellow);color:#fde68a;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px}
+@media(max-width:760px){
+  .team-grid{grid-template-columns:repeat(2,1fr)}
+  .form-box{width:100%}
+  .card{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 协作房间栏 -->
+  <div class="room-bar">
+    <div class="grp">
+      <span class="muted" style="font-size:12px">昵称</span>
+      <input class="nick" id="nickInput" placeholder="你的名字" maxlength="12">
+    </div>
+    <div class="linkbox">
+      <span class="dot off" id="syncDot" title="同步状态"></span>
+      <input id="roomLink" readonly placeholder="房间链接">
+      <button class="sm secondary" id="copyLink">复制</button>
+    </div>
+    <div class="grp">
+      <button class="sm secondary" id="newRoom">新建房间</button>
+      <button class="sm secondary" id="joinBtn">加入</button>
+    </div>
+    <div class="grp">
+      <span class="badge"><span id="onlineCount">0</span> 在线</span>
+      <span class="online-chips" id="onlineChips"></span>
+    </div>
+    <div class="grp" style="margin-left:auto">
+      <span class="badge" id="syncStatus">本地模式</span>
+      <button class="sm secondary" id="openSettings">⚙ 同步设置</button>
+      <button class="sm secondary" id="openHelp">❓</button>
+    </div>
+  </div>
+
+  <!-- 顶栏 -->
+  <div class="top-bar">
+    <h2>薄纱末世录 · 4人固定队自动排表</h2>
+    <div class="acts">
+      <button id="autoArrange">一键均衡排完所有角色</button>
+      <button class="secondary" id="exportData">导出 JSON</button>
+      <button class="secondary" id="importData">导入 JSON</button>
+      <button class="danger" id="resetAll">重置原始数据</button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    总角色 <b id="totalAll">0</b> ｜ C位 <b id="totalC">0</b> ｜ 奶位 <b id="totalHealer">0</b> ｜ 已生成队伍 <b id="teamCount">0</b> ｜ 未入队 <b id="leftCount">0</b>
+  </div>
+
+  <div class="tab-wrap">
+    <div class="tab active" data-tab="charManage">角色管理</div>
+    <div class="tab" data-tab="teamTable">队伍排表</div>
+  </div>
+
+  <!-- 角色管理 -->
+  <div class="panel show" id="charManage">
+    <div class="flex-row" style="align-items:flex-start">
+      <div class="form-box">
+        <h3 id="formTitle">新增角色</h3>
+        <div class="form-item">
+          <label>归属玩家</label>
+          <input id="editOwner" list="ownerList" placeholder="选择或输入玩家">
+          <datalist id="ownerList">
+            <option value="鸟"><option value="热"><option value="白"><option value="摸鱼"><option value="批天">
+          </datalist>
+        </div>
+        <div class="form-item"><label>角色名称</label><input id="editName" placeholder="如：剑魂(J)、缪斯"></div>
+        <div class="form-item"><label>战力数值</label><input type="number" id="editPower" placeholder="模拟/校正战力"></div>
+        <div class="form-item">
+          <label>类型</label>
+          <select id="editType"><option value="c">输出 C</option><option value="healer">奶</option></select>
+        </div>
+        <div class="form-item"><label>A套套装</label><input id="editA" placeholder="黄金乡/龙战/天命等"></div>
+        <div class="form-item"><label>B套套装</label><input id="editB" placeholder="青丘/群猎/混沌等"></div>
+        <input type="hidden" id="editId">
+        <div style="display:flex;gap:6px;margin-top:12px">
+          <button class="success" id="saveChar">保存角色</button>
+          <button class="secondary" id="cancelEdit">清空编辑</button>
+        </div>
+      </div>
+      <div class="char-pool">
+        <h3>全部角色池（橙=C 绿=奶，已排入队伍会置灰）</h3>
+        <div class="flex-row" id="charList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 队伍排表 -->
+  <div class="panel" id="teamTable">
+    <div id="teamWrap"></div>
+  </div>
+
+  <!-- 导入弹窗 -->
+  <div class="modal" id="importModal">
+    <div class="modal-box">
+      <h3>导入角色 JSON</h3>
+      <p class="help" style="margin-bottom:8px">粘贴角色数组 JSON，将<strong>覆盖</strong>当前全部角色并自动重新排表。</p>
+      <textarea id="importText" placeholder='[{"id":1,"owner":"鸟","name":"剑魂","power":15226,"type":"c","a":"黄金","b":"黄金"}]'></textarea>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button id="doImport">确认导入</button>
+        <button class="secondary" id="closeImport">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 同步设置弹窗 -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-box">
+      <h3>多人协作同步设置（Gitee 仓库）</h3>
+      <div class="notice">⚠ 令牌等于仓库写权限。请使用<strong>专用数据仓库</strong> + <strong>私人令牌</strong>，切勿用主账号令牌。详见右上角 ❓ 帮助。</div>
+      <div class="row"><label>Gitee 用户名 / 个人空间地址</label><input id="cfgOwner" placeholder="如 meltingwhite1"></div>
+      <div class="row"><label>数据仓库名</label><input id="cfgRepo" placeholder="如 dnf-team-sync"></div>
+      <div class="row"><label>分支</label><input id="cfgBranch" placeholder="master"></div>
+      <div class="row"><label>私人令牌（Gitee → 设置 → 私人令牌）</label><input type="password" id="cfgToken" placeholder="粘贴你的 Gitee 私人令牌"></div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button id="saveCfg">保存并连接</button>
+        <button class="secondary" id="testCfg">测试连接</button>
+        <button class="danger" id="clearCfg">清除配置（转为本地模式）</button>
+        <button class="secondary" id="closeSettings">关闭</button>
+      </div>
+      <p class="muted" id="cfgMsg" style="margin-top:10px;font-size:12px"></p>
+    </div>
+  </div>
+
+  <!-- 帮助弹窗 -->
+  <div class="modal" id="helpModal">
+    <div class="modal-box">
+      <h3>使用说明</h3>
+      <div class="help">
+        <p><b>排表规则</b></p>
+        <p>· 每队固定 4 个不同玩家，同队不会出现同一人的多个角色。</p>
+        <p>· 自动排表优先消耗全部奶，标准 1 奶 3 C，并按高低战力交替搭配以求均衡。</p>
+        <p>· 新增 / 编辑 / 删除角色后会自动重新生成全部队伍；队内下拉更换角色为手动微调，不会触发重排。</p>
+        <p>· 队内「更换角色」下拉已自动过滤本队已有玩家，无法重复选择。</p>
+        <p>· 保留本地存储、导入 / 导出 JSON、重置原始数据。</p>
+        <p style="margin-top:10px"><b>多人协作</b></p>
+        <p>· 已预配 Gitee 仓库 <code>meltingwhite1/dnf-team-sync</code>，只需填入私人令牌即可开启同步。</p>
+        <p>· 生成令牌：Gitee → 右上头像 → 设置 → 私人令牌 → 生成新令牌，勾选 <code>projects</code>（仓库读写）权限。</p>
+        <p>· 点右上角 ⚙ 填入令牌并保存，或由分享者把令牌直接写入本文件顶部 <code>EMBED_SYNC</code>。</p>
+        <p>· 把页面链接（含 <code>#room=xxxx</code>）发给队友，对方打开即进入同一房间，所有人改动实时同步。</p>
+        <p style="margin-top:10px"><b>一键分享</b>：本页面托管在 Gitee 仓库后，直接用原始文件链接 <code>https://gitee.com/用户名/仓库名/raw/master/index.html#room=xxxx</code> 分享即可，队友打开即用，无需配置。</p>
+        <p style="margin-top:10px"><b>数据安全</b>：令牌仅对该数据仓库有读写权限，随时可在 Gitee 设置中撤销。多人同时编辑采用「后写覆盖 + 冲突自动重试」，不会丢角色，但同一秒内两处手动微调可能后写生效。</p>
+      </div>
+      <div style="margin-top:12px"><button class="secondary" id="closeHelp">关闭</button></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ================= 可嵌入配置（一键分享用，留空则用设置面板/本地模式） ================= */
+const EMBED_SYNC = { owner:"meltingwhite1", repo:"dnf-team-sync", token:"78c4858b04f984c81f147a5bef3edfdb", branch:"master" };
+/* ===================================================================================== */
+
+const LS_CHAR = "busha末世录团表_v2";
+const LS_NICK = "busha_nick";
+const LS_SYNC = "busha_sync_cfg";
+const LS_BACK = "busha_backup";
+let charList = [];
+let teamList = [];
+let editTargetId = null;
+
+/* ---------- 原始数据 ---------- */
+function getInitData(){
+  return [
+    {id:1,owner:"鸟",name:"剑魂",power:15226,type:"c",a:"黄金",b:"黄金"},
+    {id:2,owner:"鸟",name:"红狗",power:9889,type:"c",a:"黄金",b:"青丘"},
+    {id:3,owner:"鸟",name:"剑帝",power:6050,type:"c",a:"黄金",b:"黄金"},
+    {id:4,owner:"鸟",name:"花花",power:1685,type:"c",a:"龙战",b:"精灵"},
+    {id:5,owner:"鸟",name:"帕拉丁",power:1272,type:"c",a:"黄金",b:"群猎"},
+    {id:6,owner:"鸟",name:"念皇",power:1052,type:"c",a:"潜影",b:"龙战"},
+    {id:7,owner:"鸟",name:"鬼泣",power:2663,type:"c",a:"龙战",b:"龙战"},
+    {id:8,owner:"鸟",name:"剑影",power:3138,type:"c",a:"黄金",b:"群猎"},
+    {id:9,owner:"鸟",name:"漫游",power:1709,type:"c",a:"黄金乡",b:"群猎"},
+    {id:10,owner:"鸟",name:"小剑魂",power:1630,type:"c",a:"天命",b:"能量"},
+    {id:11,owner:"鸟",name:"瞎子",power:1139,type:"c",a:"潜影",b:"自然"},
+    {id:12,owner:"鸟",name:"乌鸡",power:1127,type:"c",a:"潜影",b:"自然"},
+    {id:13,owner:"鸟",name:"魔皇",power:1118,type:"c",a:"龙战",b:"黄金"},
+    {id:14,owner:"鸟",name:"刃影",power:2300,type:"c",a:"龙战",b:"自然"},
+    {id:15,owner:"鸟",name:"旅人",power:1037,type:"c",a:"龙战",b:"黄金"},
+    {id:16,owner:"鸟",name:"妖护使",power:1614,type:"c",a:"龙战",b:"龙战"},
+    {id:17,owner:"鸟",name:"光枪",power:1322,type:"c",a:"龙战",b:"天命"},
+    {id:23,owner:"鸟",name:"剑魂(J)",power:20194,type:"c",a:"黄金",b:"黄金"},
+    {id:24,owner:"鸟",name:"红狗(J)",power:5052,type:"c",a:"龙战",b:"潜影"},
+    {id:25,owner:"鸟",name:"街霸(J)",power:4233,type:"c",a:"能量",b:"能量"},
+    {id:26,owner:"鸟",name:"瞎子(J)",power:5122,type:"c",a:"龙战",b:"天命"},
+    {id:70,owner:"鸟",name:"小奶妈",power:36445,type:"healer",a:"",b:""},
+    {id:71,owner:"鸟",name:"奶爸",power:40194,type:"healer",a:"",b:""},
+    {id:72,owner:"鸟",name:"缪斯",power:40328,type:"healer",a:"黄金乡",b:""},
+    {id:73,owner:"鸟",name:"奶妈",power:39322,type:"healer",a:"",b:""},
+    {id:74,owner:"鸟",name:"奶萝",power:40750,type:"healer",a:"",b:""},
+
+    {id:101,owner:"热",name:"乌鸡",power:10000,type:"c",a:"黄金乡",b:"青丘"},
+    {id:102,owner:"热",name:"剑帝",power:2000,type:"c",a:"黄金乡",b:"群猎"},
+    {id:103,owner:"热",name:"剑魂",power:13220,type:"c",a:"黄金乡",b:"自然"},
+    {id:104,owner:"热",name:"男气功",power:1400,type:"c",a:"黄金乡",b:"能量"},
+    {id:105,owner:"热",name:"斗罗",power:1530,type:"c",a:"黄金乡",b:"龙战"},
+    {id:106,owner:"热",name:"阿修罗",power:1860,type:"c",a:"黄金乡",b:"黄金乡"},
+    {id:107,owner:"热",name:"女气功",power:850,type:"c",a:"黄金乡",b:"群猎"},
+    {id:108,owner:"热",name:"帕拉丁",power:1100,type:"c",a:"黄金乡",b:"女武神"},
+    {id:109,owner:"热",name:"剑影",power:720,type:"c",a:"黄金乡",b:"群猎"},
+    {id:110,owner:"热",name:"红狗",power:750,type:"c",a:"黄金乡",b:"青丘"},
+    {id:111,owner:"热",name:"漫游",power:1120,type:"c",a:"黄金乡",b:"能量"},
+    {id:112,owner:"热",name:"剑宗",power:640,type:"c",a:"黄金乡",b:"潜影"},
+    {id:113,owner:"热",name:"旅人",power:1110,type:"c",a:"黄金乡",b:"精灵"},
+    {id:114,owner:"热",name:"妖护使",power:820,type:"c",a:"黄金乡",b:"女武神"},
+    {id:115,owner:"热",name:"女弹药",power:480,type:"c",a:"黄金乡",b:"净化"},
+    {id:116,owner:"热",name:"鬼泣",power:420,type:"c",a:"龙战",b:"能量"},
+    {id:117,owner:"热",name:"女散打",power:350,type:"c",a:"黄金乡",b:"领域"},
+    {id:170,owner:"热",name:"缪斯",power:41470,type:"healer",a:"",b:""},
+    {id:171,owner:"热",name:"奶妈",power:38496,type:"healer",a:"",b:""},
+    {id:172,owner:"热",name:"奶萝",power:40895,type:"healer",a:"",b:""},
+    {id:173,owner:"热",name:"奶爸",power:42312,type:"healer",a:"",b:""},
+    {id:174,owner:"热",name:"奶枪",power:42352,type:"healer",a:"",b:""},
+
+    {id:201,owner:"白",name:"刃影",power:6200,type:"c",a:"黄金乡",b:"黄金乡"},
+    {id:202,owner:"白",name:"天帝",power:3870,type:"c",a:"黄金乡",b:"黄金乡"},
+    {id:203,owner:"白",name:"剑影",power:3111,type:"c",a:"黄金乡",b:"群猎"},
+    {id:204,owner:"白",name:"妖护使",power:1524,type:"c",a:"龙战",b:"自然"},
+    {id:205,owner:"白",name:"剑神",power:1358,type:"c",a:"龙战",b:"天命"},
+    {id:206,owner:"白",name:"猎人",power:1440,type:"c",a:"黄金乡",b:"龙战"},
+    {id:207,owner:"白",name:"红狗",power:1946,type:"c",a:"龙战",b:"潜影"},
+    {id:208,owner:"白",name:"剑帝",power:1612,type:"c",a:"龙战",b:"净化"},
+    {id:209,owner:"白",name:"合金（混）",power:206,type:"c",a:"",b:""},
+    {id:210,owner:"白",name:"剑宗（混）",power:175,type:"c",a:"",b:""},
+    {id:211,owner:"白",name:"帕帕（混）",power:158,type:"c",a:"",b:""},
+    {id:212,owner:"白",name:"花花（混）",power:0,type:"c",a:"群猎",b:""},
+    {id:213,owner:"白",name:"大枪（混）",power:0,type:"c",a:"群猎",b:""},
+    {id:214,owner:"白",name:"破浪",power:2200,type:"c",a:"群猎",b:""},
+    {id:270,owner:"白",name:"缪斯",power:41807,type:"healer",a:"",b:""},
+    {id:271,owner:"白",name:"奶枪",power:40740,type:"healer",a:"",b:""},
+    {id:272,owner:"白",name:"奶妈",power:36283,type:"healer",a:"",b:""},
+    {id:273,owner:"白",name:"奶萝",power:33625,type:"healer",a:"",b:""},
+    {id:274,owner:"白",name:"小缪斯",power:32071,type:"healer",a:"",b:""},
+    {id:275,owner:"白",name:"小奶爸",power:30986,type:"healer",a:"",b:""},
+    {id:276,owner:"白",name:"小奶枪",power:31773,type:"healer",a:"",b:""},
+
+    {id:301,owner:"摸鱼",name:"剑宗",power:7767,type:"c",a:"龙战",b:"黄金乡"},
+    {id:302,owner:"摸鱼",name:"鳗鱼",power:1724,type:"c",a:"黄金乡",b:"混沌"},
+    {id:303,owner:"摸鱼",name:"战法",power:1447,type:"c",a:"黄金乡",b:"领域"},
+    {id:304,owner:"摸鱼",name:"刃影",power:763,type:"c",a:"龙战",b:"混沌"},
+    {id:305,owner:"摸鱼",name:"龙骑",power:573,type:"c",a:"领域",b:"龙战"},
+    {id:306,owner:"摸鱼",name:"旅人",power:515,type:"c",a:"潜影",b:"女武神"},
+    {id:307,owner:"摸鱼",name:"毒王",power:597,type:"c",a:"龙战",b:"群猎"},
+    {id:370,owner:"摸鱼",name:"奶妈",power:42687,type:"healer",a:"黄金乡",b:"群猎"},
+    {id:371,owner:"摸鱼",name:"缪斯",power:39315,type:"healer",a:"黄金乡",b:"自然"},
+    {id:372,owner:"摸鱼",name:"奶枪",power:34743,type:"healer",a:"龙战",b:"女武神"},
+
+    {id:401,owner:"批天",name:"剑帝",power:4575,type:"c",a:"黄金乡",b:"黄金乡"},
+    {id:402,owner:"批天",name:"帕拉丁",power:2272,type:"c",a:"黄金乡",b:"能量"},
+    {id:403,owner:"批天",name:"战法",power:1200,type:"c",a:"黄金乡",b:"黄金乡"},
+    {id:404,owner:"批天",name:"刃影",power:961,type:"c",a:"黄金乡",b:"群猎"},
+    {id:405,owner:"批天",name:"花花",power:860,type:"c",a:"黄金乡",b:"天命"},
+    {id:406,owner:"批天",name:"精灵",power:528,type:"c",a:"黄金乡",b:"黄金乡"},
+    {id:470,owner:"批天",name:"缪斯",power:45838,type:"healer",a:"黄金乡",b:""},
+    {id:471,owner:"批天",name:"奶萝",power:35786,type:"healer",a:"黄金乡",b:""},
+    {id:472,owner:"批天",name:"奶妈",power:35077,type:"healer",a:"黄金乡",b:""},
+    {id:473,owner:"批天",name:"小缪斯",power:35421,type:"healer",a:"黄金乡",b:""},
+    {id:474,owner:"批天",name:"奶枪",power:0,type:"healer",a:"",b:""},
+    {id:475,owner:"批天",name:"奶爸",power:47362,type:"healer",a:"",b:""},
+  ];
+}
+
+/* ---------- 工具 ---------- */
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function b64enc(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64dec(b64){ return decodeURIComponent(escape(atob(String(b64).replace(/\s/g,"")))); }
+function randId(){ return Math.random().toString(36).slice(2,10); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+/* ---------- 本地存储 ---------- */
+function saveStorage(){ try{ localStorage.setItem(LS_CHAR, JSON.stringify({charList,teamList})); }catch(e){} }
+function loadStorage(){
+  try{
+    const s = JSON.parse(localStorage.getItem(LS_CHAR));
+    if(s && Array.isArray(s.charList)){ charList = s.charList; teamList = s.teamList && s.teamList.length ? s.teamList : arrange(charList); return true; }
+  }catch(e){}
+  return false;
+}
+
+/* ---------- 排表（纯函数） ---------- */
+function arrange(chars){
+  const teams = [];
+  const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
+  const H = chars.filter(c=>c.type==="healer").slice().sort((a,b)=>b.power-a.power);
+  const used = new Set();
+  const pickFree = (arr, owners, fromTop)=>{
+    for(let k=fromTop?0:arr.length-1; fromTop?k<arr.length:k>=0; k+=(fromTop?1:-1)){
+      const c = arr[k];
+      if(c && !used.has(c.id) && !owners.has(c.owner)) return c;
+    }
+    return null;
+  };
+  let guard = 0;
+  while((H.some(h=>!used.has(h.id)) || C.some(c=>!used.has(c.id))) && guard++ < 2000){
+    const slots = [null,null,null,null];
+    const owners = new Set();
+    let i = 0;
+    // 1) 优先消耗奶：每队先放一个奶（最高战力、玩家唯一）
+    const h = H.find(x=>!used.has(x.id) && !owners.has(x.owner));
+    if(h && i<4){ slots[i++]=h.id; owners.add(h.owner); used.add(h.id); }
+    // 2) 用 C 补齐，高低交替，玩家唯一
+    let turn = true;
+    while(i<4){
+      let pick = pickFree(C, owners, turn);
+      if(!pick){ pick = pickFree(C, owners, !turn); }
+      if(!pick) break;
+      slots[i++]=pick.id; owners.add(pick.owner); used.add(pick.id); turn=!turn;
+    }
+    if(!slots.some(s=>s!==null)) break;
+    teams.push({slots: slots.map(id=>({charId:id}))});
+  }
+  return teams;
+}
+
+/* ---------- 同步模块（Gitee Contents API） ---------- */
+const SYNC = {
+  cfg:null, room:null, pollT:null, presenceT:null, writing:0,
+  init(){
+    this.cfg = this.loadCfg();
+    const m = location.hash.match(/room=([A-Za-z0-9_-]+)/);
+    this.room = { id: m?m[1]:randId(), sha:null, dataVersion:0, presence:{} };
+    if(!m) history.replaceState(null,"","#room="+this.room.id);
+    if(this.cfg && this.cfg.token){
+      this.start();
+    }else{
+      this.setStatus("本地模式","off");
+    }
+  },
+  loadCfg(){
+    if(EMBED_SYNC && EMBED_SYNC.token) return Object.assign({branch:"master"}, EMBED_SYNC);
+    try{ const s=JSON.parse(localStorage.getItem(LS_SYNC)); if(s&&s.token) return s; }catch(e){}
+    return null;
+  },
+  start(){
+    this.setStatus("连接中…","off");
+    this.fetchState(true);
+    clearInterval(this.pollT); clearInterval(this.presenceT);
+    this.pollT = setInterval(()=>this.fetchState(false), 7000);
+    this.presenceT = setInterval(()=>this.sendPresence(), 28000);
+    this.sendPresence();
+  },
+  stop(){ clearInterval(this.pollT); clearInterval(this.presenceT); },
+  url(path){ return `https://gitee.com/api/v5/repos/${this.cfg.owner}/${this.cfg.repo}/contents/${path}`; },
+  tok(){ return encodeURIComponent(this.cfg.token); },
+  br(){ return encodeURIComponent(this.cfg.branch||"master"); },
+  async fetchState(initial){
+    if(!this.cfg || !this.cfg.token) return;
+    try{
+      const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+      if(r.status===404){ this.setStatus(initial?"房间未同步，编辑后自动创建":"房间未同步","off"); this.renderPresence(); return; }
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      const j = await r.json();
+      if(!j || Array.isArray(j) || !j.content){ this.setStatus(initial?"房间未同步，编辑后自动创建":"房间未同步","off"); this.renderPresence(); return; }
+      this.room.sha = j.sha;
+      const data = JSON.parse(b64dec(j.content));
+      const dv = data.dataVersion||0;
+      if(dv > this.room.dataVersion){
+        this.room.dataVersion = dv;
+        // 备份本地后应用远端
+        try{ localStorage.setItem(LS_BACK, JSON.stringify({charList,teamList})); }catch(e){}
+        charList = Array.isArray(data.charList)?data.charList:charList;
+        teamList = Array.isArray(data.teamList)?data.teamList:arrange(charList);
+        saveStorage(); renderAll();
+      }
+      this.room.presence = data.presence || {};
+      this.renderPresence();
+      this.setStatus("已同步","on");
+    }catch(e){ this.setStatus("同步失败："+e.message,"err"); }
+  },
+  // intent(state)=>state；对最新远端状态应用意图后写回，冲突自动重试
+  async writeState(intent, opts){
+    opts = opts||{};
+    if(!this.cfg || !this.cfg.token){
+      // 本地模式：直接对本地状态应用
+      const st = {charList, teamList, presence:this.room?this.room.presence:{}};
+      const next = intent(st) || st;
+      charList = next.charList; teamList = next.teamList; this.room.presence = next.presence||{};
+      saveStorage(); renderAll();
+      return;
+    }
+    this.writing++;
+    this.setStatus("同步中…","off");
+    try{
+      for(let attempt=0; attempt<5; attempt++){
+        let base, sha;
+        const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+        if(r.status===404){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; }
+        else if(!r.ok) throw new Error("GET HTTP "+r.status);
+        else { const j=await r.json(); if(!j || Array.isArray(j) || !j.content){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; } else { sha=j.sha; base=JSON.parse(b64dec(j.content)); } }
+        const next = intent(clone(base)) || base;
+        next.dataVersion = (base.dataVersion||0)+1;
+        next.editor = this.nick();
+        next.room = this.room.id;
+        next.presence = Object.assign({}, base.presence||{}, next.presence||{}, {[this.nick()]:Date.now()});
+        const body = { access_token:this.cfg.token, message:"sync "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        if(sha) body.sha = sha;
+        const method = sha ? "PUT" : "POST";
+        const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+        if(!pr.ok){
+          const e=await pr.json().catch(()=>({})); const msg=e.message||"";
+          if(pr.status===409 || pr.status===422 || (method==="POST" && /exist|already|已存在|sha/i.test(msg))){ await sleep(350); continue; }
+          throw new Error(method+" HTTP "+pr.status+" "+msg);
+        }
+        const pj = await pr.json();
+        this.room.sha = (pj.content && pj.content.sha) || pj.sha;
+        this.room.dataVersion = next.dataVersion;
+        charList = next.charList; teamList = next.teamList; this.room.presence = next.presence;
+        saveStorage(); renderAll();
+        this.setStatus("已同步","on");
+        return;
+      }
+    }catch(e){ this.setStatus("写入失败："+e.message,"err"); }
+    finally{ this.writing--; }
+  },
+  async sendPresence(){
+    if(!this.cfg || !this.cfg.token) return;
+    if(this.writing>0) return;
+    await this.writeState(s=>{ s.presence = s.presence||{}; s.presence[this.nick()]=Date.now(); return s; });
+  },
+  nick(){ return (document.getElementById("nickInput").value||"").trim() || "玩家"+randId().slice(0,3); },
+  setStatus(txt, kind){
+    const el=document.getElementById("syncStatus"), dot=document.getElementById("syncDot");
+    el.textContent = txt;
+    dot.className = "dot "+(kind||"off");
+  },
+  renderPresence(){
+    const now=Date.now(), me=this.nick();
+    let online=[]; const all=[];
+    for(const k in this.room.presence){
+      const t=this.room.presence[k];
+      if(now-t < 60000) online.push(k);
+      all.push([k,t]);
+    }
+    document.getElementById("onlineCount").textContent = online.length;
+    const chips=document.getElementById("onlineChips");
+    chips.innerHTML = online.map(n=>`<span class="chip ${n===me?'me':''}">${escapeHtml(n)}</span>`).join("");
+  }
+};
+
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ---------- 渲染 ---------- */
+function renderAll(){ renderCharList(); renderTeamTable(); updateStat(); SYNC.renderPresence(); document.getElementById("roomLink").value = location.href; }
+
+function updateStat(){
+  const all=charList.length, c=charList.filter(x=>x.type==="c").length, h=charList.filter(x=>x.type==="healer").length;
+  const used=new Set(); teamList.forEach(t=>t.slots.forEach(s=>s.charId&&used.add(s.charId)));
+  document.getElementById("totalAll").textContent=all;
+  document.getElementById("totalC").textContent=c;
+  document.getElementById("totalHealer").textContent=h;
+  document.getElementById("teamCount").textContent=teamList.length;
+  document.getElementById("leftCount").textContent=all-used.size;
+}
+
+function renderCharList(){
+  const wrap=document.getElementById("charList"); wrap.innerHTML="";
+  const usedIds=new Set(); teamList.forEach(t=>t.slots.forEach(s=>s.charId&&usedIds.add(s.charId)));
+  // 按玩家分组排序
+  const sorted=[...charList].sort((a,b)=>(a.owner||"").localeCompare(b.owner||"")||b.power-a.power);
+  sorted.forEach(c=>{
+    const div=document.createElement("div");
+    div.className=`card ${c.type} ${usedIds.has(c.id)?"used":""}`;
+    div.innerHTML=`
+      <h4>${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span class="pwr">${c.power}</span></h4>
+      <div class="meta">${c.type==="c"?"输出C":"奶"} ｜ A:${escapeHtml(c.a||"-")} B:${escapeHtml(c.b||"-")}</div>
+      <div style="margin-top:6px;display:flex;gap:6px">
+        <button class="sm" data-edit="${c.id}">编辑</button>
+        <button class="sm danger" data-del="${c.id}">删除</button>
+      </div>`;
+    wrap.appendChild(div);
+  });
+  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editChar(Number(b.dataset.edit)));
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delChar(Number(b.dataset.del)));
+}
+
+function renderTeamTable(){
+  const wrap=document.getElementById("teamWrap"); wrap.innerHTML="";
+  if(!teamList.length){ wrap.innerHTML='<p class="muted">暂无队伍，点击「一键均衡排完所有角色」生成。</p>'; return; }
+  const globalUsed=new Set(); teamList.forEach(t=>t.slots.forEach(s=>s.charId&&globalUsed.add(s.charId)));
+  teamList.forEach((team,tIdx)=>{
+    const block=document.createElement("div"); block.className="team-block";
+    const owners=new Set(); let csum=0;
+    team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; } } });
+    const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
+    let html=`<div class="team-title">第${tIdx+1}队（${owners.size}位不同玩家）
+      <span class="tsum">C战力合计：<b style="color:var(--yellow)">${csum}</b> ${ownerOk?'':'<span class=warn>⚠有同队重复玩家</span>'}</span></div><div class="team-grid">`;
+    team.slots.forEach((slot,sIdx)=>{
+      if(!slot.charId){ html+=`<div class="slot slot-empty">空位</div>`; return; }
+      const c=charList.find(x=>x.id===slot.charId); if(!c){ html+=`<div class="slot slot-empty">空位</div>`; return; }
+      const teamOwners=new Set();
+      team.slots.forEach((ss,si)=>{ if(ss.charId && si!==sIdx){ const cc=charList.find(x=>x.id===ss.charId); if(cc) teamOwners.add(cc.owner); } });
+      const opts = charList.filter(x=>{
+        const usedElse = globalUsed.has(x.id) && x.id!==slot.charId;          // 别队已用，排除（当前角色除外）
+        const sameOwner = teamOwners.has(x.owner) && x.owner!==c.owner;       // 本队已有该玩家，排除（当前角色所属玩家除外）
+        return !usedElse && !sameOwner;
+      });
+      html+=`<div class="slot ${c.type}">
+        <div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)}</div>
+        <div class="sp">战力 ${c.power} ${c.type==="c"?"C":"奶"}</div>
+        <select data-t="${tIdx}" data-s="${sIdx}">
+          <option value="">更换角色…</option>
+          ${opts.map(x=>`<option value="${x.id}">${escapeHtml(x.owner)} ${escapeHtml(x.name)}(${x.power}) ${x.type==="c"?"C":"奶"}</option>`).join("")}
+        </select></div>`;
+    });
+    html+=`</div>`;
+    block.innerHTML=html; wrap.appendChild(block);
+  });
+  document.querySelectorAll("[data-t]").forEach(sel=>{
+    sel.onchange=async function(){
+      const t=Number(this.dataset.t), s=Number(this.dataset.s);
+      const newCid=this.value?Number(this.value):null;
+      await SYNC.writeState(st=>{
+        if(st.teamList[t] && st.teamList[t].slots[s]) st.teamList[t].slots[s].charId=newCid;
+        else st.teamList=arrange(st.charList);
+        return st;
+      });
+    };
+  });
+}
+
+/* ---------- 编辑角色 ---------- */
+function editChar(id){
+  editTargetId=id; const item=charList.find(x=>x.id===id); if(!item) return;
+  document.getElementById("formTitle").textContent="编辑角色";
+  document.getElementById("editId").value=id;
+  document.getElementById("editOwner").value=item.owner;
+  document.getElementById("editName").value=item.name;
+  document.getElementById("editPower").value=item.power;
+  document.getElementById("editType").value=item.type;
+  document.getElementById("editA").value=item.a||"";
+  document.getElementById("editB").value=item.b||"";
+}
+function clearEdit(){
+  editTargetId=null;
+  document.getElementById("formTitle").textContent="新增角色";
+  ["editId","editName","editPower","editA","editB"].forEach(i=>document.getElementById(i).value="");
+}
+async function saveChar(){
+  const o=document.getElementById("editOwner").value.trim();
+  const n=document.getElementById("editName").value.trim();
+  const p=Number(document.getElementById("editPower").value)||0;
+  const tp=document.getElementById("editType").value;
+  const a=document.getElementById("editA").value.trim();
+  const b=document.getElementById("editB").value.trim();
+  if(!o){alert("请填写归属玩家");return;}
+  if(!n){alert("角色名称不能为空");return;}
+  const target=editTargetId;
+  await SYNC.writeState(st=>{
+    const draft={owner:o,name:n,power:p,type:tp,a,b};
+    if(target){
+      const idx=st.charList.findIndex(x=>x.id===target);
+      if(idx>=0) st.charList[idx]=Object.assign({id:target},draft);
+      else st.charList.push(Object.assign({id:target},draft));
+    }else{
+      const newId=Math.max(0,...st.charList.map(x=>x.id))+1;
+      st.charList.push(Object.assign({id:newId},draft));
+    }
+    st.teamList=arrange(st.charList);
+    return st;
+  });
+  clearEdit();
+}
+async function delChar(id){
+  if(!confirm("确定删除该角色？队伍内占用会清空并重新排表"))return;
+  await SYNC.writeState(st=>{ st.charList=st.charList.filter(x=>x.id!==id); st.teamList=arrange(st.charList); return st; });
+}
+
+/* ---------- 顶栏动作 ---------- */
+async function doAutoArrange(){ await SYNC.writeState(st=>{ st.teamList=arrange(st.charList); return st; }); }
+function exportData(){
+  const json=JSON.stringify(charList,null,2);
+  const blob=new Blob([json],{type:"text/plain"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="薄纱末世录角色数据.json"; a.click();
+}
+async function doImport(){
+  const txt=document.getElementById("importText").value;
+  try{
+    const arr=JSON.parse(txt);
+    if(!Array.isArray(arr)) throw new Error("格式错误");
+    await SYNC.writeState(st=>{ st.charList=arr; st.teamList=arrange(st.charList); return st; });
+    closeModal("importModal"); document.getElementById("importText").value=""; alert("导入成功");
+  }catch(e){ alert("JSON解析失败，请检查格式"); }
+}
+async function doReset(){
+  if(!confirm("确认重置为原始表格数据，所有修改将被覆盖并同步到房间？"))return;
+  await SYNC.writeState(st=>{ st.charList=getInitData(); st.teamList=arrange(st.charList); return st; });
+  clearEdit();
+}
+
+/* ---------- 房间 ---------- */
+function newRoom(){
+  SYNC.room={id:randId(),sha:null,dataVersion:0,presence:{}};
+  history.replaceState(null,"","#room="+SYNC.room.id);
+  SYNC.setStatus(SYNC.cfg&&SYNC.cfg.token?"新房间，编辑后自动创建":"本地模式","off");
+  renderAll();
+}
+function joinRoom(){
+  const v=prompt("输入房间ID或完整分享链接：");
+  if(!v)return;
+  const m=v.match(/room=([A-Za-z0-9_-]+)/);
+  const id=(m&&m[1])||v.trim();
+  if(!/^[A-Za-z0-9_-]{3,}$/.test(id)){alert("房间ID无效");return;}
+  SYNC.room={id,sha:null,dataVersion:0,presence:{}};
+  history.replaceState(null,"","#room="+id);
+  if(SYNC.cfg&&SYNC.cfg.token){ SYNC.fetchState(true); }
+  else { SYNC.setStatus("本地模式","off"); }
+  renderAll();
+}
+function copyLink(){ navigator.clipboard.writeText(location.href).then(()=>{ const b=document.getElementById("copyLink"); b.textContent="已复制"; setTimeout(()=>b.textContent="复制",1200); }).catch(()=>prompt("请手动复制：",location.href)); }
+
+/* ---------- 设置弹窗 ---------- */
+function openModal(id){ document.getElementById(id).classList.add("show"); }
+function closeModal(id){ document.getElementById(id).classList.remove("show"); }
+function fillCfgForm(){
+  const c=SYNC.cfg||{owner:"",repo:"",token:"",branch:"master"};
+  document.getElementById("cfgOwner").value=c.owner||"";
+  document.getElementById("cfgRepo").value=c.repo||"";
+  document.getElementById("cfgBranch").value=c.branch||"master";
+  document.getElementById("cfgToken").value=c.token||"";
+}
+function readCfgForm(){
+  return { owner:document.getElementById("cfgOwner").value.trim(),
+           repo:document.getElementById("cfgRepo").value.trim(),
+           branch:document.getElementById("cfgBranch").value.trim()||"master",
+           token:document.getElementById("cfgToken").value.trim() };
+}
+async function testCfg(){
+  const c=readCfgForm();
+  if(!c.owner||!c.repo||!c.token){ document.getElementById("cfgMsg").textContent="请填写完整"; return; }
+  document.getElementById("cfgMsg").textContent="测试中…";
+  try{
+    const r=await fetch(`https://gitee.com/api/v5/repos/${c.owner}/${c.repo}?access_token=${encodeURIComponent(c.token)}`);
+    if(r.status===200){ const j=await r.json(); document.getElementById("cfgMsg").textContent="✓ 连接成功，仓库："+j.full_name+"（默认分支："+j.default_branch+"）"; }
+    else if(r.status===404){ document.getElementById("cfgMsg").textContent="✗ 仓库不存在或令牌无权访问"; }
+    else if(r.status===401){ document.getElementById("cfgMsg").textContent="✗ 令牌无效"; }
+    else { document.getElementById("cfgMsg").textContent="✗ HTTP "+r.status; }
+  }catch(e){ document.getElementById("cfgMsg").textContent="✗ 网络错误："+e.message; }
+}
+function saveCfg(){
+  const c=readCfgForm();
+  if(!c.token){ SYNC.cfg=null; localStorage.removeItem(LS_SYNC); SYNC.stop(); SYNC.setStatus("本地模式","off"); document.getElementById("cfgMsg").textContent="已清除，转为本地模式"; return; }
+  localStorage.setItem(LS_SYNC, JSON.stringify(c));
+  SYNC.cfg=c; SYNC.start();
+  document.getElementById("cfgMsg").textContent="✓ 已保存并开始同步";
+}
+
+/* ---------- 标签 ---------- */
+function bindTab(){
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      document.querySelectorAll(".panel").forEach(p=>p.classList.remove("show"));
+      document.getElementById(t.dataset.tab).classList.add("show");
+    };
+  });
+}
+
+/* ---------- 初始化 ---------- */
+function init(){
+  if(!loadStorage()){ charList=getInitData(); teamList=arrange(charList); saveStorage(); }
+  // 昵称
+  const nick=localStorage.getItem(LS_NICK)||("");
+  document.getElementById("nickInput").value=nick;
+  document.getElementById("nickInput").addEventListener("input",function(){ localStorage.setItem(LS_NICK,this.value.trim()); SYNC.renderPresence(); });
+
+  bindTab();
+  document.getElementById("autoArrange").onclick=doAutoArrange;
+  document.getElementById("saveChar").onclick=saveChar;
+  document.getElementById("cancelEdit").onclick=clearEdit;
+  document.getElementById("exportData").onclick=exportData;
+  document.getElementById("resetAll").onclick=doReset;
+
+  document.getElementById("importData").onclick=()=>openModal("importModal");
+  document.getElementById("closeImport").onclick=()=>closeModal("importModal");
+  document.getElementById("doImport").onclick=doImport;
+
+  document.getElementById("newRoom").onclick=newRoom;
+  document.getElementById("joinBtn").onclick=joinRoom;
+  document.getElementById("copyLink").onclick=copyLink;
+
+  document.getElementById("openSettings").onclick=()=>{ fillCfgForm(); openModal("settingsModal"); };
+  document.getElementById("closeSettings").onclick=()=>closeModal("settingsModal");
+  document.getElementById("testCfg").onclick=testCfg;
+  document.getElementById("saveCfg").onclick=saveCfg;
+  document.getElementById("clearCfg").onclick=()=>{ document.getElementById("cfgToken").value=""; saveCfg(); };
+  document.getElementById("openHelp").onclick=()=>openModal("helpModal");
+  document.getElementById("closeHelp").onclick=()=>closeModal("helpModal");
+
+  // 点遮罩关闭
+  document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{ if(e.target===m) m.classList.remove("show"); }));
+
+  SYNC.init();
+  renderAll();
+}
+init();
+</script>
+</body>
+</html>
