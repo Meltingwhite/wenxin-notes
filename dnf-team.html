@@ -373,6 +373,7 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
           <span class="dot on" style="background:var(--green)"></span>
           <span style="font-size:13px">已登录：<b id="acctDisplayName"></b></span>
           <button class="sm secondary" id="acctLogout" style="margin-left:auto">切换账号</button>
+          <button class="sm" id="myRoomsBtn">我的房间</button>
         </div>
         <div class="tab-wrap" style="margin-bottom:14px">
           <div class="tab active" data-ltab="join">加入房间</div>
@@ -441,8 +442,8 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
     <div class="admin-header">
       <div style="display:flex;align-items:center;gap:10px">
         <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#e74c3c,#f97316);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:#fff;flex-shrink:0">管</div>
-        <h2>管理员控制台</h2>
-        <span style="font-size:11px;color:var(--mut);background:var(--panel2);padding:2px 8px;border-radius:10px;border:1px solid var(--line)">Wenby</span>
+        <h2 id="adminPanelTitle">管理员控制台</h2>
+        <span id="adminPanelTag" style="font-size:11px;color:var(--mut);background:var(--panel2);padding:2px 8px;border-radius:10px;border:1px solid var(--line)">Wenby</span>
       </div>
       <div class="acts">
         <button id="adminRefresh">刷新房间列表</button>
@@ -966,7 +967,8 @@ const SYNC = {
       const initData = {
         charList: [], teamList: [], raidMode: 4,
         password: password, dataVersion: 1,
-        editor: this.nick(), room: roomId, presence: {}
+        editor: this.nick(), room: roomId, presence: {},
+        createdBy: ACCT.currentUser() || this.nick()
       };
       const body = {
         access_token: this.cfg.token,
@@ -1068,6 +1070,7 @@ const SYNC = {
         next.room = this.room.id;
         next.presence = Object.assign({}, base.presence||{}, next.presence||{}, {[this.nick()]:Date.now()});
         next.password = this.room.password || base.password || "";
+        if(!next.createdBy) next.createdBy = base.createdBy || ACCT.currentUser() || this.nick();
         const body = { access_token:this.cfg.token, message:"sync "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
@@ -1576,7 +1579,7 @@ const ADMIN = {
           rooms.push({
             id:roomId, sha:jj.sha, charCount, teamCount, cCount, hCount,
             online, editor:data.editor||"-", dataVersion:data.dataVersion||0,
-            raidMode:data.raidMode||4, presence
+            raidMode:data.raidMode||4, presence, createdBy:data.createdBy||data.editor||"-"
           });
         }catch(e){}
       }
@@ -1657,6 +1660,8 @@ async function doAdminLogin(){
     closeModal("adminLoginModal");
     document.getElementById("adminPwd").value="";
     document.getElementById("adminLoginMsg").textContent="";
+    document.getElementById("adminPanelTitle").textContent="管理员控制台";
+    document.getElementById("adminPanelTag").textContent="Wenby";
     document.getElementById("adminPanel").classList.add("show");
     await loadAdminRooms();
   }else{
@@ -1690,12 +1695,17 @@ async function loadAdminRooms(){
   document.getElementById("adminSearchRoom").value="";
   document.getElementById("adminSearchEditor").value="";
   document.getElementById("adminFilterMode").value="";
-  list.innerHTML=rooms.map(r=>`
+  const isAdmin = ADMIN.active;
+  const currentUser = ACCT.currentUser() || "";
+  list.innerHTML=rooms.map(r=>{
+    const canManage = isAdmin || r.createdBy===currentUser;
+    return `
     <div class="room-card">
       <div class="room-card-head">
-        <input type="checkbox" data-admin-check="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}" style="width:auto;margin-right:6px">
+        <input type="checkbox" data-admin-check="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}" ${canManage?"":"disabled"} style="width:auto;margin-right:6px">
         <span class="rid">${escapeHtml(r.id)}</span>
-        <span class="rinfo">v${r.dataVersion} · 编辑者：${escapeHtml(r.editor)} · ${r.raidMode===12?"12人团本":"4人团本"}${r.online>0?' · <span style="color:var(--green)">'+r.online+'人在线</span>':''}</span>
+        <span class="rinfo">v${r.dataVersion} · 创建者：${escapeHtml(r.createdBy)} · 编辑者：${escapeHtml(r.editor)} · ${r.raidMode===12?"12人团本":"4人团本"}${r.online>0?' · <span style="color:var(--green)">'+r.online+'人在线</span>':''}</span>
+        ${!canManage?'<span style="font-size:11px;color:var(--mut);background:var(--panel2);padding:1px 6px;border-radius:8px;border:1px solid var(--line)">只读</span>':''}
       </div>
       <div class="room-card-body">
         <span>角色 <b>${r.charCount}</b></span>
@@ -1705,10 +1715,11 @@ async function loadAdminRooms(){
       </div>
       <div class="room-card-actions">
         <button class="sm" data-admin-enter="${escapeHtml(r.id)}">进入编辑</button>
-        <button class="sm secondary" data-admin-rename="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}">重命名</button>
-        <button class="sm danger" data-admin-del="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}">删除房间</button>
+        ${canManage?`<button class="sm secondary" data-admin-rename="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}">重命名</button>
+        <button class="sm danger" data-admin-del="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}">删除房间</button>`:''}
       </div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
   // 绑定事件
   document.querySelectorAll("[data-admin-enter]").forEach(b=>{
     b.onclick=()=>ADMIN.enterRoom(b.dataset.adminEnter);
@@ -1830,6 +1841,16 @@ function init(){
   document.getElementById("acctLogout").onclick=()=>{
     ACCT.clearSession();
     showAcctStep();
+  };
+  document.getElementById("myRoomsBtn").onclick=async()=>{
+    // 普通用户进入管理面板（非管理员模式）
+    ADMIN.active=false;
+    const user=ACCT.currentUser();
+    document.getElementById("adminPanelTitle").textContent="我的房间管理";
+    document.getElementById("adminPanelTag").textContent=user||"";
+    closeModal("loginModal");
+    document.getElementById("adminPanel").classList.add("show");
+    await loadAdminRooms();
   };
   document.getElementById("doJoin").onclick=doJoinRoom;
   document.getElementById("doCreate").onclick=doCreateRoom;
