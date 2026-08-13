@@ -214,6 +214,8 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
       <button class="mode-btn" id="mode12" data-mode="12" style="padding:5px 12px;border-radius:4px;border:none;background:transparent;color:var(--mut);cursor:pointer;font-size:13px">12人团本</button>
     </div>
     <div class="acts">
+      <button class="sm secondary" id="undoBtn" disabled style="opacity:.4">↩ 撤销</button>
+      <button class="sm secondary" id="redoBtn" disabled style="opacity:.4">↪ 重做</button>
       <button id="autoArrange">一键均衡排完所有角色</button>
       <button class="secondary" id="exportData">导出Excel</button>
       <button class="secondary" id="importData">导入Excel</button>
@@ -415,11 +417,12 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
       </div>
       <div class="acts">
         <button id="adminRefresh">刷新房间列表</button>
+        <button class="danger" id="adminBatchDel" disabled style="opacity:.4">批量删除选中</button>
         <button class="secondary" id="adminExit">退出管理</button>
       </div>
     </div>
     <div class="admin-stats">
-      房间总数 <b id="adminRoomCount">0</b> ｜ 总角色数 <b id="adminTotalChars">0</b> ｜ 总队伍数 <b id="adminTotalTeams">0</b> ｜ 在线人数 <b id="adminOnline">0</b>
+      房间总数 <b id="adminRoomCount">0</b> ｜ 总角色数 <b id="adminTotalChars">0</b> ｜ 总队伍数 <b id="adminTotalTeams">0</b> ｜ 在线人数 <b id="adminOnline">0</b> ｜ 已选中 <b id="adminSelectedCount">0</b>
     </div>
     <div id="adminRoomList"></div>
   </div>
@@ -442,6 +445,37 @@ let editTargetId = null;
 let raidMode = 4; /* 4=四人次本, 12=十二人团本(3队红黄绿) */
 let viewMode = "normal"; /* normal=标准, compact=紧凑, ultra=一览 */
 let clickHL = ""; /* 点击高亮的玩家名，空=无 */
+
+/* ---------- 撤销/重做 ---------- */
+const HISTORY_SIZE = 50;
+let undoStack = [];
+let redoStack = [];
+function snapshot(){ return {charList:clone(charList), teamList:clone(teamList), raidMode}; }
+function pushHistory(){ undoStack.push(snapshot()); if(undoStack.length>HISTORY_SIZE) undoStack.shift(); redoStack=[]; updateUndoRedoBtns(); }
+function updateUndoRedoBtns(){
+  const ub=document.getElementById("undoBtn"), rb=document.getElementById("redoBtn");
+  if(!ub||!rb) return;
+  ub.disabled = undoStack.length===0;
+  rb.disabled = redoStack.length===0;
+  ub.style.opacity = ub.disabled ? "0.4" : "1";
+  rb.style.opacity = rb.disabled ? "0.4" : "1";
+}
+async function doUndo(){
+  if(!undoStack.length) return;
+  redoStack.push(snapshot());
+  const prev = undoStack.pop();
+  charList = prev.charList; teamList = prev.teamList; raidMode = prev.raidMode;
+  saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
+  await SYNC.writeState(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
+}
+async function doRedo(){
+  if(!redoStack.length) return;
+  undoStack.push(snapshot());
+  const next = redoStack.pop();
+  charList = next.charList; teamList = next.teamList; raidMode = next.raidMode;
+  saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
+  await SYNC.writeState(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
+}
 
 /* ---------- 原始数据 ---------- */
 function getInitData(){
@@ -1015,6 +1049,7 @@ function renderTeamTable(){
         const t=Number(this.dataset.t), s=Number(this.dataset.s);
         const newCid=this.value?Number(this.value):null;
         if(!newCid) return;
+        pushHistory();
         await SYNC.writeState(st=>{
           for(let ti=0;ti<st.teamList.length;ti++){
             for(let si=0;si<st.teamList[ti].slots.length;si++){
@@ -1085,7 +1120,12 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       team.slots.forEach((ss,si)=>{ if(ss.charId && si!==sIdx){ const cc=charList.find(x=>x.id===ss.charId); if(cc) teamOwners.add(cc.owner); } });
       const findTeamOf=(cid)=>{ for(let ti=0;ti<teamList.length;ti++){ if(teamList[ti].slots.some(s=>s.charId===cid)) return ti+1; } return 0; };
       const samePlayer=charList.filter(x=>x.owner===c.owner && x.id!==slot.charId)
-        .slice().sort((a,b)=>b.power-a.power);
+        .slice().sort((a,b)=>{
+          const aT=findTeamOf(a.id), bT=findTeamOf(b.id);
+          if(aT && !bT) return 1;
+          if(!aT && bT) return -1;
+          return b.power-a.power;
+        });
       const others=charList.filter(x=>{
         if(x.owner===c.owner) return false;
         const usedElse=globalUsed.has(x.id) && x.id!==slot.charId;
@@ -1145,6 +1185,7 @@ async function saveChar(){
   if(!o){alert("请填写归属玩家");return;}
   if(!n){alert("角色名称不能为空");return;}
   const target=editTargetId;
+  pushHistory();
   await SYNC.writeState(st=>{
     const draft={owner:o,name:n,power:p,type:tp,a,b};
     if(target){
@@ -1162,13 +1203,15 @@ async function saveChar(){
 }
 async function delChar(id){
   if(!confirm("确定删除该角色？队伍内占用会清空并重新排表"))return;
+  pushHistory();
   await SYNC.writeState(st=>{ st.charList=st.charList.filter(x=>x.id!==id); st.teamList=arrange(st.charList); return st; });
 }
 
 /* ---------- 顶栏动作 ---------- */
-async function doAutoArrange(){ await SYNC.writeState(st=>{ st.teamList=arrange(st.charList); return st; }); }
+async function doAutoArrange(){ pushHistory(); await SYNC.writeState(st=>{ st.teamList=arrange(st.charList); return st; }); }
 async function switchMode(m){
   if(m===raidMode) return;
+  pushHistory();
   await SYNC.writeState(st=>{
     st.raidMode=m; raidMode=m;
     st.teamList=arrange(st.charList);
@@ -1211,12 +1254,14 @@ async function doImport(){
     if(!arr.length){ alert("未找到有效数据，请检查列名是否包含：归属玩家、角色名称"); return; }
     // 分配ID
     let maxId=0; arr.forEach((c,i)=>{ c.id=i+1; });
+    pushHistory();
     await SYNC.writeState(st=>{ st.charList=arr; st.teamList=arrange(st.charList); return st; });
     closeModal("importModal"); fileInput.value=""; alert("导入成功，共"+arr.length+"个角色");
   }catch(e){ alert("Excel解析失败："+e.message); }
 }
 async function doReset(){
   if(!confirm("确认重置为原始表格数据，所有修改将被覆盖并同步到房间？"))return;
+  pushHistory();
   await SYNC.writeState(st=>{ st.charList=getInitData(); st.teamList=arrange(st.charList); return st; });
   clearEdit();
 }
@@ -1419,6 +1464,30 @@ const ADMIN = {
       ss.textContent="管理员模式 · 已同步";
       ss.style.color="var(--orange)";
     }catch(e){ alert("进入失败："+e.message); }
+  },
+  async renameRoom(oldId, newId, sha){
+    if(!SYNC.cfg || !SYNC.cfg.token) return false;
+    if(!/^[A-Za-z0-9_-]{1,30}$/.test(newId)) return false;
+    if(oldId===newId) return true;
+    try{
+      // 1. 读取原房间数据
+      const r=await fetch(SYNC.url("rooms/"+oldId+".json")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
+      if(!r.ok) return false;
+      const j=await r.json();
+      if(!j || !j.content) return false;
+      const data=JSON.parse(b64dec(j.content));
+      // 2. 检查新房间号是否已存在
+      const checkR=await fetch(SYNC.url("rooms/"+newId+".json")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
+      if(checkR.status!==404) return "exists";
+      // 3. 创建新房间
+      const body={access_token:SYNC.cfg.token,message:"admin rename "+oldId+" -> "+newId,content:b64enc(JSON.stringify(data)),branch:SYNC.cfg.branch||"master"};
+      const pr=await fetch(SYNC.url("rooms/"+newId+".json")+"?access_token="+SYNC.tok(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+      if(!pr.ok) return false;
+      // 4. 删除旧房间
+      const delBody={access_token:SYNC.cfg.token,message:"admin delete old room "+oldId,sha,branch:SYNC.cfg.branch||"master"};
+      await fetch(SYNC.url("rooms/"+oldId+".json")+"?access_token="+SYNC.tok(),{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(delBody)});
+      return true;
+    }catch(e){ return false; }
   }
 };
 
@@ -1448,6 +1517,8 @@ async function loadAdminRooms(){
     document.getElementById("adminTotalChars").textContent="0";
     document.getElementById("adminTotalTeams").textContent="0";
     document.getElementById("adminOnline").textContent="0";
+    document.getElementById("adminSelectedCount").textContent="0";
+    updateBatchDelBtn();
     return;
   }
   let totalChars=0,totalTeams=0,totalOnline=0;
@@ -1456,9 +1527,11 @@ async function loadAdminRooms(){
   document.getElementById("adminTotalChars").textContent=totalChars;
   document.getElementById("adminTotalTeams").textContent=totalTeams;
   document.getElementById("adminOnline").textContent=totalOnline;
+  document.getElementById("adminSelectedCount").textContent="0";
   list.innerHTML=rooms.map(r=>`
     <div class="room-card">
       <div class="room-card-head">
+        <input type="checkbox" data-admin-check="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}" style="width:auto;margin-right:6px">
         <span class="rid">${escapeHtml(r.id)}</span>
         <span class="rinfo">v${r.dataVersion} · 编辑者：${escapeHtml(r.editor)} · ${r.raidMode===12?"12人团本":"4人团本"}${r.online>0?' · <span style="color:var(--green)">'+r.online+'人在线</span>':''}</span>
       </div>
@@ -1470,6 +1543,7 @@ async function loadAdminRooms(){
       </div>
       <div class="room-card-actions">
         <button class="sm" data-admin-enter="${escapeHtml(r.id)}">进入编辑</button>
+        <button class="sm secondary" data-admin-rename="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}">重命名</button>
         <button class="sm danger" data-admin-del="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}">删除房间</button>
       </div>
     </div>`).join("");
@@ -1486,6 +1560,47 @@ async function loadAdminRooms(){
       else{ alert("删除失败，可能需要刷新后重试"); }
     };
   });
+  document.querySelectorAll("[data-admin-rename]").forEach(b=>{
+    b.onclick=async()=>{
+      const oldId=b.dataset.adminRename;
+      const sha=b.dataset.adminSha;
+      const newId=prompt("请输入新的房间号（字母、数字、下划线、短横线）：",oldId);
+      if(!newId||newId.trim()===oldId) return;
+      if(!/^[A-Za-z0-9_-]{1,30}$/.test(newId.trim())){ alert("房间号只能用字母、数字、下划线、短横线，最多30字符"); return; }
+      const result=await ADMIN.renameRoom(oldId,newId.trim(),sha);
+      if(result===true){ alert("房间已从 "+oldId+" 重命名为 "+newId.trim()); await loadAdminRooms(); }
+      else if(result==="exists"){ alert("房间号 "+newId.trim()+" 已存在，请换一个"); }
+      else{ alert("重命名失败，请重试"); }
+    };
+  });
+  // 绑定复选框
+  document.querySelectorAll("[data-admin-check]").forEach(cb=>{
+    cb.onchange=updateBatchDelBtn;
+  });
+  updateBatchDelBtn();
+}
+
+function updateBatchDelBtn(){
+  const checked=document.querySelectorAll("[data-admin-check]:checked");
+  const btn=document.getElementById("adminBatchDel");
+  const cnt=document.getElementById("adminSelectedCount");
+  cnt.textContent=checked.length;
+  btn.disabled=checked.length===0;
+  btn.style.opacity=checked.length===0?"0.4":"1";
+}
+
+async function doBatchDelete(){
+  const checked=document.querySelectorAll("[data-admin-check]:checked");
+  if(!checked.length) return;
+  const ids=Array.from(checked).map(cb=>cb.dataset.adminCheck);
+  if(!confirm("确定批量删除 "+ids.length+" 个房间？\n"+ids.join(", ")+"\n\n此操作不可恢复！"))return;
+  let ok=0,fail=0;
+  for(const cb of checked){
+    const r=await ADMIN.deleteRoom(cb.dataset.adminCheck, cb.dataset.adminSha);
+    if(r) ok++; else fail++;
+  }
+  alert("批量删除完成：成功 "+ok+" 个"+(fail>0?"，失败 "+fail+" 个":""));
+  await loadAdminRooms();
 }
 
 /* ---------- 初始化 ---------- */
@@ -1497,6 +1612,13 @@ function init(){
 
   bindTab();
   document.getElementById("autoArrange").onclick=doAutoArrange;
+  document.getElementById("undoBtn").onclick=doUndo;
+  document.getElementById("redoBtn").onclick=doRedo;
+  // 键盘快捷键 Ctrl+Z 撤销, Ctrl+Shift+Z / Ctrl+Y 重做
+  document.addEventListener("keydown",function(e){
+    if((e.ctrlKey||e.metaKey) && e.key==="z" && !e.shiftKey){ e.preventDefault(); doUndo(); }
+    else if((e.ctrlKey||e.metaKey) && (e.key==="y" || (e.key==="z" && e.shiftKey))){ e.preventDefault(); doRedo(); }
+  });
   document.querySelectorAll(".mode-btn").forEach(b=>{ b.onclick=()=>switchMode(Number(b.dataset.mode)); });
   document.querySelectorAll(".view-btn").forEach(b=>{ b.onclick=()=>{
     viewMode=b.dataset.view;
@@ -1536,6 +1658,7 @@ function init(){
   document.getElementById("doAdminLogin").onclick=doAdminLogin;
   document.getElementById("closeAdminLogin").onclick=()=>{ closeModal("adminLoginModal"); openModal("loginModal"); };
   document.getElementById("adminRefresh").onclick=loadAdminRooms;
+  document.getElementById("adminBatchDel").onclick=doBatchDelete;
   document.getElementById("adminExit").onclick=()=>{
     ADMIN.active=false;
     document.getElementById("adminPanel").classList.remove("show");
