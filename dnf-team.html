@@ -144,7 +144,7 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
 .team-block.view-ultra .team-grid{grid-template-columns:repeat(4,1fr);gap:3px}
 .team-block.view-ultra .slot{padding:3px 5px;min-height:32px;border-radius:4px}
 .team-block.view-ultra .slot .sn{font-size:10px;line-height:1.2}
-.team-block.view-ultra .slot .sp{display:none}
+.team-block.view-ultra .slot .sp{font-size:9px;color:var(--yellow);margin-top:1px}
 .team-block.view-ultra .slot select{display:none}
 .team-block.view-ultra .team-title{font-size:11px;margin-bottom:3px}
 .team-block.view-ultra .slot-empty{min-height:32px;font-size:10px}
@@ -153,6 +153,27 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
 @media(max-width:760px){
   .team-block.view-compact .team-grid,.team-block.view-ultra .team-grid{grid-template-columns:repeat(2,1fr)}
 }
+
+/* 管理员面板 */
+.admin-link{text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--line)}
+.admin-link a{color:var(--mut);font-size:12px;cursor:pointer;text-decoration:none;transition:.15s}
+.admin-link a:hover{color:var(--blue2)}
+.admin-panel{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;overflow:auto;padding:16px}
+.admin-panel.show{display:block}
+.admin-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.admin-header h2{font-size:20px}
+.admin-header .acts{margin-left:auto;display:flex;gap:8px}
+.admin-stats{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;color:var(--mut);font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+.admin-stats b{color:var(--txt)}
+.room-card{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:14px;margin-bottom:10px;transition:.15s}
+.room-card:hover{border-color:var(--blue)}
+.room-card-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.room-card-head .rid{font-size:16px;font-weight:bold;color:var(--blue2)}
+.room-card-head .rinfo{font-size:12px;color:var(--mut)}
+.room-card-body{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--mut)}
+.room-card-body b{color:var(--txt)}
+.room-card-actions{display:flex;gap:6px;margin-top:10px}
+.admin-loading{text-align:center;padding:40px;color:var(--mut);font-size:14px}
 </style>
 </head>
 <body>
@@ -337,6 +358,19 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
         <button id="doCreate" style="width:100%;margin-top:8px">创建房间</button>
       </div>
       <p class="muted" id="loginMsg" style="margin-top:10px;font-size:12px;text-align:center"></p>
+      <div class="admin-link"><a id="openAdminLogin">管理员入口</a></div>
+    </div>
+  </div>
+
+  <!-- 管理员登录弹窗 -->
+  <div class="modal" id="adminLoginModal">
+    <div class="modal-box" style="max-width:380px">
+      <h3 style="text-align:center">管理员登录</h3>
+      <div class="form-item"><label>账号</label><input id="adminUser" placeholder="管理员账号" onkeydown="if(event.key==='Enter')document.getElementById('adminPwd').focus()"></div>
+      <div class="form-item"><label>密码</label><input type="password" id="adminPwd" placeholder="管理员密码" onkeydown="if(event.key==='Enter')document.getElementById('doAdminLogin').click()"></div>
+      <button id="doAdminLogin" style="width:100%;margin-top:8px">登录</button>
+      <button class="secondary" id="closeAdminLogin" style="width:100%;margin-top:6px">返回</button>
+      <p class="muted" id="adminLoginMsg" style="margin-top:10px;font-size:12px;text-align:center"></p>
     </div>
   </div>
 
@@ -369,6 +403,25 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
         <button class="secondary" id="closeGuide">进入房间</button>
       </div>
     </div>
+  </div>
+
+  <!-- 管理员面板 -->
+  <div class="admin-panel" id="adminPanel">
+    <div class="admin-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#e74c3c,#f97316);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:#fff;flex-shrink:0">管</div>
+        <h2>管理员控制台</h2>
+        <span style="font-size:11px;color:var(--mut);background:var(--panel2);padding:2px 8px;border-radius:10px;border:1px solid var(--line)">Wenby</span>
+      </div>
+      <div class="acts">
+        <button id="adminRefresh">刷新房间列表</button>
+        <button class="secondary" id="adminExit">退出管理</button>
+      </div>
+    </div>
+    <div class="admin-stats">
+      房间总数 <b id="adminRoomCount">0</b> ｜ 总角色数 <b id="adminTotalChars">0</b> ｜ 总队伍数 <b id="adminTotalTeams">0</b> ｜ 在线人数 <b id="adminOnline">0</b>
+    </div>
+    <div id="adminRoomList"></div>
   </div>
 
   <div style="text-align:center;padding:10px 0 6px;color:var(--mut);font-size:11px;border-top:1px solid var(--line);margin-top:14px">本平台由原神群温白开发，未经允许，禁止转发。</div>
@@ -1025,7 +1078,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       if(!slot.charId){ html+=`<div class="slot slot-empty">空位</div>`; return; }
       const c=charList.find(x=>x.id===slot.charId); if(!c){ html+=`<div class="slot slot-empty">空位</div>`; return; }
       if(isUltra){
-        html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}"><div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)}</div><div class="sp" style="color:var(--yellow);font-size:10px">${c.power}</div></div>`;
+        html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}"><div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)}</div><div class="sp">${c.power}</div></div>`;
         return;
       }
       const teamOwners=new Set();
@@ -1285,6 +1338,156 @@ function bindTab(){
   });
 }
 
+/* ---------- 管理员模块 ---------- */
+const ADMIN = {
+  user:"Wenby", pass:"mics", active:false,
+  login(u,p){
+    if(u===this.user && p===this.pass){ this.active=true; return true; }
+    return false;
+  },
+  async fetchRooms(){
+    if(!SYNC.cfg || !SYNC.cfg.token) return [];
+    try{
+      const r=await fetch(SYNC.url("rooms")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
+      if(!r.ok) return [];
+      const j=await r.json();
+      if(!Array.isArray(j)) return [];
+      const rooms=[];
+      for(const f of j){
+        const m=f.name.match(/^(.+)\.json$/);
+        if(!m) continue;
+        const roomId=m[1];
+        try{
+          const rr=await fetch(SYNC.url("rooms/"+f.name)+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
+          if(!rr.ok) continue;
+          const jj=await rr.json();
+          if(!jj || !jj.content) continue;
+          const data=JSON.parse(b64dec(jj.content));
+          const charCount=Array.isArray(data.charList)?data.charList.length:0;
+          const teamCount=Array.isArray(data.teamList)?data.teamList.length:0;
+          const cCount=Array.isArray(data.charList)?data.charList.filter(c=>c.type==="c").length:0;
+          const hCount=Array.isArray(data.charList)?data.charList.filter(c=>c.type==="N").length:0;
+          const presence=data.presence||{};
+          const now=Date.now();
+          let online=0;
+          for(const k in presence){ if(now-presence[k]<60000) online++; }
+          rooms.push({
+            id:roomId, sha:jj.sha, charCount, teamCount, cCount, hCount,
+            online, editor:data.editor||"-", dataVersion:data.dataVersion||0,
+            raidMode:data.raidMode||4, presence
+          });
+        }catch(e){}
+      }
+      return rooms;
+    }catch(e){ return []; }
+  },
+  async deleteRoom(roomId, sha){
+    if(!SYNC.cfg || !SYNC.cfg.token) return false;
+    try{
+      const body={access_token:SYNC.cfg.token,message:"admin delete room "+roomId,sha,branch:SYNC.cfg.branch||"master"};
+      const r=await fetch(SYNC.url("rooms/"+roomId+".json")+"?access_token="+SYNC.tok(),{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+      return r.ok;
+    }catch(e){ return false; }
+  },
+  async enterRoom(roomId){
+    // 管理员无密码进入房间
+    if(!SYNC.cfg || !SYNC.cfg.token){
+      SYNC.room={id:roomId,sha:null,dataVersion:0,presence:{},password:""};
+      history.replaceState(null,"","#room="+roomId);
+      SYNC.setStatus("本地模式（管理员）","off");
+      document.getElementById("adminPanel").classList.remove("show");
+      renderAll();
+      return;
+    }
+    try{
+      const r=await fetch(SYNC.url("rooms/"+roomId+".json")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
+      if(r.status===404){ alert("房间不存在"); return; }
+      if(!r.ok){ alert("读取失败"); return; }
+      const j=await r.json();
+      if(!j || !j.content){ alert("房间数据异常"); return; }
+      const data=JSON.parse(b64dec(j.content));
+      SYNC.room={id:roomId,sha:j.sha,dataVersion:data.dataVersion||0,presence:data.presence||{},password:data.password||""};
+      history.replaceState(null,"","#room="+roomId);
+      charList=Array.isArray(data.charList)?data.charList.map(c=>{if(c.type==="healer")c.type="N";return c;}):charList;
+      raidMode=data.raidMode||4;
+      teamList=Array.isArray(data.teamList)?data.teamList:arrange(charList);
+      saveStorage();renderAll();updateModeBtns();
+      SYNC.start();
+      document.getElementById("adminPanel").classList.remove("show");
+      // 显示管理员标识
+      const ss=document.getElementById("syncStatus");
+      ss.textContent="管理员模式 · 已同步";
+      ss.style.color="var(--orange)";
+    }catch(e){ alert("进入失败："+e.message); }
+  }
+};
+
+async function doAdminLogin(){
+  const u=document.getElementById("adminUser").value.trim();
+  const p=document.getElementById("adminPwd").value;
+  const msg=document.getElementById("adminLoginMsg");
+  if(!u||!p){ msg.textContent="请输入账号和密码"; return; }
+  if(ADMIN.login(u,p)){
+    closeModal("adminLoginModal");
+    document.getElementById("adminPwd").value="";
+    document.getElementById("adminLoginMsg").textContent="";
+    document.getElementById("adminPanel").classList.add("show");
+    await loadAdminRooms();
+  }else{
+    msg.textContent="✗ 账号或密码错误";
+  }
+}
+
+async function loadAdminRooms(){
+  const list=document.getElementById("adminRoomList");
+  list.innerHTML='<div class="admin-loading">加载房间数据中…</div>';
+  const rooms=await ADMIN.fetchRooms();
+  if(!rooms.length){
+    list.innerHTML='<div class="admin-loading">暂无房间数据</div>';
+    document.getElementById("adminRoomCount").textContent="0";
+    document.getElementById("adminTotalChars").textContent="0";
+    document.getElementById("adminTotalTeams").textContent="0";
+    document.getElementById("adminOnline").textContent="0";
+    return;
+  }
+  let totalChars=0,totalTeams=0,totalOnline=0;
+  rooms.forEach(r=>{totalChars+=r.charCount;totalTeams+=r.teamCount;totalOnline+=r.online;});
+  document.getElementById("adminRoomCount").textContent=rooms.length;
+  document.getElementById("adminTotalChars").textContent=totalChars;
+  document.getElementById("adminTotalTeams").textContent=totalTeams;
+  document.getElementById("adminOnline").textContent=totalOnline;
+  list.innerHTML=rooms.map(r=>`
+    <div class="room-card">
+      <div class="room-card-head">
+        <span class="rid">${escapeHtml(r.id)}</span>
+        <span class="rinfo">v${r.dataVersion} · 编辑者：${escapeHtml(r.editor)} · ${r.raidMode===12?"12人团本":"4人团本"}${r.online>0?' · <span style="color:var(--green)">'+r.online+'人在线</span>':''}</span>
+      </div>
+      <div class="room-card-body">
+        <span>角色 <b>${r.charCount}</b></span>
+        <span>C位 <b>${r.cCount}</b></span>
+        <span>奶位 <b>${r.hCount}</b></span>
+        <span>队伍 <b>${r.teamCount}</b></span>
+      </div>
+      <div class="room-card-actions">
+        <button class="sm" data-admin-enter="${escapeHtml(r.id)}">进入编辑</button>
+        <button class="sm danger" data-admin-del="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}">删除房间</button>
+      </div>
+    </div>`).join("");
+  // 绑定事件
+  document.querySelectorAll("[data-admin-enter]").forEach(b=>{
+    b.onclick=()=>ADMIN.enterRoom(b.dataset.adminEnter);
+  });
+  document.querySelectorAll("[data-admin-del]").forEach(b=>{
+    b.onclick=async()=>{
+      const rid=b.dataset.adminDel;
+      if(!confirm("确定删除房间 "+rid+"？此操作不可恢复！"))return;
+      const ok=await ADMIN.deleteRoom(rid,b.dataset.adminSha);
+      if(ok){ alert("房间 "+rid+" 已删除"); await loadAdminRooms(); }
+      else{ alert("删除失败，可能需要刷新后重试"); }
+    };
+  });
+}
+
 /* ---------- 初始化 ---------- */
 function init(){
   // 昵称
@@ -1327,6 +1530,17 @@ function init(){
 
   document.getElementById("openHelp").onclick=()=>openModal("helpModal");
   document.getElementById("closeHelp").onclick=()=>closeModal("helpModal");
+
+  // 管理员
+  document.getElementById("openAdminLogin").onclick=()=>{ closeModal("loginModal"); openModal("adminLoginModal"); document.getElementById("adminUser").focus(); };
+  document.getElementById("doAdminLogin").onclick=doAdminLogin;
+  document.getElementById("closeAdminLogin").onclick=()=>{ closeModal("adminLoginModal"); openModal("loginModal"); };
+  document.getElementById("adminRefresh").onclick=loadAdminRooms;
+  document.getElementById("adminExit").onclick=()=>{
+    ADMIN.active=false;
+    document.getElementById("adminPanel").classList.remove("show");
+    openModal("loginModal");
+  };
 
   // 点遮罩关闭（登录弹窗除外）
   document.querySelectorAll(".modal").forEach(m=>{
