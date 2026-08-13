@@ -103,6 +103,10 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
   .card{width:100%}
 }
 
+/* 高亮搜索 */
+.slot.highlight{box-shadow:0 0 0 2px var(--yellow),0 0 8px rgba(234,179,8,.4);border-color:var(--yellow)!important;background:#3a3a15!important}
+.card.highlight{box-shadow:0 0 0 2px var(--yellow),0 0 8px rgba(234,179,8,.4);border-color:var(--yellow)!important}
+
 /* 紧凑模式 */
 .team-block.view-compact{padding:8px;margin-bottom:8px}
 .team-block.view-compact .team-grid{grid-template-columns:repeat(4,1fr);gap:4px}
@@ -212,12 +216,16 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
 
   <!-- 队伍排表 -->
   <div class="panel" id="teamTable">
-    <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
       <span class="muted" style="font-size:12px">显示模式</span>
       <div style="display:flex;gap:4px;background:var(--panel2);border-radius:6px;padding:3px;border:1px solid var(--line)">
         <button class="view-btn active" data-view="normal" style="padding:4px 10px;border-radius:4px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-size:12px">标准</button>
         <button class="view-btn" data-view="compact" style="padding:4px 10px;border-radius:4px;border:none;background:transparent;color:var(--mut);cursor:pointer;font-size:12px">紧凑</button>
         <button class="view-btn" data-view="ultra" style="padding:4px 10px;border-radius:4px;border:none;background:transparent;color:var(--mut);cursor:pointer;font-size:12px">一览</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;margin-left:8px">
+        <span class="muted" style="font-size:12px">高亮</span>
+        <input id="highlightName" placeholder="输入玩家名高亮" style="width:140px;padding:4px 8px;font-size:12px" oninput="renderTeamTable()">
       </div>
     </div>
     <div id="teamWrap"></div>
@@ -934,6 +942,7 @@ function renderTeamTable(){
 }
 
 function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, raidLabels){
+  const hl = (document.getElementById("highlightName").value||"").trim().toLowerCase();
   teamList.forEach((team,tIdx)=>{
     const rColor = team.raidColor || (isRaid12 ? ["red","yellow","green"][tIdx] : null);
     const block=document.createElement("div");
@@ -943,13 +952,14 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
     const teamLabel = rColor ? `${raidLabels[rColor]}` : `第${tIdx+1}队`;
     const groupLabel = team.group ? `组${team.group} ` : '';
+    const hlClass = (owner)=>{ if(hl && owner.toLowerCase().includes(hl)) return " highlight"; return ""; };
     let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${groupLabel}${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
       <span class="tsum">总战力：<b style="color:var(--yellow)">${hsum+csum}</b> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
     team.slots.forEach((slot,sIdx)=>{
       if(!slot.charId){ html+=`<div class="slot slot-empty">空位</div>`; return; }
       const c=charList.find(x=>x.id===slot.charId); if(!c){ html+=`<div class="slot slot-empty">空位</div>`; return; }
       if(isUltra){
-        html+=`<div class="slot ${c.type}"><div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span style="color:var(--yellow)">${c.power}</span></div></div>`;
+        html+=`<div class="slot ${c.type}${hlClass(c.owner)}"><div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span style="color:var(--yellow)">${c.power}</span></div></div>`;
         return;
       }
       const teamOwners=new Set();
@@ -979,7 +989,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
         });
         optsHtml+=`</optgroup>`;
       }
-      html+=`<div class="slot ${c.type}">
+      html+=`<div class="slot ${c.type}${hlClass(c.owner)}">
         <div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)}</div>
         <div class="sp">战力 ${c.power} ${c.type==="c"?"C":"奶"}</div>
         <select data-t="${tIdx}" data-s="${sIdx}">${optsHtml}</select></div>`;
