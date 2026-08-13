@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>薄纱团本 · 排表协作工具</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#0f1117; --panel:#1a1d27; --panel2:#222633; --line:#333a4a;
@@ -141,8 +142,8 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
     </div>
     <div class="acts">
       <button id="autoArrange">一键均衡排完所有角色</button>
-      <button class="secondary" id="exportData">导出 JSON</button>
-      <button class="secondary" id="importData">导入 JSON</button>
+      <button class="secondary" id="exportData">导出Excel</button>
+      <button class="secondary" id="importData">导入Excel</button>
       <button class="danger" id="resetAll">重置原始数据</button>
     </div>
   </div>
@@ -197,10 +198,11 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
   <!-- 导入弹窗 -->
   <div class="modal" id="importModal">
     <div class="modal-box">
-      <h3>导入角色 JSON</h3>
-      <p class="help" style="margin-bottom:8px">粘贴角色数组 JSON，将<strong>覆盖</strong>当前全部角色并自动重新排表。</p>
-      <textarea id="importText" placeholder='[{"id":1,"owner":"鸟","name":"剑魂","power":15226,"type":"c","a":"黄金","b":"黄金"}]'></textarea>
-      <div style="margin-top:10px;display:flex;gap:8px">
+      <h3>导入角色 Excel</h3>
+      <p class="help" style="margin-bottom:8px">选择 .xlsx / .xls 文件，将<strong>覆盖</strong>当前全部角色并自动重新排表。</p>
+      <p class="help" style="margin-bottom:8px">表格需包含列：<code>归属玩家</code> <code>角色名称</code> <code>战力数值</code> <code>类型</code>(c/healer) <code>A套</code> <code>B套</code></p>
+      <input type="file" id="importFile" accept=".xlsx,.xls" style="width:100%;margin-bottom:10px;padding:6px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--txt)">
+      <div style="display:flex;gap:8px">
         <button id="doImport">确认导入</button>
         <button class="secondary" id="closeImport">取消</button>
       </div>
@@ -236,7 +238,7 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
         <p>· 自动排表优先消耗全部奶，标准 1 奶 3 C，贪心均衡：高奶配低 C、低奶配高 C，每队总战力趋近一致。</p>
         <p>· 新增 / 编辑 / 删除角色后会自动重新生成全部队伍；队内下拉更换角色为手动微调，不会触发重排。</p>
         <p>· 队内「更换角色」下拉已自动过滤本队已有玩家，无法重复选择。</p>
-        <p>· 保留本地存储、导入 / 导出 JSON、重置原始数据。</p>
+        <p>· 保留本地存储、导入 / 导出 Excel、重置原始数据。</p>
         <p style="margin-top:10px"><b>多人协作</b></p>
         <p>· 已预配 Gitee 仓库 <code>meltingwhite1/dnf-team-sync</code>，只需填入私人令牌即可开启同步。</p>
         <p>· 生成令牌：Gitee → 右上头像 → 设置 → 私人令牌 → 生成新令牌，勾选 <code>projects</code>（仓库读写）权限。</p>
@@ -808,18 +810,43 @@ async function switchMode(m){
   updateModeBtns();
 }
 function exportData(){
-  const json=JSON.stringify(charList,null,2);
-  const blob=new Blob([json],{type:"text/plain"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="薄纱团本角色数据.json"; a.click();
+  if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
+  const rows=charList.map(c=>({
+    "归属玩家":c.owner, "角色名称":c.name, "战力数值":c.power,
+    "类型":c.type, "A套":c.a||"", "B套":c.b||""
+  }));
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"角色数据");
+  XLSX.writeFile(wb,"薄纱团本角色数据.xlsx");
 }
 async function doImport(){
-  const txt=document.getElementById("importText").value;
+  if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
+  const fileInput=document.getElementById("importFile");
+  const file=fileInput.files[0];
+  if(!file){ alert("请先选择Excel文件"); return; }
   try{
-    const arr=JSON.parse(txt);
-    if(!Array.isArray(arr)) throw new Error("格式错误");
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:"array"});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:""});
+    if(!rows.length){ alert("Excel中没有数据"); return; }
+    const arr=rows.map(r=>{
+      const owner=(r["归属玩家"]||r["owner"]||"").toString().trim();
+      const name=(r["角色名称"]||r["name"]||"").toString().trim();
+      const power=Number(r["战力数值"]||r["power"]||0)||0;
+      let type=(r["类型"]||r["type"]||"c").toString().trim().toLowerCase();
+      if(type!=="c"&&type!=="healer") type="c";
+      const a=(r["A套"]||r["a"]||"").toString().trim();
+      const b=(r["B套"]||r["b"]||"").toString().trim();
+      return {owner,name,power,type,a,b};
+    }).filter(c=>c.owner&&c.name);
+    if(!arr.length){ alert("未找到有效数据，请检查列名是否包含：归属玩家、角色名称"); return; }
+    // 分配ID
+    let maxId=0; arr.forEach((c,i)=>{ c.id=i+1; });
     await SYNC.writeState(st=>{ st.charList=arr; st.teamList=arrange(st.charList); return st; });
-    closeModal("importModal"); document.getElementById("importText").value=""; alert("导入成功");
-  }catch(e){ alert("JSON解析失败，请检查格式"); }
+    closeModal("importModal"); fileInput.value=""; alert("导入成功，共"+arr.length+"个角色");
+  }catch(e){ alert("Excel解析失败："+e.message); }
 }
 async function doReset(){
   if(!confirm("确认重置为原始表格数据，所有修改将被覆盖并同步到房间？"))return;
