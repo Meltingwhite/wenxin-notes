@@ -219,7 +219,7 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
       <div class="help">
         <p><b>排表规则</b></p>
         <p>· 每队固定 4 个不同玩家，同队不会出现同一人的多个角色。</p>
-        <p>· 自动排表优先消耗全部奶，标准 1 奶 3 C，并按高低战力交替搭配以求均衡。</p>
+        <p>· 自动排表优先消耗全部奶，标准 1 奶 3 C，贪心均衡：高奶配低 C、低奶配高 C，每队总战力趋近一致。</p>
         <p>· 新增 / 编辑 / 删除角色后会自动重新生成全部队伍；队内下拉更换角色为手动微调，不会触发重排。</p>
         <p>· 队内「更换角色」下拉已自动过滤本队已有玩家，无法重复选择。</p>
         <p>· 保留本地存储、导入 / 导出 JSON、重置原始数据。</p>
@@ -370,37 +370,56 @@ function loadStorage(){
 
 /* ---------- 排表（纯函数） ---------- */
 function arrange(chars){
-  const teams = [];
   const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
   const H = chars.filter(c=>c.type==="healer").slice().sort((a,b)=>b.power-a.power);
   const used = new Set();
-  const pickFree = (arr, owners, fromTop)=>{
-    for(let k=fromTop?0:arr.length-1; fromTop?k<arr.length:k>=0; k+=(fromTop?1:-1)){
-      const c = arr[k];
-      if(c && !used.has(c.id) && !owners.has(c.owner)) return c;
-    }
-    return null;
-  };
-  let guard = 0;
-  while((H.some(h=>!used.has(h.id)) || C.some(c=>!used.has(c.id))) && guard++ < 2000){
-    const slots = [null,null,null,null];
-    const owners = new Set();
-    let i = 0;
-    // 1) 优先消耗奶：每队先放一个奶（最高战力、玩家唯一）
-    const h = H.find(x=>!used.has(x.id) && !owners.has(x.owner));
-    if(h && i<4){ slots[i++]=h.id; owners.add(h.owner); used.add(h.id); }
-    // 2) 用 C 补齐，高低交替，玩家唯一
-    let turn = true;
-    while(i<4){
-      let pick = pickFree(C, owners, turn);
-      if(!pick){ pick = pickFree(C, owners, !turn); }
-      if(!pick) break;
-      slots[i++]=pick.id; owners.add(pick.owner); used.add(pick.id); turn=!turn;
-    }
-    if(!slots.some(s=>s!==null)) break;
-    teams.push({slots: slots.map(id=>({charId:id}))});
+  if(H.length===0) return [];
+  const n = H.length;
+  // Phase 1: 每队分配一个奶（按战力降序，最高奶→team[0]）
+  const teams = [];
+  for(let i=0;i<n;i++){
+    used.add(H[i].id);
+    teams.push({slots:[{charId:H[i].id}], owners:new Set([H[i].owner]), total:H[i].power});
   }
-  return teams;
+  // teams[0]=最高奶, teams[n-1]=最低奶
+  function pickAssign(ti, preferHigh){
+    for(let k=preferHigh?0:C.length-1; preferHigh?k<C.length:k>=0; k+=preferHigh?1:-1){
+      const c=C[k];
+      if(!used.has(c.id) && !teams[ti].owners.has(c.owner)){
+        teams[ti].slots.push({charId:c.id}); teams[ti].owners.add(c.owner);
+        teams[ti].total+=c.power; used.add(c.id); return true;
+      }
+    }
+    return false;
+  }
+  // Phase 2: 轮次1-2 —— 每队先保证拿到2个C
+  // 从最低奶队开始选最高C：低奶拿高C，高奶拿低C
+  for(let round=0;round<2;round++){
+    for(let ti=n-1;ti>=0;ti--){
+      if(teams[ti].slots.length>=3) continue; // 已有 奶+2C
+      pickAssign(ti,true);
+    }
+  }
+  // Phase 3: 剩余C贪心分配 —— 每次给当前总战力最低且不冲突的队
+  for(const c of C){
+    if(used.has(c.id)) continue;
+    let best=-1,bp=Infinity;
+    for(let ti=0;ti<n;ti++){
+      if(teams[ti].slots.length>=4) continue;
+      if(teams[ti].owners.has(c.owner)) continue;
+      if(teams[ti].total<bp){bp=teams[ti].total;best=ti;}
+    }
+    if(best===-1){
+      for(let ti=0;ti<n;ti++){
+        if(teams[ti].slots.length>=4) continue;
+        if(teams[ti].total<bp){bp=teams[ti].total;best=ti;}
+      }
+    }
+    if(best===-1) continue;
+    teams[best].slots.push({charId:c.id}); teams[best].owners.add(c.owner);
+    teams[best].total+=c.power; used.add(c.id);
+  }
+  return teams.map(t=>({slots:t.slots}));
 }
 
 /* ---------- 同步模块（Gitee Contents API） ---------- */
@@ -570,11 +589,11 @@ function renderTeamTable(){
   const globalUsed=new Set(); teamList.forEach(t=>t.slots.forEach(s=>s.charId&&globalUsed.add(s.charId)));
   teamList.forEach((team,tIdx)=>{
     const block=document.createElement("div"); block.className="team-block";
-    const owners=new Set(); let csum=0;
-    team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; } } });
+    const owners=new Set(); let csum=0, hsum=0;
+    team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; else hsum+=c.power; } } });
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
     let html=`<div class="team-title">第${tIdx+1}队（${owners.size}位不同玩家）
-      <span class="tsum">C战力合计：<b style="color:var(--yellow)">${csum}</b> ${ownerOk?'':'<span class=warn>⚠有同队重复玩家</span>'}</span></div><div class="team-grid">`;
+      <span class="tsum">总战力：<b style="color:var(--yellow)">${hsum+csum}</b> <span style="opacity:.6;font-size:12px">（奶${hsum} + C${csum}）</span> ${ownerOk?'':'<span class=warn>⚠有同队重复玩家</span>'}</span></div><div class="team-grid">`;
     team.slots.forEach((slot,sIdx)=>{
       if(!slot.charId){ html+=`<div class="slot slot-empty">空位</div>`; return; }
       const c=charList.find(x=>x.id===slot.charId); if(!c){ html+=`<div class="slot slot-empty">空位</div>`; return; }
