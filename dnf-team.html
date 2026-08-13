@@ -345,22 +345,51 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
   <div class="modal show" id="loginModal">
     <div class="modal-box" style="max-width:420px">
       <h3 style="text-align:center">薄纱团本 · 排表协作工具</h3>
-      <div class="tab-wrap" style="margin-bottom:14px">
-        <div class="tab active" data-ltab="join">加入房间</div>
-        <div class="tab" data-ltab="create">新建房间</div>
+
+      <!-- 第一步：账号注册/登录 -->
+      <div id="acctStep">
+        <div class="tab-wrap" style="margin-bottom:14px">
+          <div class="tab active" data-atab="login">登录</div>
+          <div class="tab" data-atab="register">注册</div>
+        </div>
+        <div id="acctLoginForm">
+          <div class="form-item"><label>账号</label><input id="acctLoginUser" placeholder="输入账号" onkeydown="if(event.key==='Enter')document.getElementById('acctLoginPwd').focus()"></div>
+          <div class="form-item"><label>密码</label><input type="password" id="acctLoginPwd" placeholder="输入密码" onkeydown="if(event.key==='Enter')document.getElementById('doAcctLogin').click()"></div>
+          <button id="doAcctLogin" style="width:100%;margin-top:8px">登录</button>
+        </div>
+        <div id="acctRegisterForm" style="display:none">
+          <div class="form-item"><label>账号</label><input id="acctRegUser" placeholder="设置账号（2-20位字母/数字/中文）"></div>
+          <div class="form-item"><label>密码</label><input type="password" id="acctRegPwd" placeholder="设置密码（至少4位）" onkeydown="if(event.key==='Enter')document.getElementById('acctRegPwd2').focus()"></div>
+          <div class="form-item"><label>确认密码</label><input type="password" id="acctRegPwd2" placeholder="再次输入密码" onkeydown="if(event.key==='Enter')document.getElementById('doAcctRegister').click()"></div>
+          <button id="doAcctRegister" style="width:100%;margin-top:8px">注册</button>
+        </div>
+        <p class="muted" id="acctMsg" style="margin-top:10px;font-size:12px;text-align:center"></p>
+        <div class="admin-link"><a id="openAdminLogin">管理员入口</a></div>
       </div>
-      <div id="joinForm">
-        <div class="form-item"><label>房间号</label><input id="joinRoomId" placeholder="输入房间号，如 1"></div>
-        <div class="form-item"><label>密码</label><input type="password" id="joinRoomPwd" placeholder="房间密码" onkeydown="if(event.key==='Enter')document.getElementById('doJoin').click()"></div>
-        <button id="doJoin" style="width:100%;margin-top:8px">进入房间</button>
+
+      <!-- 第二步：房间加入/创建 -->
+      <div id="roomStep" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px 12px;background:var(--panel2);border-radius:8px;border:1px solid var(--line)">
+          <span class="dot on" style="background:var(--green)"></span>
+          <span style="font-size:13px">已登录：<b id="acctDisplayName"></b></span>
+          <button class="sm secondary" id="acctLogout" style="margin-left:auto">切换账号</button>
+        </div>
+        <div class="tab-wrap" style="margin-bottom:14px">
+          <div class="tab active" data-ltab="join">加入房间</div>
+          <div class="tab" data-ltab="create">新建房间</div>
+        </div>
+        <div id="joinForm">
+          <div class="form-item"><label>房间号</label><input id="joinRoomId" placeholder="输入房间号，如 1"></div>
+          <div class="form-item"><label>密码</label><input type="password" id="joinRoomPwd" placeholder="房间密码" onkeydown="if(event.key==='Enter')document.getElementById('doJoin').click()"></div>
+          <button id="doJoin" style="width:100%;margin-top:8px">进入房间</button>
+        </div>
+        <div id="createForm" style="display:none">
+          <div class="form-item"><label>房间号</label><input id="createRoomId" placeholder="自定义房间号，如 myteam"></div>
+          <div class="form-item"><label>密码</label><input type="password" id="createRoomPwd" placeholder="设置房间密码"></div>
+          <button id="doCreate" style="width:100%;margin-top:8px">创建房间</button>
+        </div>
+        <p class="muted" id="loginMsg" style="margin-top:10px;font-size:12px;text-align:center"></p>
       </div>
-      <div id="createForm" style="display:none">
-        <div class="form-item"><label>房间号</label><input id="createRoomId" placeholder="自定义房间号，如 myteam"></div>
-        <div class="form-item"><label>密码</label><input type="password" id="createRoomPwd" placeholder="设置房间密码"></div>
-        <button id="doCreate" style="width:100%;margin-top:8px">创建房间</button>
-      </div>
-      <p class="muted" id="loginMsg" style="margin-top:10px;font-size:12px;text-align:center"></p>
-      <div class="admin-link"><a id="openAdminLogin">管理员入口</a></div>
     </div>
   </div>
 
@@ -424,6 +453,17 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
     <div class="admin-stats">
       房间总数 <b id="adminRoomCount">0</b> ｜ 总角色数 <b id="adminTotalChars">0</b> ｜ 总队伍数 <b id="adminTotalTeams">0</b> ｜ 在线人数 <b id="adminOnline">0</b> ｜ 已选中 <b id="adminSelectedCount">0</b>
     </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+      <input id="adminSearchRoom" placeholder="搜索房间号…" style="flex:1;min-width:140px" oninput="filterAdminRooms()">
+      <input id="adminSearchEditor" placeholder="搜索编辑者…" style="flex:1;min-width:140px" oninput="filterAdminRooms()">
+      <select id="adminFilterMode" onchange="filterAdminRooms()" style="min-width:120px">
+        <option value="">全部模式</option>
+        <option value="4">4人团本</option>
+        <option value="12">12人团本</option>
+      </select>
+      <button class="sm secondary" id="adminSelectAll">全选当前结果</button>
+      <button class="sm secondary" id="adminSelectNone">取消全选</button>
+    </div>
     <div id="adminRoomList"></div>
   </div>
 
@@ -439,6 +479,8 @@ const LS_CHAR = "busha末世录团表_v2";
 const LS_NICK = "busha_nick";
 const LS_SYNC = "busha_sync_cfg";
 const LS_BACK = "busha_backup";
+const LS_ACCT = "busha_acct_v1"; /* 注册用户列表 */
+const LS_SESSION = "busha_session_v1"; /* 当前登录会话 */
 let charList = [];
 let teamList = [];
 let editTargetId = null;
@@ -475,6 +517,123 @@ async function doRedo(){
   charList = next.charList; teamList = next.teamList; raidMode = next.raidMode;
   saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
   await SYNC.writeState(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
+}
+
+/* ---------- 账号系统 ---------- */
+const ACCT = {
+  getUsers(){ try{ return JSON.parse(localStorage.getItem(LS_ACCT))||{}; }catch(e){ return {}; } },
+  saveUsers(u){ localStorage.setItem(LS_ACCT, JSON.stringify(u)); },
+  getSession(){ try{ return JSON.parse(localStorage.getItem(LS_SESSION)); }catch(e){ return null; } },
+  saveSession(user){ localStorage.setItem(LS_SESSION, JSON.stringify({user, ts:Date.now()})); },
+  clearSession(){ localStorage.removeItem(LS_SESSION); },
+  register(user, pwd){
+    if(!user || user.length<2 || user.length>20) return "账号需2-20位字符";
+    if(!pwd || pwd.length<4) return "密码至少4位";
+    const users=this.getUsers();
+    if(users[user]) return "账号已存在，请直接登录";
+    users[user]={pwd, ts:Date.now()};
+    this.saveUsers(users);
+    return null;
+  },
+  login(user, pwd){
+    if(!user || !pwd) return "请输入账号和密码";
+    const users=this.getUsers();
+    if(!users[user]) return "账号不存在，请先注册";
+    if(users[user].pwd!==pwd) return "密码错误";
+    this.saveSession(user);
+    return null;
+  },
+  isLoggedIn(){
+    const s=this.getSession();
+    return s && s.user;
+  },
+  currentUser(){
+    const s=this.getSession();
+    return s ? s.user : null;
+  }
+};
+
+function bindAcctTabs(){
+  document.querySelectorAll("[data-atab]").forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll("[data-atab]").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      const isLogin = t.dataset.atab==="login";
+      document.getElementById("acctLoginForm").style.display = isLogin?"block":"none";
+      document.getElementById("acctRegisterForm").style.display = isLogin?"none":"block";
+      document.getElementById("acctMsg").textContent="";
+    };
+  });
+}
+
+function doAcctRegister(){
+  const u=document.getElementById("acctRegUser").value.trim();
+  const p=document.getElementById("acctRegPwd").value;
+  const p2=document.getElementById("acctRegPwd2").value;
+  const msg=document.getElementById("acctMsg");
+  if(p!==p2){ msg.textContent="✗ 两次密码不一致"; return; }
+  const err=ACCT.register(u,p);
+  if(err){ msg.textContent="✗ "+err; return; }
+  msg.style.color="var(--green)";
+  msg.textContent="✓ 注册成功，请登录";
+  // 自动填充登录框
+  document.getElementById("acctLoginUser").value=u;
+  document.getElementById("acctLoginPwd").focus();
+  // 切换到登录tab
+  document.querySelectorAll("[data-atab]").forEach(x=>x.classList.remove("active"));
+  document.querySelector('[data-atab="login"]').classList.add("active");
+  document.getElementById("acctLoginForm").style.display="block";
+  document.getElementById("acctRegisterForm").style.display="none";
+  // 清空注册框
+  document.getElementById("acctRegUser").value="";
+  document.getElementById("acctRegPwd").value="";
+  document.getElementById("acctRegPwd2").value="";
+  setTimeout(()=>{ msg.textContent=""; msg.style.color=""; }, 3000);
+}
+
+function doAcctLogin(){
+  const u=document.getElementById("acctLoginUser").value.trim();
+  const p=document.getElementById("acctLoginPwd").value;
+  const msg=document.getElementById("acctMsg");
+  const err=ACCT.login(u,p);
+  if(err){ msg.textContent="✗ "+err; return; }
+  // 登录成功，进入房间步骤
+  msg.textContent="";
+  document.getElementById("acctLoginPwd").value="";
+  showRoomStep();
+}
+
+function showRoomStep(){
+  const user=ACCT.currentUser();
+  if(!user) return;
+  document.getElementById("acctDisplayName").textContent=user;
+  document.getElementById("acctStep").style.display="none";
+  document.getElementById("roomStep").style.display="block";
+  // 自动填充昵称
+  const nickInput=document.getElementById("nickInput");
+  if(!nickInput.value.trim()){
+    nickInput.value=user;
+    localStorage.setItem(LS_NICK, user);
+  }
+  // 如果URL有房间号，预填
+  const m=location.hash.match(/room=([A-Za-z0-9_-]+)/);
+  if(m){
+    document.getElementById("joinRoomId").value=m[1];
+    document.getElementById("loginMsg").textContent="请输入房间 "+m[1]+" 的密码";
+  }
+}
+
+function showAcctStep(){
+  document.getElementById("roomStep").style.display="none";
+  document.getElementById("acctStep").style.display="block";
+  document.getElementById("loginMsg").textContent="";
+  // 清空房间输入
+  document.getElementById("joinRoomId").value="";
+  document.getElementById("joinRoomPwd").value="";
+  document.getElementById("createRoomId").value="";
+  document.getElementById("createRoomPwd").value="";
+  // 聚焦登录
+  document.getElementById("acctLoginUser").focus();
 }
 
 /* ---------- 原始数据 ---------- */
@@ -745,16 +904,14 @@ const SYNC = {
   cfg:null, room:null, pollT:null, presenceT:null, writing:0,
   init(){
     this.cfg = this.loadCfg();
-    const m = location.hash.match(/room=([A-Za-z0-9_-]+)/);
-    if(m){
-      // URL有房间号，但仍需验证密码
-      this.room = null;
-      openModal("loginModal");
-      document.getElementById("joinRoomId").value = m[1];
-      document.getElementById("loginMsg").textContent = "请输入房间 "+m[1]+" 的密码";
+    // 检查账号登录状态
+    if(ACCT.isLoggedIn()){
+      // 已登录，直接进入房间步骤
+      showRoomStep();
     }else{
-      this.room = null;
-      openModal("loginModal");
+      // 未登录，显示账号注册/登录步骤
+      document.getElementById("acctStep").style.display="block";
+      document.getElementById("roomStep").style.display="none";
     }
   },
   // 验证并加入房间
@@ -1528,6 +1685,11 @@ async function loadAdminRooms(){
   document.getElementById("adminTotalTeams").textContent=totalTeams;
   document.getElementById("adminOnline").textContent=totalOnline;
   document.getElementById("adminSelectedCount").textContent="0";
+  adminAllRooms=rooms;
+  // 清空搜索条件
+  document.getElementById("adminSearchRoom").value="";
+  document.getElementById("adminSearchEditor").value="";
+  document.getElementById("adminFilterMode").value="";
   list.innerHTML=rooms.map(r=>`
     <div class="room-card">
       <div class="room-card-head">
@@ -1589,6 +1751,25 @@ function updateBatchDelBtn(){
   btn.style.opacity=checked.length===0?"0.4":"1";
 }
 
+let adminAllRooms=[]; /* 缓存所有房间数据 */
+
+function filterAdminRooms(){
+  if(!adminAllRooms.length) return;
+  const kw=document.getElementById("adminSearchRoom").value.trim().toLowerCase();
+  const ekw=document.getElementById("adminSearchEditor").value.trim().toLowerCase();
+  const mode=document.getElementById("adminFilterMode").value;
+  const cards=document.querySelectorAll("#adminRoomList .room-card");
+  cards.forEach((card,i)=>{
+    const r=adminAllRooms[i];
+    if(!r) return;
+    const matchRoom = !kw || r.id.toLowerCase().includes(kw);
+    const matchEditor = !ekw || (r.editor||"-").toLowerCase().includes(ekw);
+    const matchMode = !mode || String(r.raidMode)===mode;
+    const visible = matchRoom && matchEditor && matchMode;
+    card.style.display = visible ? "" : "none";
+  });
+}
+
 async function doBatchDelete(){
   const checked=document.querySelectorAll("[data-admin-check]:checked");
   if(!checked.length) return;
@@ -1642,7 +1823,14 @@ function init(){
   document.getElementById("copyLink").onclick=copyLink;
 
   // 登录弹窗
+  bindAcctTabs();
   bindLoginTabs();
+  document.getElementById("doAcctRegister").onclick=doAcctRegister;
+  document.getElementById("doAcctLogin").onclick=doAcctLogin;
+  document.getElementById("acctLogout").onclick=()=>{
+    ACCT.clearSession();
+    showAcctStep();
+  };
   document.getElementById("doJoin").onclick=doJoinRoom;
   document.getElementById("doCreate").onclick=doCreateRoom;
 
@@ -1656,12 +1844,39 @@ function init(){
   // 管理员
   document.getElementById("openAdminLogin").onclick=()=>{ closeModal("loginModal"); openModal("adminLoginModal"); document.getElementById("adminUser").focus(); };
   document.getElementById("doAdminLogin").onclick=doAdminLogin;
-  document.getElementById("closeAdminLogin").onclick=()=>{ closeModal("adminLoginModal"); openModal("loginModal"); };
+  document.getElementById("closeAdminLogin").onclick=()=>{
+    closeModal("adminLoginModal");
+    // 返回到正确的步骤
+    if(ACCT.isLoggedIn()) showRoomStep();
+    else { document.getElementById("acctStep").style.display="block"; document.getElementById("roomStep").style.display="none"; }
+  };
   document.getElementById("adminRefresh").onclick=loadAdminRooms;
   document.getElementById("adminBatchDel").onclick=doBatchDelete;
+  document.getElementById("adminSelectAll").onclick=()=>{
+    // 只全选当前可见（搜索过滤后）的房间
+    document.querySelectorAll("#adminRoomList .room-card").forEach(card=>{
+      if(card.style.display!=="none"){
+        const cb=card.querySelector("[data-admin-check]");
+        if(cb) cb.checked=true;
+      }
+    });
+    updateBatchDelBtn();
+  };
+  document.getElementById("adminSelectNone").onclick=()=>{
+    // 只取消当前可见的房间
+    document.querySelectorAll("#adminRoomList .room-card").forEach(card=>{
+      if(card.style.display!=="none"){
+        const cb=card.querySelector("[data-admin-check]");
+        if(cb) cb.checked=false;
+      }
+    });
+    updateBatchDelBtn();
+  };
   document.getElementById("adminExit").onclick=()=>{
     ADMIN.active=false;
     document.getElementById("adminPanel").classList.remove("show");
+    if(ACCT.isLoggedIn()) showRoomStep();
+    else { document.getElementById("acctStep").style.display="block"; document.getElementById("roomStep").style.display="none"; }
     openModal("loginModal");
   };
 
