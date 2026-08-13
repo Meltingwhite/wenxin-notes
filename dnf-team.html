@@ -120,6 +120,9 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
 /* 12人团本三队一行网格 */
 .team-grid-12{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .team-grid-12 .team-block{margin-bottom:0}
+.wave-label{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:8px 0 2px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.wave-label .wnum{background:var(--blue);color:#fff;padding:2px 12px;border-radius:12px;font-size:13px;font-weight:bold;white-space:nowrap}
+.wave-label .wline{flex:1;height:1px;background:var(--line)}
 @media(max-width:900px){
   .team-grid-12{grid-template-columns:repeat(2,1fr)}
 }
@@ -991,13 +994,25 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
   };
   const teamsToRender = gTeams || teamList.map((t,i)=>({team:t,tIdx:i}));
   teamsToRender.forEach(({team,tIdx})=>{
+    /* 12人团本：每3队一组加波数标签；4人非一览：每队加波数标签 */
+    if(isRaid12 && tIdx%3===0){
+      const wl=document.createElement("div");
+      wl.className="wave-label";
+      wl.innerHTML=`<span class="wnum">第 ${Math.floor(tIdx/3)+1} 波</span><span class="wline"></span>`;
+      container.appendChild(wl);
+    } else if(!isRaid12 && !isUltra){
+      const wl=document.createElement("div");
+      wl.className="wave-label";
+      wl.innerHTML=`<span class="wnum">第 ${tIdx+1} 波</span><span class="wline"></span>`;
+      container.appendChild(wl);
+    }
     const rColor = team.raidColor || (isRaid12 ? ["red","yellow","green"][tIdx%3] : null);
     const block=document.createElement("div");
     block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass;
     const owners=new Set(); let csum=0, hsum=0;
     team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; else hsum+=c.power; } } });
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
-    const teamLabel = rColor ? `${raidLabels[rColor]}` : `第${tIdx+1}队`;
+    const teamLabel = rColor ? `${raidLabels[rColor]}` : `第${tIdx+1}波`;
     const groupLabel = team.group ? `组${team.group} ` : '';
     let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${groupLabel}${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
       <span class="tsum">总战力：<b style="color:var(--yellow)">${hsum+csum}</b> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
