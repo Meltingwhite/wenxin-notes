@@ -62,6 +62,9 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .card h4{margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
 .card .meta{font-size:11px;color:var(--mut);line-height:1.5}
 .card .pwr{color:var(--yellow);font-weight:600}
+.owner-header{width:100%;padding:8px 4px 4px;font-size:14px;font-weight:700;color:var(--blue);border-bottom:1px solid var(--line);margin-top:8px}
+.owner-header:first-child{margin-top:0}
+.owner-header .cnt{font-size:11px;color:var(--mut);font-weight:400;margin-left:6px}
 .team-block{background:var(--panel2);padding:12px;border-radius:9px;margin-bottom:12px;border:1px solid var(--line)}
 .team-title{margin-bottom:9px;color:var(--blue2);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;font-size:14px}
 .team-title .tsum{font-size:12px;color:var(--mut)}
@@ -565,19 +568,29 @@ function updateStat(){
 function renderCharList(){
   const wrap=document.getElementById("charList"); wrap.innerHTML="";
   const usedIds=new Set(); teamList.forEach(t=>t.slots.forEach(s=>s.charId&&usedIds.add(s.charId)));
-  // 按玩家分组排序
-  const sorted=[...charList].sort((a,b)=>(a.owner||"").localeCompare(b.owner||"")||b.power-a.power);
-  sorted.forEach(c=>{
-    const div=document.createElement("div");
-    div.className=`card ${c.type} ${usedIds.has(c.id)?"used":""}`;
-    div.innerHTML=`
-      <h4>${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span class="pwr">${c.power}</span></h4>
-      <div class="meta">${c.type==="c"?"输出C":"奶"} ｜ A:${escapeHtml(c.a||"-")} B:${escapeHtml(c.b||"-")}</div>
-      <div style="margin-top:6px;display:flex;gap:6px">
-        <button class="sm" data-edit="${c.id}">编辑</button>
-        <button class="sm danger" data-del="${c.id}">删除</button>
-      </div>`;
-    wrap.appendChild(div);
+  // 按玩家分组
+  const groups={};
+  charList.forEach(c=>{ const k=c.owner||"未知"; if(!groups[k]) groups[k]=[]; groups[k].push(c); });
+  const sortedOwners=Object.keys(groups).sort((a,b)=>a.localeCompare(b,"zh"));
+  sortedOwners.forEach(owner=>{
+    const chars=groups[owner].slice().sort((a,b)=>b.power-a.power);
+    const used=chars.filter(c=>usedIds.has(c.id)).length;
+    const hdr=document.createElement("div");
+    hdr.className="owner-header";
+    hdr.innerHTML=`${escapeHtml(owner)} <span class="cnt">${chars.length}个角色 · ${used}已配置 / ${chars.length-used}未配置</span>`;
+    wrap.appendChild(hdr);
+    chars.forEach(c=>{
+      const div=document.createElement("div");
+      div.className=`card ${c.type} ${usedIds.has(c.id)?"used":""}`;
+      div.innerHTML=`
+        <h4>${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span class="pwr">${c.power}</span></h4>
+        <div class="meta">${c.type==="c"?"输出C":"奶"} ｜ A:${escapeHtml(c.a||"-")} B:${escapeHtml(c.b||"-")}</div>
+        <div style="margin-top:6px;display:flex;gap:6px">
+          <button class="sm" data-edit="${c.id}">编辑</button>
+          <button class="sm danger" data-del="${c.id}">删除</button>
+        </div>`;
+      wrap.appendChild(div);
+    });
   });
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editChar(Number(b.dataset.edit)));
   document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delChar(Number(b.dataset.del)));
@@ -599,18 +612,38 @@ function renderTeamTable(){
       const c=charList.find(x=>x.id===slot.charId); if(!c){ html+=`<div class="slot slot-empty">空位</div>`; return; }
       const teamOwners=new Set();
       team.slots.forEach((ss,si)=>{ if(ss.charId && si!==sIdx){ const cc=charList.find(x=>x.id===ss.charId); if(cc) teamOwners.add(cc.owner); } });
-      const opts = charList.filter(x=>{
-        const usedElse = globalUsed.has(x.id) && x.id!==slot.charId;          // 别队已用，排除（当前角色除外）
-        const sameOwner = teamOwners.has(x.owner) && x.owner!==c.owner;       // 本队已有该玩家，排除（当前角色所属玩家除外）
+      // 查找角色所在队伍
+      const findTeamOf=(cid)=>{ for(let ti=0;ti<teamList.length;ti++){ if(teamList[ti].slots.some(s=>s.charId===cid)) return ti+1; } return 0; };
+      // 该玩家所有角色（含已配队的），标记所在队伍
+      const samePlayer=charList.filter(x=>x.owner===c.owner && x.id!==slot.charId)
+        .slice().sort((a,b)=>b.power-a.power);
+      // 其他可用角色（不同玩家、别队未用、本队无该玩家）
+      const others=charList.filter(x=>{
+        if(x.owner===c.owner) return false;
+        const usedElse=globalUsed.has(x.id) && x.id!==slot.charId;
+        const sameOwner=teamOwners.has(x.owner);
         return !usedElse && !sameOwner;
-      });
+      }).slice().sort((a,b)=>b.power-a.power);
+      let optsHtml=`<option value="">更换角色…</option>`;
+      if(samePlayer.length){
+        optsHtml+=`<optgroup label="【${escapeHtml(c.owner)}】的角色">`;
+        samePlayer.forEach(x=>{
+          const tn=findTeamOf(x.id);
+          optsHtml+=`<option value="${x.id}">${escapeHtml(x.name)}(${x.power}) ${x.type==="c"?"C":"奶"}${tn?" → 当前在第"+tn+"队":" (未配置)"}</option>`;
+        });
+        optsHtml+=`</optgroup>`;
+      }
+      if(others.length){
+        optsHtml+=`<optgroup label="其他可用角色">`;
+        others.forEach(x=>{
+          optsHtml+=`<option value="${x.id}">${escapeHtml(x.owner)}·${escapeHtml(x.name)}(${x.power}) ${x.type==="c"?"C":"奶"}</option>`;
+        });
+        optsHtml+=`</optgroup>`;
+      }
       html+=`<div class="slot ${c.type}">
         <div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)}</div>
         <div class="sp">战力 ${c.power} ${c.type==="c"?"C":"奶"}</div>
-        <select data-t="${tIdx}" data-s="${sIdx}">
-          <option value="">更换角色…</option>
-          ${opts.map(x=>`<option value="${x.id}">${escapeHtml(x.owner)} ${escapeHtml(x.name)}(${x.power}) ${x.type==="c"?"C":"奶"}</option>`).join("")}
-        </select></div>`;
+        <select data-t="${tIdx}" data-s="${sIdx}">${optsHtml}</select></div>`;
     });
     html+=`</div>`;
     block.innerHTML=html; wrap.appendChild(block);
@@ -619,9 +652,18 @@ function renderTeamTable(){
     sel.onchange=async function(){
       const t=Number(this.dataset.t), s=Number(this.dataset.s);
       const newCid=this.value?Number(this.value):null;
+      if(!newCid) return;
       await SYNC.writeState(st=>{
+        // 如果选中的角色已在其他队伍，从原队伍移除（留空位）→ 被替换角色自动变为未配置
+        for(let ti=0;ti<st.teamList.length;ti++){
+          for(let si=0;si<st.teamList[ti].slots.length;si++){
+            if(st.teamList[ti].slots[si].charId===newCid && !(ti===t && si===s)){
+              st.teamList[ti].slots[si].charId=null;
+            }
+          }
+        }
+        // 放入当前槽位（原角色被覆盖 → 自动进入未配置列表）
         if(st.teamList[t] && st.teamList[t].slots[s]) st.teamList[t].slots[s].charId=newCid;
-        else st.teamList=arrange(st.charList);
         return st;
       });
     };
