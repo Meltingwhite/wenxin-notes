@@ -477,53 +477,93 @@ function arrange(chars, mode){
   return arrange4(chars);
 }
 
-/* 12人团本：3队×4人，红>黄>绿战力梯度 */
+/* 12人团本：多组3队×4人，红>黄>绿战力梯度，保证全部入队 */
 function arrange12(chars){
   const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
   const H = chars.filter(c=>c.type==="healer").slice().sort((a,b)=>b.power-a.power);
-  if(H.length<3 || C.length<9) return []; // 不足3奶9C无法组12人
-  const used = new Set();
-  // Phase 1: 取最高3奶，红队拿最高奶，绿队最低奶
-  const teams = [];
-  for(let i=0;i<3;i++){
-    used.add(H[i].id);
-    teams.push({slots:[{charId:H[i].id}], owners:new Set([H[i].owner]), total:H[i].power});
-  }
-  // teams[0]=红(最高奶), teams[1]=黄, teams[2]=绿(最低奶)
-  // Phase 2: C从高到低，红队先选最强C，然后黄队，再绿队，循环3轮
-  // 这样红队自然拿到最强C，形成红>黄>绿梯度
-  function pickAssign(ti, preferHigh){
-    for(let k=preferHigh?0:C.length-1; preferHigh?k<C.length:k>=0; k+=preferHigh?1:-1){
-      const c=C[k];
-      if(!used.has(c.id) && !teams[ti].owners.has(c.owner)){
-        teams[ti].slots.push({charId:c.id}); teams[ti].owners.add(c.owner);
-        teams[ti].total+=c.power; used.add(c.id); return true;
-      }
+  if(H.length<3 || C.length<9) return [];
+  const globalUsed = new Set();
+  const allTeams = [];
+  let group = 0;
+  let hIdx = 0;
+  while(true){
+    // 找3个未用的奶
+    const groupH = [];
+    while(hIdx < H.length && groupH.length < 3){
+      if(!globalUsed.has(H[hIdx].id)) groupH.push(H[hIdx]);
+      hIdx++;
     }
-    return false;
-  }
-  for(let round=0;round<3;round++){
-    for(let ti=0;ti<3;ti++){
-      if(teams[ti].slots.length>=4) continue;
-      pickAssign(ti,true);
+    if(groupH.length < 3) break;
+    const availableC = C.filter(c=>!globalUsed.has(c.id));
+    if(availableC.length < 9) break;
+    group++;
+    const used = new Set();
+    const teams = [];
+    for(let i=0;i<3;i++){
+      used.add(groupH[i].id); globalUsed.add(groupH[i].id);
+      teams.push({slots:[{charId:groupH[i].id}], owners:new Set([groupH[i].owner]), total:groupH[i].power});
     }
-  }
-  // 补位：如果某队还没满4人（因玩家冲突），放宽限制
-  for(let ti=0;ti<3;ti++){
-    while(teams[ti].slots.length<4){
-      let placed=false;
-      for(let k=0;k<C.length;k++){
-        if(!used.has(C[k].id)){
-          teams[ti].slots.push({charId:C[k].id}); teams[ti].total+=C[k].power; used.add(C[k].id);
-          placed=true; break;
+    function pickAssign(ti){
+      for(const c of availableC){
+        if(!used.has(c.id) && !teams[ti].owners.has(c.owner)){
+          teams[ti].slots.push({charId:c.id}); teams[ti].owners.add(c.owner);
+          teams[ti].total+=c.power; used.add(c.id); globalUsed.add(c.id); return true;
         }
       }
-      if(!placed) break;
+      return false;
+    }
+    for(let round=0;round<3;round++){
+      for(let ti=0;ti<3;ti++){
+        if(teams[ti].slots.length>=4) continue;
+        pickAssign(ti);
+      }
+    }
+    // 补位：放宽玩家冲突限制
+    for(let ti=0;ti<3;ti++){
+      while(teams[ti].slots.length<4){
+        let placed=false;
+        for(const c of availableC){
+          if(!used.has(c.id)){
+            teams[ti].slots.push({charId:c.id}); teams[ti].total+=c.power; used.add(c.id); globalUsed.add(c.id);
+            placed=true; break;
+          }
+        }
+        if(!placed) break;
+      }
+    }
+    teams.sort((a,b)=>b.total-a.total);
+    const colors=["red","yellow","green"];
+    teams.forEach((t,i)=>{ allTeams.push({slots:t.slots, raidColor:colors[i], group:group}); });
+  }
+  // 如果还有剩余角色，按4人队补排（不再要求红黄绿）
+  const leftoverC = C.filter(c=>!globalUsed.has(c.id));
+  const leftoverH = H.filter(c=>!globalUsed.has(c.id));
+  if(leftoverH.length>0){
+    for(const h of leftoverH){
+      globalUsed.add(h.id);
+      const team={slots:[{charId:h.id}], owners:new Set([h.owner]), total:h.power};
+      for(let round=0;round<3;round++){
+        for(const c of leftoverC){
+          if(!globalUsed.has(c.id) && !team.owners.has(c.owner)){
+            team.slots.push({charId:c.id}); team.owners.add(c.owner);
+            team.total+=c.power; globalUsed.add(c.id); break;
+          }
+        }
+      }
+      while(team.slots.length<4){
+        let placed=false;
+        for(const c of leftoverC){
+          if(!globalUsed.has(c.id)){
+            team.slots.push({charId:c.id}); team.total+=c.power; globalUsed.add(c.id);
+            placed=true; break;
+          }
+        }
+        if(!placed) break;
+      }
+      allTeams.push({slots:team.slots, group:group+1});
     }
   }
-  // 确保红>黄>绿：按总战力降序排列后映射到红黄绿
-  teams.sort((a,b)=>b.total-a.total);
-  return teams.map((t,i)=>({slots:t.slots, raidColor:["red","yellow","green"][i]}));
+  return allTeams;
 }
 
 /* 4人团本：全部角色均衡排表 */
@@ -902,7 +942,8 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; else hsum+=c.power; } } });
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
     const teamLabel = rColor ? `${raidLabels[rColor]}` : `第${tIdx+1}队`;
-    let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
+    const groupLabel = team.group ? `组${team.group} ` : '';
+    let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${groupLabel}${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
       <span class="tsum">总战力：<b style="color:var(--yellow)">${hsum+csum}</b> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
     team.slots.forEach((slot,sIdx)=>{
       if(!slot.charId){ html+=`<div class="slot slot-empty">空位</div>`; return; }
@@ -1158,9 +1199,9 @@ function saveCfg(){
 
 /* ---------- 标签 ---------- */
 function bindTab(){
-  document.querySelectorAll(".tab").forEach(t=>{
+  document.querySelectorAll(".tab[data-tab]").forEach(t=>{
     t.onclick=()=>{
-      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+      document.querySelectorAll(".tab[data-tab]").forEach(x=>x.classList.remove("active"));
       t.classList.add("active");
       document.querySelectorAll(".panel").forEach(p=>p.classList.remove("show"));
       document.getElementById(t.dataset.tab).classList.add("show");
