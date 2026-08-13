@@ -102,6 +102,29 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
   .form-box{width:100%}
   .card{width:100%}
 }
+
+/* 紧凑模式 */
+.team-block.view-compact{padding:8px;margin-bottom:8px}
+.team-block.view-compact .team-grid{grid-template-columns:repeat(4,1fr);gap:4px}
+.team-block.view-compact .slot{padding:5px;min-height:50px}
+.team-block.view-compact .slot .sn{font-size:11px}
+.team-block.view-compact .slot .sp{font-size:10px;margin:1px 0 2px}
+.team-block.view-compact .slot select{font-size:10px;padding:2px}
+.team-block.view-compact .team-title{font-size:12px;margin-bottom:5px}
+
+/* 一览模式 */
+.team-block.view-ultra{padding:6px;margin-bottom:5px}
+.team-block.view-ultra .team-grid{grid-template-columns:repeat(4,1fr);gap:3px}
+.team-block.view-ultra .slot{padding:3px 5px;min-height:32px;border-radius:4px}
+.team-block.view-ultra .slot .sn{font-size:10px;line-height:1.2}
+.team-block.view-ultra .slot .sp{display:none}
+.team-block.view-ultra .slot select{display:none}
+.team-block.view-ultra .team-title{font-size:11px;margin-bottom:3px}
+.team-block.view-ultra .slot-empty{min-height:32px;font-size:10px}
+.team-grid-ultra{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:5px}
+@media(max-width:760px){
+  .team-block.view-compact .team-grid,.team-block.view-ultra .team-grid{grid-template-columns:repeat(2,1fr)}
+}
 </style>
 </head>
 <body>
@@ -115,20 +138,17 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
     </div>
     <div class="linkbox">
       <span class="dot off" id="syncDot" title="同步状态"></span>
-      <input id="roomLink" readonly placeholder="房间链接">
+      <input id="roomLink" readonly placeholder="未加入房间">
       <button class="sm secondary" id="copyLink">复制</button>
     </div>
     <div class="grp">
-      <button class="sm secondary" id="newRoom">新建房间</button>
-      <button class="sm secondary" id="joinBtn">加入</button>
-    </div>
-    <div class="grp">
+      <span class="badge">房间号 <b id="roomIdDisplay">-</b></span>
       <span class="badge"><span id="onlineCount">0</span> 在线</span>
       <span class="online-chips" id="onlineChips"></span>
     </div>
     <div class="grp" style="margin-left:auto">
-      <span class="badge" id="syncStatus">本地模式</span>
-      <button class="sm secondary" id="openSettings">⚙ 同步设置</button>
+      <span class="badge" id="syncStatus">未登录</span>
+      <button class="sm danger" id="exitRoom">退出房间</button>
       <button class="sm secondary" id="openHelp">❓</button>
     </div>
   </div>
@@ -192,6 +212,14 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
 
   <!-- 队伍排表 -->
   <div class="panel" id="teamTable">
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <span class="muted" style="font-size:12px">显示模式</span>
+      <div style="display:flex;gap:4px;background:var(--panel2);border-radius:6px;padding:3px;border:1px solid var(--line)">
+        <button class="view-btn active" data-view="normal" style="padding:4px 10px;border-radius:4px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-size:12px">标准</button>
+        <button class="view-btn" data-view="compact" style="padding:4px 10px;border-radius:4px;border:none;background:transparent;color:var(--mut);cursor:pointer;font-size:12px">紧凑</button>
+        <button class="view-btn" data-view="ultra" style="padding:4px 10px;border-radius:4px;border:none;background:transparent;color:var(--mut);cursor:pointer;font-size:12px">一览</button>
+      </div>
+    </div>
     <div id="teamWrap"></div>
   </div>
 
@@ -239,15 +267,71 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
         <p>· 新增 / 编辑 / 删除角色后会自动重新生成全部队伍；队内下拉更换角色为手动微调，不会触发重排。</p>
         <p>· 队内「更换角色」下拉已自动过滤本队已有玩家，无法重复选择。</p>
         <p>· 保留本地存储、导入 / 导出 Excel、重置原始数据。</p>
+        <p style="margin-top:10px"><b>房间与登录</b></p>
+        <p>· 打开页面需先输入房间号和密码登录，或新建房间（自定义房间号+密码）。</p>
+        <p>· 默认房间号 <code>1</code>，密码 <code>123</code>，已预置全部角色数据。</p>
+        <p>· 新建房间后为空数据，系统会引导下载 Excel 模板、填写后导入。</p>
+        <p>· 登录后把页面链接（含 <code>#room=xxxx</code>）发给队友，对方仍需输入密码进入。</p>
+        <p>· 点「退出房间」可返回登录界面，切换其他房间。</p>
         <p style="margin-top:10px"><b>多人协作</b></p>
-        <p>· 已预配 Gitee 仓库 <code>meltingwhite1/dnf-team-sync</code>，只需填入私人令牌即可开启同步。</p>
-        <p>· 生成令牌：Gitee → 右上头像 → 设置 → 私人令牌 → 生成新令牌，勾选 <code>projects</code>（仓库读写）权限。</p>
-        <p>· 点右上角 ⚙ 填入令牌并保存，或由分享者把令牌直接写入本文件顶部 <code>EMBED_SYNC</code>。</p>
-        <p>· 把页面链接（含 <code>#room=xxxx</code>）发给队友，对方打开即进入同一房间，所有人改动实时同步。</p>
-        <p style="margin-top:10px"><b>一键分享</b>：本页面托管在 Gitee 仓库后，直接用原始文件链接 <code>https://gitee.com/用户名/仓库名/raw/master/index.html#room=xxxx</code> 分享即可，队友打开即用，无需配置。</p>
-        <p style="margin-top:10px"><b>数据安全</b>：令牌仅对该数据仓库有读写权限，随时可在 Gitee 设置中撤销。多人同时编辑采用「后写覆盖 + 冲突自动重试」，不会丢角色，但同一秒内两处手动微调可能后写生效。</p>
+        <p>· 数据通过 Gitee 仓库实时同步，所有人改动自动推送，7秒轮询拉取最新。</p>
+        <p>· 多人同时编辑采用「后写覆盖 + 冲突自动重试」，不会丢角色。</p>
+        <p style="margin-top:10px"><b>数据安全</b>：房间密码存储在同步数据中，仅限本工具验证用途。</p>
       </div>
       <div style="margin-top:12px"><button class="secondary" id="closeHelp">关闭</button></div>
+    </div>
+  </div>
+
+  <!-- 登录弹窗 -->
+  <div class="modal show" id="loginModal">
+    <div class="modal-box" style="max-width:420px">
+      <h3 style="text-align:center">薄纱团本 · 排表协作工具</h3>
+      <div class="tab-wrap" style="margin-bottom:14px">
+        <div class="tab active" data-ltab="join">加入房间</div>
+        <div class="tab" data-ltab="create">新建房间</div>
+      </div>
+      <div id="joinForm">
+        <div class="form-item"><label>房间号</label><input id="joinRoomId" placeholder="输入房间号，如 1"></div>
+        <div class="form-item"><label>密码</label><input type="password" id="joinRoomPwd" placeholder="房间密码" onkeydown="if(event.key==='Enter')document.getElementById('doJoin').click()"></div>
+        <button id="doJoin" style="width:100%;margin-top:8px">进入房间</button>
+      </div>
+      <div id="createForm" style="display:none">
+        <div class="form-item"><label>房间号</label><input id="createRoomId" placeholder="自定义房间号，如 myteam"></div>
+        <div class="form-item"><label>密码</label><input type="password" id="createRoomPwd" placeholder="设置房间密码"></div>
+        <button id="doCreate" style="width:100%;margin-top:8px">创建房间</button>
+      </div>
+      <p class="muted" id="loginMsg" style="margin-top:10px;font-size:12px;text-align:center"></p>
+    </div>
+  </div>
+
+  <!-- 新房间引导弹窗 -->
+  <div class="modal" id="guideModal">
+    <div class="modal-box">
+      <h3>🎉 房间 <span id="guideRoomId"></span> 创建成功！</h3>
+      <div class="notice">房间当前为空，请按以下步骤导入角色数据。</div>
+      <div class="help">
+        <p><b>第1步：下载 Excel 模板</b></p>
+        <p>点击下方「下载 Excel 模板」按钮，模板已包含列标题和一行示例数据，方便参照填写。</p>
+        <p style="margin-top:10px"><b>第2步：在 Excel 中填写角色数据</b></p>
+        <p>删除示例行，按以下格式填写每位玩家的角色：</p>
+        <div style="background:#13161f;border:1px solid var(--line);border-radius:7px;padding:10px;margin:6px 0;font-size:12px;line-height:1.8">
+          <b>归属玩家</b>：玩家昵称，如 鸟、热、白<br>
+          <b>角色名称</b>：角色职业名，如 剑魂、缪斯<br>
+          <b>战力数值</b>：纯数字，如 15226<br>
+          <b>类型</b>：输出填 <code>c</code>，奶填 <code>healer</code><br>
+          <b>A套</b>：A套套装名，如 黄金乡（可留空）<br>
+          <b>B套</b>：B套套装名，如 青丘（可留空）<br>
+          <br>
+          <span style="color:var(--mut)">示例行：鸟 | 剑魂 | 15226 | c | 黄金乡 | 黄金乡</span><br>
+          <span style="color:var(--mut)">示例行：鸟 | 缪斯 | 40328 | healer | 黄金乡 |</span>
+        </div>
+        <p style="margin-top:10px"><b>第3步：导入填好的 Excel</b></p>
+        <p>保存 Excel 文件后，点击页面顶部的「导入Excel」按钮上传即可。系统会自动排表并同步到房间。</p>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button id="downloadTemplate">下载 Excel 模板</button>
+        <button class="secondary" id="closeGuide">进入房间</button>
+      </div>
     </div>
   </div>
 
@@ -266,6 +350,7 @@ let charList = [];
 let teamList = [];
 let editTargetId = null;
 let raidMode = 4; /* 4=四人次本, 12=十二人团本(3队红黄绿) */
+let viewMode = "normal"; /* normal=标准, compact=紧凑, ultra=一览 */
 
 /* ---------- 原始数据 ---------- */
 function getInitData(){
@@ -497,13 +582,92 @@ const SYNC = {
     this.cfg = this.loadCfg();
     const m = location.hash.match(/room=([A-Za-z0-9_-]+)/);
     if(m){
-      this.room = { id: m[1], sha:null, dataVersion:0, presence:{} };
-      if(this.cfg && this.cfg.token){ this.start(); }
-      else{ this.setStatus("本地模式（未配置同步）","off"); }
+      // URL有房间号，但仍需验证密码
+      this.room = null;
+      openModal("loginModal");
+      document.getElementById("joinRoomId").value = m[1];
+      document.getElementById("loginMsg").textContent = "请输入房间 "+m[1]+" 的密码";
     }else{
       this.room = null;
-      this.setStatus("未创建房间，点「新建房间」或「加入」开始协作","off");
+      openModal("loginModal");
     }
+  },
+  // 验证并加入房间
+  async checkRoom(roomId, password, onOk, onErr){
+    if(!this.cfg || !this.cfg.token){
+      // 无同步配置：本地模式直接进入
+      this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password };
+      history.replaceState(null,"","#room="+roomId);
+      this.setStatus("本地模式","off");
+      onOk();
+      return;
+    }
+    try{
+      const r = await fetch(this.url("rooms/"+roomId+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+      if(r.status===404){ onErr("房间不存在"); return; }
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      const j = await r.json();
+      if(!j || Array.isArray(j) || !j.content){ onErr("房间不存在"); return; }
+      const data = JSON.parse(b64dec(j.content));
+      if(data.password && data.password !== password){ onErr("密码错误"); return; }
+      // 验证通过
+      this.room = { id:roomId, sha:j.sha, dataVersion:data.dataVersion||0, presence:data.presence||{}, password };
+      history.replaceState(null,"","#room="+roomId);
+      // 应用远端数据
+      charList = Array.isArray(data.charList)?data.charList:charList;
+      raidMode = data.raidMode||4;
+      teamList = Array.isArray(data.teamList)?data.teamList:arrange(charList);
+      saveStorage(); renderAll(); updateModeBtns();
+      this.start();
+      onOk();
+    }catch(e){ onErr("连接失败："+e.message); }
+  },
+  // 创建新房间
+  async createRoom(roomId, password, onOk, onErr){
+    if(!this.cfg || !this.cfg.token){
+      this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password };
+      history.replaceState(null,"","#room="+roomId);
+      charList = []; teamList = []; saveStorage();
+      this.setStatus("本地模式（新房间）","off");
+      renderAll();
+      onOk();
+      return;
+    }
+    try{
+      // 先检查房间是否已存在
+      const r = await fetch(this.url("rooms/"+roomId+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+      if(r.status!==404){
+        const j = await r.json();
+        if(j && !Array.isArray(j) && j.content){ onErr("房间号已存在，请换一个"); return; }
+      }
+      // 创建空房间
+      const initData = {
+        charList: [], teamList: [], raidMode: 4,
+        password: password, dataVersion: 1,
+        editor: this.nick(), room: roomId, presence: {}
+      };
+      const body = {
+        access_token: this.cfg.token,
+        message: "create room "+roomId,
+        content: b64enc(JSON.stringify(initData)),
+        branch: this.cfg.branch||"master"
+      };
+      const pr = await fetch(this.url("rooms/"+roomId+".json")+"?access_token="+this.tok(), {
+        method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)
+      });
+      if(!pr.ok){
+        const e=await pr.json().catch(()=>({})); const msg=e.message||"";
+        if(pr.status===409 || /exist|already|已存在|sha/i.test(msg)){ onErr("房间号已存在，请换一个"); return; }
+        throw new Error("HTTP "+pr.status+" "+msg);
+      }
+      const pj = await pr.json();
+      this.room = { id:roomId, sha:(pj.content&&pj.content.sha)||pj.sha, dataVersion:1, presence:{}, password };
+      history.replaceState(null,"","#room="+roomId);
+      charList = []; teamList = []; raidMode = 4;
+      saveStorage(); renderAll(); updateModeBtns();
+      this.start();
+      onOk();
+    }catch(e){ onErr("创建失败："+e.message); }
   },
   loadCfg(){
     if(EMBED_SYNC && EMBED_SYNC.token) return Object.assign({branch:"master"}, EMBED_SYNC);
@@ -581,6 +745,7 @@ const SYNC = {
         next.editor = this.nick();
         next.room = this.room.id;
         next.presence = Object.assign({}, base.presence||{}, next.presence||{}, {[this.nick()]:Date.now()});
+        next.password = this.room.password || base.password || "";
         const body = { access_token:this.cfg.token, message:"sync "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
@@ -631,7 +796,12 @@ const SYNC = {
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 /* ---------- 渲染 ---------- */
-function renderAll(){ renderCharList(); renderTeamTable(); updateStat(); SYNC.renderPresence(); document.getElementById("roomLink").value = SYNC.room ? location.href : ""; }
+function renderAll(){ renderCharList(); renderTeamTable(); updateStat(); SYNC.renderPresence(); 
+  const linkEl=document.getElementById("roomLink");
+  const roomEl=document.getElementById("roomIdDisplay");
+  if(SYNC.room){ linkEl.value=location.href; roomEl.textContent=SYNC.room.id; }
+  else { linkEl.value=""; roomEl.textContent="-"; }
+}
 
 function updateModeBtns(){
   document.querySelectorAll(".mode-btn").forEach(b=>{
@@ -690,27 +860,62 @@ function renderTeamTable(){
   const globalUsed=new Set(); teamList.forEach(t=>t.slots.forEach(s=>s.charId&&globalUsed.add(s.charId)));
   const isRaid12 = raidMode===12;
   const raidLabels = {red:"红队",yellow:"黄队",green:"绿队"};
+  const viewClass = viewMode==="compact" ? " view-compact" : viewMode==="ultra" ? " view-ultra" : "";
+  const isUltra = viewMode==="ultra";
+  if(isUltra){
+    const gridWrap=document.createElement("div");
+    gridWrap.className="team-grid-ultra";
+    wrap.appendChild(gridWrap);
+    renderTeamsInto(gridWrap, viewClass, isUltra, globalUsed, isRaid12, raidLabels);
+  } else {
+    renderTeamsInto(wrap, viewClass, isUltra, globalUsed, isRaid12, raidLabels);
+  }
+  // 绑定更换角色下拉
+  if(!isUltra){
+    document.querySelectorAll("[data-t]").forEach(sel=>{
+      sel.onchange=async function(){
+        const t=Number(this.dataset.t), s=Number(this.dataset.s);
+        const newCid=this.value?Number(this.value):null;
+        if(!newCid) return;
+        await SYNC.writeState(st=>{
+          for(let ti=0;ti<st.teamList.length;ti++){
+            for(let si=0;si<st.teamList[ti].slots.length;si++){
+              if(st.teamList[ti].slots[si].charId===newCid && !(ti===t && si===s)){
+                st.teamList[ti].slots[si].charId=null;
+              }
+            }
+          }
+          if(st.teamList[t] && st.teamList[t].slots[s]) st.teamList[t].slots[s].charId=newCid;
+          return st;
+        });
+      };
+    });
+  }
+}
+
+function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, raidLabels){
   teamList.forEach((team,tIdx)=>{
     const rColor = team.raidColor || (isRaid12 ? ["red","yellow","green"][tIdx] : null);
     const block=document.createElement("div");
-    block.className = "team-block" + (rColor ? " raid-"+rColor : "");
+    block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass;
     const owners=new Set(); let csum=0, hsum=0;
     team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; else hsum+=c.power; } } });
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
     const teamLabel = rColor ? `${raidLabels[rColor]}` : `第${tIdx+1}队`;
-    let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}位不同玩家）
-      <span class="tsum">总战力：<b style="color:var(--yellow)">${hsum+csum}</b> <span style="opacity:.6;font-size:12px">（奶${hsum} + C${csum}）</span> ${ownerOk?'':'<span class=warn>⚠有同队重复玩家</span>'}</span></div><div class="team-grid">`;
+    let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
+      <span class="tsum">总战力：<b style="color:var(--yellow)">${hsum+csum}</b> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
     team.slots.forEach((slot,sIdx)=>{
       if(!slot.charId){ html+=`<div class="slot slot-empty">空位</div>`; return; }
       const c=charList.find(x=>x.id===slot.charId); if(!c){ html+=`<div class="slot slot-empty">空位</div>`; return; }
+      if(isUltra){
+        html+=`<div class="slot ${c.type}"><div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span style="color:var(--yellow)">${c.power}</span></div></div>`;
+        return;
+      }
       const teamOwners=new Set();
       team.slots.forEach((ss,si)=>{ if(ss.charId && si!==sIdx){ const cc=charList.find(x=>x.id===ss.charId); if(cc) teamOwners.add(cc.owner); } });
-      // 查找角色所在队伍
       const findTeamOf=(cid)=>{ for(let ti=0;ti<teamList.length;ti++){ if(teamList[ti].slots.some(s=>s.charId===cid)) return ti+1; } return 0; };
-      // 该玩家所有角色（含已配队的），标记所在队伍
       const samePlayer=charList.filter(x=>x.owner===c.owner && x.id!==slot.charId)
         .slice().sort((a,b)=>b.power-a.power);
-      // 其他可用角色（不同玩家、别队未用、本队无该玩家）
       const others=charList.filter(x=>{
         if(x.owner===c.owner) return false;
         const usedElse=globalUsed.has(x.id) && x.id!==slot.charId;
@@ -739,27 +944,7 @@ function renderTeamTable(){
         <select data-t="${tIdx}" data-s="${sIdx}">${optsHtml}</select></div>`;
     });
     html+=`</div>`;
-    block.innerHTML=html; wrap.appendChild(block);
-  });
-  document.querySelectorAll("[data-t]").forEach(sel=>{
-    sel.onchange=async function(){
-      const t=Number(this.dataset.t), s=Number(this.dataset.s);
-      const newCid=this.value?Number(this.value):null;
-      if(!newCid) return;
-      await SYNC.writeState(st=>{
-        // 如果选中的角色已在其他队伍，从原队伍移除（留空位）→ 被替换角色自动变为未配置
-        for(let ti=0;ti<st.teamList.length;ti++){
-          for(let si=0;si<st.teamList[ti].slots.length;si++){
-            if(st.teamList[ti].slots[si].charId===newCid && !(ti===t && si===s)){
-              st.teamList[ti].slots[si].charId=null;
-            }
-          }
-        }
-        // 放入当前槽位（原角色被覆盖 → 自动进入未配置列表）
-        if(st.teamList[t] && st.teamList[t].slots[s]) st.teamList[t].slots[s].charId=newCid;
-        return st;
-      });
-    };
+    block.innerHTML=html; container.appendChild(block);
   });
 }
 
@@ -867,25 +1052,73 @@ async function doReset(){
 }
 
 /* ---------- 房间 ---------- */
-function newRoom(){
-  SYNC.room={id:randId(),sha:null,dataVersion:0,presence:{}};
-  history.replaceState(null,"","#room="+SYNC.room.id);
-  SYNC.setStatus(SYNC.cfg&&SYNC.cfg.token?"新房间，编辑后自动创建":"本地模式","off");
+function exitRoom(){
+  SYNC.stop();
+  SYNC.room = null;
+  history.replaceState(null,"",location.pathname);
+  charList = []; teamList = []; saveStorage();
+  document.getElementById("syncStatus").textContent = "未登录";
+  document.getElementById("syncDot").className = "dot off";
   renderAll();
-}
-function joinRoom(){
-  const v=prompt("输入房间ID或完整分享链接：");
-  if(!v)return;
-  const m=v.match(/room=([A-Za-z0-9_-]+)/);
-  const id=(m&&m[1])||v.trim();
-  if(!/^[A-Za-z0-9_-]{3,}$/.test(id)){alert("房间ID无效");return;}
-  SYNC.room={id,sha:null,dataVersion:0,presence:{}};
-  history.replaceState(null,"","#room="+id);
-  if(SYNC.cfg&&SYNC.cfg.token){ SYNC.fetchState(true); }
-  else { SYNC.setStatus("本地模式","off"); }
-  renderAll();
+  openModal("loginModal");
+  document.getElementById("loginMsg").textContent = "";
 }
 function copyLink(){ navigator.clipboard.writeText(location.href).then(()=>{ const b=document.getElementById("copyLink"); b.textContent="已复制"; setTimeout(()=>b.textContent="复制",1200); }).catch(()=>prompt("请手动复制：",location.href)); }
+
+/* ---------- 登录弹窗 ---------- */
+function bindLoginTabs(){
+  document.querySelectorAll("[data-ltab]").forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll("[data-ltab]").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      const isJoin = t.dataset.ltab==="join";
+      document.getElementById("joinForm").style.display = isJoin?"block":"none";
+      document.getElementById("createForm").style.display = isJoin?"none":"block";
+      document.getElementById("loginMsg").textContent = "";
+    };
+  });
+}
+async function doJoinRoom(){
+  const rid=document.getElementById("joinRoomId").value.trim();
+  const pwd=document.getElementById("joinRoomPwd").value;
+  const msg=document.getElementById("loginMsg");
+  if(!rid){ msg.textContent="请输入房间号"; return; }
+  if(!pwd){ msg.textContent="请输入密码"; return; }
+  msg.textContent = "验证中…";
+  await SYNC.checkRoom(rid, pwd,
+    ()=>{ closeModal("loginModal"); msg.textContent=""; document.getElementById("joinRoomPwd").value=""; },
+    (err)=>{ msg.textContent = "✗ "+err; }
+  );
+}
+async function doCreateRoom(){
+  const rid=document.getElementById("createRoomId").value.trim();
+  const pwd=document.getElementById("createRoomPwd").value;
+  const msg=document.getElementById("loginMsg");
+  if(!rid){ msg.textContent="请输入房间号"; return; }
+  if(!pwd){ msg.textContent="请输入密码"; return; }
+  if(!/^[A-Za-z0-9_-]{1,30}$/.test(rid)){ msg.textContent="房间号只能用字母、数字、下划线"; return; }
+  msg.textContent = "创建中…";
+  await SYNC.createRoom(rid, pwd,
+    ()=>{
+      closeModal("loginModal"); msg.textContent=""; document.getElementById("createRoomPwd").value="";
+      // 显示引导弹窗
+      document.getElementById("guideRoomId").textContent = rid;
+      openModal("guideModal");
+    },
+    (err)=>{ msg.textContent = "✗ "+err; }
+  );
+}
+function downloadTemplate(){
+  if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
+  const example=[
+    { "归属玩家":"鸟", "角色名称":"剑魂", "战力数值":15226, "类型":"c", "A套":"黄金乡", "B套":"黄金乡" },
+    { "归属玩家":"鸟", "角色名称":"缪斯", "战力数值":40328, "类型":"healer", "A套":"黄金乡", "B套":"" }
+  ];
+  const ws=XLSX.utils.json_to_sheet(example);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"角色数据");
+  XLSX.writeFile(wb,"薄纱团本角色模板.xlsx");
+}
 
 /* ---------- 设置弹窗 ---------- */
 function openModal(id){ document.getElementById(id).classList.add("show"); }
@@ -937,7 +1170,6 @@ function bindTab(){
 
 /* ---------- 初始化 ---------- */
 function init(){
-  if(!loadStorage()){ charList=getInitData(); teamList=arrange(charList); saveStorage(); }
   // 昵称
   const nick=localStorage.getItem(LS_NICK)||("");
   document.getElementById("nickInput").value=nick;
@@ -946,6 +1178,15 @@ function init(){
   bindTab();
   document.getElementById("autoArrange").onclick=doAutoArrange;
   document.querySelectorAll(".mode-btn").forEach(b=>{ b.onclick=()=>switchMode(Number(b.dataset.mode)); });
+  document.querySelectorAll(".view-btn").forEach(b=>{ b.onclick=()=>{
+    viewMode=b.dataset.view;
+    document.querySelectorAll(".view-btn").forEach(x=>{
+      const active=x.dataset.view===viewMode;
+      x.style.background=active?"var(--blue)":"transparent";
+      x.style.color=active?"#fff":"var(--mut)";
+    });
+    renderTeamTable();
+  };});
   document.getElementById("saveChar").onclick=saveChar;
   document.getElementById("cancelEdit").onclick=clearEdit;
   document.getElementById("exportData").onclick=exportData;
@@ -955,24 +1196,32 @@ function init(){
   document.getElementById("closeImport").onclick=()=>closeModal("importModal");
   document.getElementById("doImport").onclick=doImport;
 
-  document.getElementById("newRoom").onclick=newRoom;
-  document.getElementById("joinBtn").onclick=joinRoom;
+  document.getElementById("exitRoom").onclick=exitRoom;
   document.getElementById("copyLink").onclick=copyLink;
 
-  document.getElementById("openSettings").onclick=()=>{ fillCfgForm(); openModal("settingsModal"); };
-  document.getElementById("closeSettings").onclick=()=>closeModal("settingsModal");
-  document.getElementById("testCfg").onclick=testCfg;
-  document.getElementById("saveCfg").onclick=saveCfg;
-  document.getElementById("clearCfg").onclick=()=>{ document.getElementById("cfgToken").value=""; saveCfg(); };
+  // 登录弹窗
+  bindLoginTabs();
+  document.getElementById("doJoin").onclick=doJoinRoom;
+  document.getElementById("doCreate").onclick=doCreateRoom;
+
+  // 引导弹窗
+  document.getElementById("downloadTemplate").onclick=downloadTemplate;
+  document.getElementById("closeGuide").onclick=()=>closeModal("guideModal");
+
   document.getElementById("openHelp").onclick=()=>openModal("helpModal");
   document.getElementById("closeHelp").onclick=()=>closeModal("helpModal");
 
-  // 点遮罩关闭
-  document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{ if(e.target===m) m.classList.remove("show"); }));
+  // 点遮罩关闭（登录弹窗除外）
+  document.querySelectorAll(".modal").forEach(m=>{
+    if(m.id==="loginModal") return; // 登录弹窗不可点外关闭
+    m.addEventListener("click",e=>{ if(e.target===m) m.classList.remove("show"); });
+  });
 
   SYNC.init();
   updateModeBtns();
-  renderAll();
+  // 不在登录前渲染数据，登录后由 checkRoom/createRoom 触发 renderAll
+  document.getElementById("roomIdDisplay").textContent = "-";
+  document.getElementById("roomLink").value = "";
 }
 init();
 </script>
