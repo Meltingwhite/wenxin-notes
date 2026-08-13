@@ -498,7 +498,7 @@ function saveStorage(){ try{ localStorage.setItem(LS_CHAR, JSON.stringify({charL
 function loadStorage(){
   try{
     const s = JSON.parse(localStorage.getItem(LS_CHAR));
-    if(s && Array.isArray(s.charList)){ charList = s.charList; raidMode = s.raidMode||4; teamList = s.teamList && s.teamList.length ? s.teamList : arrange(charList); return true; }
+    if(s && Array.isArray(s.charList)){ charList = s.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }); raidMode = s.raidMode||4; teamList = s.teamList && s.teamList.length ? s.teamList : arrange(charList); return true; }
   }catch(e){}
   return false;
 }
@@ -775,7 +775,7 @@ const SYNC = {
         this.room.dataVersion = dv;
         // 备份本地后应用远端
         try{ localStorage.setItem(LS_BACK, JSON.stringify({charList,teamList,raidMode})); }catch(e){}
-        charList = Array.isArray(data.charList)?data.charList:charList;
+        charList = Array.isArray(data.charList)?data.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }):charList;
         raidMode = data.raidMode||4;
         teamList = Array.isArray(data.teamList)?data.teamList:arrange(charList);
         saveStorage(); renderAll(); updateModeBtns();
@@ -812,7 +812,7 @@ const SYNC = {
         const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
         if(r.status===404){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; }
         else if(!r.ok) throw new Error("GET HTTP "+r.status);
-        else { const j=await r.json(); if(!j || Array.isArray(j) || !j.content){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; } else { sha=j.sha; base=JSON.parse(b64dec(j.content)); } }
+        else { const j=await r.json(); if(!j || Array.isArray(j) || !j.content){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; } else { sha=j.sha; base=JSON.parse(b64dec(j.content)); if(Array.isArray(base.charList)) base.charList=base.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }); } }
         const next = intent(clone(base)) || base;
         next.dataVersion = (base.dataVersion||0)+1;
         next.editor = this.nick();
