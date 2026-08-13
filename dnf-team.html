@@ -58,7 +58,7 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .char-pool{flex:1;min-width:0}
 .char-pool h3,.form-box h3{margin-bottom:10px;font-size:15px}
 .card{background:var(--panel2);padding:10px;border-radius:8px;width:235px;border:1px solid var(--line);border-left:4px solid var(--orange)}
-.card.healer{border-left-color:var(--green)}
+.card.N{border-left-color:var(--green)}
 .card.used{opacity:.45}
 .card h4{margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
 .card .meta{font-size:11px;color:var(--mut);line-height:1.5}
@@ -79,7 +79,7 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
 .slot{padding:9px;border-radius:7px;min-height:74px;border:1px solid var(--line)}
 .slot.c{background:#342318;border-color:var(--orange)}
-.slot.healer{background:#15301f;border-color:var(--green)}
+.slot.N{background:#15301f;border-color:var(--green)}
 .slot-empty{background:#191c25;border:1px dashed #444;color:#666;display:flex;align-items:center;justify-content:center}
 .slot .sn{font-weight:600;font-size:13px}
 .slot .sp{font-size:11px;color:var(--mut);margin:2px 0 5px}
@@ -221,7 +221,7 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
         <div class="form-item"><label>战力数值</label><input type="number" id="editPower" placeholder="模拟/校正战力"></div>
         <div class="form-item">
           <label>类型</label>
-          <select id="editType"><option value="c">输出 C</option><option value="healer">奶</option></select>
+          <select id="editType"><option value="c">输出 C</option><option value="N">奶</option></select>
         </div>
         <div class="form-item"><label>A套套装</label><input id="editA" placeholder="黄金乡/龙战/天命等"></div>
         <div class="form-item"><label>B套套装</label><input id="editB" placeholder="青丘/群猎/混沌等"></div>
@@ -260,7 +260,7 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
     <div class="modal-box">
       <h3>导入角色 Excel</h3>
       <p class="help" style="margin-bottom:8px">选择 .xlsx / .xls 文件，将<strong>覆盖</strong>当前全部角色并自动重新排表。</p>
-      <p class="help" style="margin-bottom:8px">表格需包含列：<code>归属玩家</code> <code>角色名称</code> <code>战力数值</code> <code>类型</code>(c/healer) <code>A套</code> <code>B套</code></p>
+      <p class="help" style="margin-bottom:8px">表格需包含列：<code>归属玩家</code> <code>角色名称</code> <code>战力数值</code> <code>类型</code>(c/N) <code>A套</code> <code>B套</code></p>
       <input type="file" id="importFile" accept=".xlsx,.xls" style="width:100%;margin-bottom:10px;padding:6px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--txt)">
       <div style="display:flex;gap:8px">
         <button id="doImport">确认导入</button>
@@ -350,12 +350,12 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
           <b>归属玩家</b>：玩家昵称，如 鸟、热、白<br>
           <b>角色名称</b>：角色职业名，如 剑魂、缪斯<br>
           <b>战力数值</b>：纯数字，如 15226<br>
-          <b>类型</b>：输出填 <code>c</code>，奶填 <code>healer</code><br>
+          <b>类型</b>：输出填 <code>c</code>，奶填 <code>N</code><br>
           <b>A套</b>：A套套装名，如 黄金乡（可留空）<br>
           <b>B套</b>：B套套装名，如 青丘（可留空）<br>
           <br>
           <span style="color:var(--mut)">示例行：鸟 | 剑魂 | 15226 | c | 黄金乡 | 黄金乡</span><br>
-          <span style="color:var(--mut)">示例行：鸟 | 缪斯 | 40328 | healer | 黄金乡 |</span>
+          <span style="color:var(--mut)">示例行：鸟 | 缪斯 | 40328 | N | 黄金乡 |</span>
         </div>
         <p style="margin-top:10px"><b>第3步：导入填好的 Excel</b></p>
         <p>保存 Excel 文件后，点击页面顶部的「导入Excel」按钮上传即可。系统会自动排表并同步到房间。</p>
@@ -409,11 +409,11 @@ function getInitData(){
     {id:24,owner:"鸟",name:"红狗(J)",power:5052,type:"c",a:"龙战",b:"潜影"},
     {id:25,owner:"鸟",name:"街霸(J)",power:4233,type:"c",a:"能量",b:"能量"},
     {id:26,owner:"鸟",name:"瞎子(J)",power:5122,type:"c",a:"龙战",b:"天命"},
-    {id:70,owner:"鸟",name:"小奶妈",power:36445,type:"healer",a:"",b:""},
-    {id:71,owner:"鸟",name:"奶爸",power:40194,type:"healer",a:"",b:""},
-    {id:72,owner:"鸟",name:"缪斯",power:40328,type:"healer",a:"黄金乡",b:""},
-    {id:73,owner:"鸟",name:"奶妈",power:39322,type:"healer",a:"",b:""},
-    {id:74,owner:"鸟",name:"奶萝",power:40750,type:"healer",a:"",b:""},
+    {id:70,owner:"鸟",name:"小奶妈",power:36445,type:"N",a:"",b:""},
+    {id:71,owner:"鸟",name:"奶爸",power:40194,type:"N",a:"",b:""},
+    {id:72,owner:"鸟",name:"缪斯",power:40328,type:"N",a:"黄金乡",b:""},
+    {id:73,owner:"鸟",name:"奶妈",power:39322,type:"N",a:"",b:""},
+    {id:74,owner:"鸟",name:"奶萝",power:40750,type:"N",a:"",b:""},
 
     {id:101,owner:"热",name:"乌鸡",power:10000,type:"c",a:"黄金乡",b:"青丘"},
     {id:102,owner:"热",name:"剑帝",power:2000,type:"c",a:"黄金乡",b:"群猎"},
@@ -432,11 +432,11 @@ function getInitData(){
     {id:115,owner:"热",name:"女弹药",power:480,type:"c",a:"黄金乡",b:"净化"},
     {id:116,owner:"热",name:"鬼泣",power:420,type:"c",a:"龙战",b:"能量"},
     {id:117,owner:"热",name:"女散打",power:350,type:"c",a:"黄金乡",b:"领域"},
-    {id:170,owner:"热",name:"缪斯",power:41470,type:"healer",a:"",b:""},
-    {id:171,owner:"热",name:"奶妈",power:38496,type:"healer",a:"",b:""},
-    {id:172,owner:"热",name:"奶萝",power:40895,type:"healer",a:"",b:""},
-    {id:173,owner:"热",name:"奶爸",power:42312,type:"healer",a:"",b:""},
-    {id:174,owner:"热",name:"奶枪",power:42352,type:"healer",a:"",b:""},
+    {id:170,owner:"热",name:"缪斯",power:41470,type:"N",a:"",b:""},
+    {id:171,owner:"热",name:"奶妈",power:38496,type:"N",a:"",b:""},
+    {id:172,owner:"热",name:"奶萝",power:40895,type:"N",a:"",b:""},
+    {id:173,owner:"热",name:"奶爸",power:42312,type:"N",a:"",b:""},
+    {id:174,owner:"热",name:"奶枪",power:42352,type:"N",a:"",b:""},
 
     {id:201,owner:"白",name:"刃影",power:6200,type:"c",a:"黄金乡",b:"黄金乡"},
     {id:202,owner:"白",name:"天帝",power:3870,type:"c",a:"黄金乡",b:"黄金乡"},
@@ -452,13 +452,13 @@ function getInitData(){
     {id:212,owner:"白",name:"花花（混）",power:0,type:"c",a:"群猎",b:""},
     {id:213,owner:"白",name:"大枪（混）",power:0,type:"c",a:"群猎",b:""},
     {id:214,owner:"白",name:"破浪",power:2200,type:"c",a:"群猎",b:""},
-    {id:270,owner:"白",name:"缪斯",power:41807,type:"healer",a:"",b:""},
-    {id:271,owner:"白",name:"奶枪",power:40740,type:"healer",a:"",b:""},
-    {id:272,owner:"白",name:"奶妈",power:36283,type:"healer",a:"",b:""},
-    {id:273,owner:"白",name:"奶萝",power:33625,type:"healer",a:"",b:""},
-    {id:274,owner:"白",name:"小缪斯",power:32071,type:"healer",a:"",b:""},
-    {id:275,owner:"白",name:"小奶爸",power:30986,type:"healer",a:"",b:""},
-    {id:276,owner:"白",name:"小奶枪",power:31773,type:"healer",a:"",b:""},
+    {id:270,owner:"白",name:"缪斯",power:41807,type:"N",a:"",b:""},
+    {id:271,owner:"白",name:"奶枪",power:40740,type:"N",a:"",b:""},
+    {id:272,owner:"白",name:"奶妈",power:36283,type:"N",a:"",b:""},
+    {id:273,owner:"白",name:"奶萝",power:33625,type:"N",a:"",b:""},
+    {id:274,owner:"白",name:"小缪斯",power:32071,type:"N",a:"",b:""},
+    {id:275,owner:"白",name:"小奶爸",power:30986,type:"N",a:"",b:""},
+    {id:276,owner:"白",name:"小奶枪",power:31773,type:"N",a:"",b:""},
 
     {id:301,owner:"摸鱼",name:"剑宗",power:7767,type:"c",a:"龙战",b:"黄金乡"},
     {id:302,owner:"摸鱼",name:"鳗鱼",power:1724,type:"c",a:"黄金乡",b:"混沌"},
@@ -467,9 +467,9 @@ function getInitData(){
     {id:305,owner:"摸鱼",name:"龙骑",power:573,type:"c",a:"领域",b:"龙战"},
     {id:306,owner:"摸鱼",name:"旅人",power:515,type:"c",a:"潜影",b:"女武神"},
     {id:307,owner:"摸鱼",name:"毒王",power:597,type:"c",a:"龙战",b:"群猎"},
-    {id:370,owner:"摸鱼",name:"奶妈",power:42687,type:"healer",a:"黄金乡",b:"群猎"},
-    {id:371,owner:"摸鱼",name:"缪斯",power:39315,type:"healer",a:"黄金乡",b:"自然"},
-    {id:372,owner:"摸鱼",name:"奶枪",power:34743,type:"healer",a:"龙战",b:"女武神"},
+    {id:370,owner:"摸鱼",name:"奶妈",power:42687,type:"N",a:"黄金乡",b:"群猎"},
+    {id:371,owner:"摸鱼",name:"缪斯",power:39315,type:"N",a:"黄金乡",b:"自然"},
+    {id:372,owner:"摸鱼",name:"奶枪",power:34743,type:"N",a:"龙战",b:"女武神"},
 
     {id:401,owner:"批天",name:"剑帝",power:4575,type:"c",a:"黄金乡",b:"黄金乡"},
     {id:402,owner:"批天",name:"帕拉丁",power:2272,type:"c",a:"黄金乡",b:"能量"},
@@ -477,12 +477,12 @@ function getInitData(){
     {id:404,owner:"批天",name:"刃影",power:961,type:"c",a:"黄金乡",b:"群猎"},
     {id:405,owner:"批天",name:"花花",power:860,type:"c",a:"黄金乡",b:"天命"},
     {id:406,owner:"批天",name:"精灵",power:528,type:"c",a:"黄金乡",b:"黄金乡"},
-    {id:470,owner:"批天",name:"缪斯",power:45838,type:"healer",a:"黄金乡",b:""},
-    {id:471,owner:"批天",name:"奶萝",power:35786,type:"healer",a:"黄金乡",b:""},
-    {id:472,owner:"批天",name:"奶妈",power:35077,type:"healer",a:"黄金乡",b:""},
-    {id:473,owner:"批天",name:"小缪斯",power:35421,type:"healer",a:"黄金乡",b:""},
-    {id:474,owner:"批天",name:"奶枪",power:0,type:"healer",a:"",b:""},
-    {id:475,owner:"批天",name:"奶爸",power:47362,type:"healer",a:"",b:""},
+    {id:470,owner:"批天",name:"缪斯",power:45838,type:"N",a:"黄金乡",b:""},
+    {id:471,owner:"批天",name:"奶萝",power:35786,type:"N",a:"黄金乡",b:""},
+    {id:472,owner:"批天",name:"奶妈",power:35077,type:"N",a:"黄金乡",b:""},
+    {id:473,owner:"批天",name:"小缪斯",power:35421,type:"N",a:"黄金乡",b:""},
+    {id:474,owner:"批天",name:"奶枪",power:0,type:"N",a:"",b:""},
+    {id:475,owner:"批天",name:"奶爸",power:47362,type:"N",a:"",b:""},
   ];
 }
 
@@ -513,7 +513,7 @@ function arrange(chars, mode){
 /* 12人团本：多组3队×4人，红>黄>绿战力梯度，保证全部入队 */
 function arrange12(chars){
   const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
-  const H = chars.filter(c=>c.type==="healer").slice().sort((a,b)=>b.power-a.power);
+  const H = chars.filter(c=>c.type==="N").slice().sort((a,b)=>b.power-a.power);
   if(H.length<3 || C.length<9) return [];
   const globalUsed = new Set();
   const allTeams = [];
@@ -602,7 +602,7 @@ function arrange12(chars){
 /* 4人团本：全部角色均衡排表 */
 function arrange4(chars){
   const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
-  const H = chars.filter(c=>c.type==="healer").slice().sort((a,b)=>b.power-a.power);
+  const H = chars.filter(c=>c.type==="N").slice().sort((a,b)=>b.power-a.power);
   const used = new Set();
   if(H.length===0) return [];
   const n = H.length;
@@ -887,7 +887,7 @@ function updateModeBtns(){
 }
 
 function updateStat(){
-  const all=charList.length, c=charList.filter(x=>x.type==="c").length, h=charList.filter(x=>x.type==="healer").length;
+  const all=charList.length, c=charList.filter(x=>x.type==="c").length, h=charList.filter(x=>x.type==="N").length;
   const used=new Set(); teamList.forEach(t=>t.slots.forEach(s=>s.charId&&used.add(s.charId)));
   document.getElementById("totalAll").textContent=all;
   document.getElementById("totalC").textContent=c;
@@ -1145,7 +1145,7 @@ async function doImport(){
       const name=(r["角色名称"]||r["name"]||"").toString().trim();
       const power=Number(r["战力数值"]||r["power"]||0)||0;
       let type=(r["类型"]||r["type"]||"c").toString().trim().toLowerCase();
-      if(type!=="c"&&type!=="healer") type="c";
+      if(type==="healer"||type==="n"||type==="N") type="N"; if(type!=="c"&&type!=="N") type="c";
       const a=(r["A套"]||r["a"]||"").toString().trim();
       const b=(r["B套"]||r["b"]||"").toString().trim();
       return {owner,name,power,type,a,b};
@@ -1224,7 +1224,7 @@ function downloadTemplate(){
   if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
   const example=[
     { "归属玩家":"鸟", "角色名称":"剑魂", "战力数值":15226, "类型":"c", "A套":"黄金乡", "B套":"黄金乡" },
-    { "归属玩家":"鸟", "角色名称":"缪斯", "战力数值":40328, "类型":"healer", "A套":"黄金乡", "B套":"" }
+    { "归属玩家":"鸟", "角色名称":"缪斯", "战力数值":40328, "类型":"N", "A套":"黄金乡", "B套":"" }
   ];
   const ws=XLSX.utils.json_to_sheet(example);
   const wb=XLSX.utils.book_new();
