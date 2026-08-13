@@ -496,12 +496,13 @@ const SYNC = {
   init(){
     this.cfg = this.loadCfg();
     const m = location.hash.match(/room=([A-Za-z0-9_-]+)/);
-    this.room = { id: m?m[1]:randId(), sha:null, dataVersion:0, presence:{} };
-    if(!m) history.replaceState(null,"","#room="+this.room.id);
-    if(this.cfg && this.cfg.token){
-      this.start();
+    if(m){
+      this.room = { id: m[1], sha:null, dataVersion:0, presence:{} };
+      if(this.cfg && this.cfg.token){ this.start(); }
+      else{ this.setStatus("本地模式（未配置同步）","off"); }
     }else{
-      this.setStatus("本地模式","off");
+      this.room = null;
+      this.setStatus("未创建房间，点「新建房间」或「加入」开始协作","off");
     }
   },
   loadCfg(){
@@ -523,6 +524,7 @@ const SYNC = {
   br(){ return encodeURIComponent(this.cfg.branch||"master"); },
   async fetchState(initial){
     if(!this.cfg || !this.cfg.token) return;
+    if(!this.room) return;
     try{
       const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
       if(r.status===404){ this.setStatus(initial?"房间未同步，编辑后自动创建":"房间未同步","off"); this.renderPresence(); return; }
@@ -549,9 +551,17 @@ const SYNC = {
   // intent(state)=>state；对最新远端状态应用意图后写回，冲突自动重试
   async writeState(intent, opts){
     opts = opts||{};
+    if(!this.room){
+      // 无房间：纯本地操作，不走同步
+      const st = {charList, teamList, raidMode, presence:{}};
+      const next = intent(st) || st;
+      charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+      saveStorage(); renderAll(); updateModeBtns();
+      return;
+    }
     if(!this.cfg || !this.cfg.token){
       // 本地模式：直接对本地状态应用
-      const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
+      const st = {charList, teamList, raidMode, presence:this.room.presence||{}};
       const next = intent(st) || st;
       charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; this.room.presence = next.presence||{};
       saveStorage(); renderAll(); updateModeBtns();
@@ -593,6 +603,7 @@ const SYNC = {
   },
   async sendPresence(){
     if(!this.cfg || !this.cfg.token) return;
+    if(!this.room) return;
     if(this.writing>0) return;
     await this.writeState(s=>{ s.presence = s.presence||{}; s.presence[this.nick()]=Date.now(); return s; });
   },
@@ -603,6 +614,7 @@ const SYNC = {
     dot.className = "dot "+(kind||"off");
   },
   renderPresence(){
+    if(!this.room){ document.getElementById("onlineCount").textContent="0"; document.getElementById("onlineChips").innerHTML=""; return; }
     const now=Date.now(), me=this.nick();
     let online=[]; const all=[];
     for(const k in this.room.presence){
@@ -619,7 +631,7 @@ const SYNC = {
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 /* ---------- 渲染 ---------- */
-function renderAll(){ renderCharList(); renderTeamTable(); updateStat(); SYNC.renderPresence(); document.getElementById("roomLink").value = location.href; }
+function renderAll(){ renderCharList(); renderTeamTable(); updateStat(); SYNC.renderPresence(); document.getElementById("roomLink").value = SYNC.room ? location.href : ""; }
 
 function updateModeBtns(){
   document.querySelectorAll(".mode-btn").forEach(b=>{
