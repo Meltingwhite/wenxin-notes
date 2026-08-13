@@ -1020,7 +1020,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       if(!slot.charId){ html+=`<div class="slot slot-empty">空位</div>`; return; }
       const c=charList.find(x=>x.id===slot.charId); if(!c){ html+=`<div class="slot slot-empty">空位</div>`; return; }
       if(isUltra){
-        html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}"><div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span style="color:var(--yellow)">${c.power}</span></div></div>`;
+        html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}"><div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)}</div><div class="sp" style="color:var(--yellow);font-size:10px">${c.power}</div></div>`;
         return;
       }
       const teamOwners=new Set();
