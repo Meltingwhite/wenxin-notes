@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>薄纱团本 · 排表协作工具</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>try{var t=localStorage.getItem("busha_theme");if(t&&t!=="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <style>
 :root{
   --bg:#0f1117; --panel:#1a1d27; --panel2:#222633; --line:#333a4a;
@@ -12,6 +13,47 @@
   --orange:#f97316; --green:#22c55e; --red:#ef4444; --yellow:#eab308;
   --radius:10px;
 }
+/* B站粉主题 */
+[data-theme="bilibili"]{
+  --bg:#f4f5f7; --panel:#fff; --panel2:#f0f1f3; --line:#e3e5e8;
+  --txt:#18191c; --mut:#9499a0; --blue:#fb7299; --blue2:#fc8bab;
+  --orange:#ff6633; --green:#02b340; --red:#f25d43; --yellow:#ffb027;
+  --radius:8px;
+}
+[data-theme="bilibili"] body{background:#f4f5f7}
+[data-theme="bilibili"] input,[data-theme="bilibili"] select,[data-theme="bilibili"] textarea{background:#f4f5f7;border-color:#e3e5e8}
+[data-theme="bilibili"] .room-bar{background:linear-gradient(135deg,#fff,#fafafa)}
+[data-theme="bilibili"] .chip{background:#fff0f4;border-color:#fb7299;color:#fb7299}
+[data-theme="bilibili"] .chip.me{background:#e8f8ee;border-color:var(--green);color:var(--green)}
+[data-theme="bilibili"] button.secondary{background:#f0f1f3;color:#18191c}
+[data-theme="bilibili"] .raid-tag.red{background:#fee2e2;color:#dc2626}
+[data-theme="bilibili"] .raid-tag.yellow{background:#fef3c7;color:#d97706}
+[data-theme="bilibili"] .raid-tag.green{background:#d1fae5;color:#059669}
+
+/* 极简白主题 */
+[data-theme="light"]{
+  --bg:#f8f9fa; --panel:#fff; --panel2:#f1f3f5; --line:#dee2e6;
+  --txt:#212529; --mut:#6c757d; --blue:#0d6efd; --blue2:#3d8bfd;
+  --orange:#fd7e14; --green:#20c997; --red:#dc3545; --yellow:#ffc107;
+  --radius:8px;
+}
+[data-theme="light"] body{background:#f8f9fa}
+[data-theme="light"] input,[data-theme="light"] select,[data-theme="light"] textarea{background:#fff;border-color:#dee2e6}
+[data-theme="light"] .room-bar{background:linear-gradient(135deg,#fff,#f8f9fa)}
+[data-theme="light"] button.secondary{background:#e9ecef;color:#495057}
+
+/* 深夜紫主题 */
+[data-theme="midnight"]{
+  --bg:#1a0f2e; --panel:#241638; --panel2:#2d1d4a; --line:#3d2860;
+  --txt:#e8d9f5; --mut:#a78bc4; --blue:#8b5cf6; --blue2:#a78bfa;
+  --orange:#f97316; --green:#10b981; --red:#ef4444; --yellow:#eab308;
+  --radius:10px;
+}
+[data-theme="midnight"] body{background:#1a0f2e}
+[data-theme="midnight"] input,[data-theme="midnight"] select,[data-theme="midnight"] textarea{background:#1a0f2e;border-color:#3d2860}
+[data-theme="midnight"] .room-bar{background:linear-gradient(135deg,#2d1d4a,#241638)}
+[data-theme="midnight"] button.secondary{background:#3d2860;color:#e8d9f5}
+[data-theme="midnight"] .chip{background:#3d2860;border-color:#5d3893;color:#d4c1f0}
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,"Microsoft YaHei",sans-serif}
 body{background:var(--bg);color:var(--txt);padding:12px;min-height:100vh;font-size:14px}
 .container{max-width:1640px;margin:0 auto}
@@ -199,6 +241,12 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
       <span class="badge" id="syncStatus">未登录</span>
       <button class="sm danger" id="exitRoom">退出房间</button>
       <button class="sm secondary" id="openHelp">❓</button>
+      <select id="themeSelect" class="sm" style="width:auto;padding:4px 8px;font-size:12px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);cursor:pointer">
+        <option value="dark">🌙 暗色</option>
+        <option value="bilibili">🌸 B站粉</option>
+        <option value="light">☀️ 极简白</option>
+        <option value="midnight">🌌 深夜紫</option>
+      </select>
     </div>
   </div>
 
@@ -522,27 +570,119 @@ async function doRedo(){
 
 /* ---------- 账号系统 ---------- */
 const ACCT = {
+  _remoteSha: null,
+  _loading: false,
   getUsers(){ try{ return JSON.parse(localStorage.getItem(LS_ACCT))||{}; }catch(e){ return {}; } },
   saveUsers(u){ localStorage.setItem(LS_ACCT, JSON.stringify(u)); },
   getSession(){ try{ return JSON.parse(localStorage.getItem(LS_SESSION)); }catch(e){ return null; } },
   saveSession(user){ localStorage.setItem(LS_SESSION, JSON.stringify({user, ts:Date.now()})); },
   clearSession(){ localStorage.removeItem(LS_SESSION); },
-  register(user, pwd){
+  /* 获取 Gitee 同步配置 */
+  syncCfg(){
+    if(EMBED_SYNC && EMBED_SYNC.token) return Object.assign({branch:"master"}, EMBED_SYNC);
+    return null;
+  },
+  /* 从远端拉取 accounts.json */
+  async fetchRemoteUsers(){
+    const cfg=this.syncCfg();
+    if(!cfg) return {users:null, sha:null};
+    try{
+      const r=await fetch(`https://gitee.com/api/v5/repos/${cfg.owner}/${cfg.repo}/contents/accounts.json?access_token=${encodeURIComponent(cfg.token)}&ref=${encodeURIComponent(cfg.branch||"master")}`);
+      if(r.status===404) return {users:{}, sha:null};
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      const j=await r.json();
+      if(!j||!j.content) return {users:{}, sha:null};
+      this._remoteSha=j.sha;
+      const data=JSON.parse(b64dec(j.content));
+      return {users:data, sha:j.sha};
+    }catch(e){ return {users:null, sha:null, error:e.message}; }
+  },
+  /* 推送 accounts.json 到远端 */
+  async pushRemoteUsers(users, sha){
+    const cfg=this.syncCfg();
+    if(!cfg) return false;
+    const body={ access_token:cfg.token, message:"update accounts", content:b64enc(JSON.stringify(users)), branch:cfg.branch||"master" };
+    if(sha) body.sha=sha;
+    const method=sha?"PUT":"POST";
+    const r=await fetch(`https://gitee.com/api/v5/repos/${cfg.owner}/${cfg.repo}/contents/accounts.json?access_token=${encodeURIComponent(cfg.token)}`, {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+    if(!r.ok){
+      const e=await r.json().catch(()=>({}));
+      if(r.status===409||r.status===422) return "conflict";
+      throw new Error("HTTP "+r.status+" "+(e.message||""));
+    }
+    const j=await r.json();
+    this._remoteSha=(j.content&&j.content.sha)||j.sha;
+    return true;
+  },
+  async register(user, pwd){
     if(!user || user.length<2 || user.length>20) return "账号需2-20位字符";
     if(!pwd || pwd.length<4) return "密码至少4位";
-    const users=this.getUsers();
+    /* 先拉取远端用户列表 */
+    const remote=await this.fetchRemoteUsers();
+    let users=remote.users;
+    if(users===null){
+      /* 远端不可用，使用本地缓存 */
+      users=this.getUsers();
+    }
     if(users[user]) return "账号已存在，请直接登录";
     users[user]={pwd, ts:Date.now()};
+    /* 尝试推送到远端 */
+    if(this.syncCfg()){
+      try{
+        const result=await this.pushRemoteUsers(users, remote.sha);
+        if(result==="conflict"){
+          /* 冲突重试：重新拉取再合并 */
+          for(let i=0;i<3;i++){
+            const retry=await this.fetchRemoteUsers();
+            if(retry.users===null) break;
+            if(retry.users[user]) return "账号已存在，请直接登录";
+            retry.users[user]={pwd, ts:Date.now()};
+            const r2=await this.pushRemoteUsers(retry.users, retry.sha);
+            if(r2===true) break;
+            if(r2!=="conflict") throw new Error("push failed");
+          }
+        }
+      }catch(e){
+        /* 远端推送失败，仅保存本地 */
+      }
+    }
     this.saveUsers(users);
     return null;
   },
-  login(user, pwd){
+  async login(user, pwd){
     if(!user || !pwd) return "请输入账号和密码";
-    const users=this.getUsers();
-    if(!users[user]) return "账号不存在，请先注册";
-    if(users[user].pwd!==pwd) return "密码错误";
+    /* 先检查本地缓存 */
+    let users=this.getUsers();
+    if(users[user]){
+      if(users[user].pwd!==pwd) return "密码错误";
+      this.saveSession(user);
+      /* 后台同步远端用户列表 */
+      this.bgSync();
+      return null;
+    }
+    /* 本地没有，从远端拉取 */
+    const remote=await this.fetchRemoteUsers();
+    if(remote.users===null){
+      return "账号不存在，请先注册";
+    }
+    /* 合并远端数据到本地缓存 */
+    this.saveUsers(remote.users);
+    if(!remote.users[user]) return "账号不存在，请先注册";
+    if(remote.users[user].pwd!==pwd) return "密码错误";
     this.saveSession(user);
     return null;
+  },
+  /* 后台同步用户列表，不影响登录流程 */
+  async bgSync(){
+    try{
+      const remote=await this.fetchRemoteUsers();
+      if(remote.users){
+        const local=this.getUsers();
+        let changed=false;
+        for(const k in remote.users){ if(!local[k]){ local[k]=remote.users[k]; changed=true; } }
+        if(changed) this.saveUsers(local);
+      }
+    }catch(e){}
   },
   isLoggedIn(){
     const s=this.getSession();
@@ -567,13 +707,14 @@ function bindAcctTabs(){
   });
 }
 
-function doAcctRegister(){
+async function doAcctRegister(){
   const u=document.getElementById("acctRegUser").value.trim();
   const p=document.getElementById("acctRegPwd").value;
   const p2=document.getElementById("acctRegPwd2").value;
   const msg=document.getElementById("acctMsg");
   if(p!==p2){ msg.textContent="✗ 两次密码不一致"; return; }
-  const err=ACCT.register(u,p);
+  msg.textContent="注册中…";
+  const err=await ACCT.register(u,p);
   if(err){ msg.textContent="✗ "+err; return; }
   msg.style.color="var(--green)";
   msg.textContent="✓ 注册成功，请登录";
@@ -592,11 +733,12 @@ function doAcctRegister(){
   setTimeout(()=>{ msg.textContent=""; msg.style.color=""; }, 3000);
 }
 
-function doAcctLogin(){
+async function doAcctLogin(){
   const u=document.getElementById("acctLoginUser").value.trim();
   const p=document.getElementById("acctLoginPwd").value;
   const msg=document.getElementById("acctMsg");
-  const err=ACCT.login(u,p);
+  msg.textContent="登录中…";
+  const err=await ACCT.login(u,p);
   if(err){ msg.textContent="✗ "+err; return; }
   // 登录成功，进入房间步骤
   msg.textContent="";
@@ -617,9 +759,9 @@ function showRoomStep(){
     localStorage.setItem(LS_NICK, user);
   }
   // 如果URL有房间号，预填
-  const m=location.hash.match(/room=([A-Za-z0-9_-]+)/);
+  const m=location.hash.match(/room=([^&]+)/);
   if(m){
-    document.getElementById("joinRoomId").value=m[1];
+    document.getElementById("joinRoomId").value=decodeURIComponent(m[1]);
     document.getElementById("loginMsg").textContent="请输入房间 "+m[1]+" 的密码";
   }
 }
@@ -1265,9 +1407,11 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     const owners=new Set(); let csum=0, hsum=0;
     team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; else hsum+=c.power; } } });
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
-    const teamLabel = rColor ? `${raidLabels[rColor]}` : `第${tIdx+1}波`;
+    /* 12人团本：标签带波数，如"第1波-红队" */
+    const waveNum = isRaid12 ? Math.floor(tIdx/3)+1 : (tIdx+1);
+    const teamLabel = rColor ? `第${waveNum}波-${raidLabels[rColor]}` : `第${tIdx+1}波`;
     const groupLabel = team.group ? `组${team.group} ` : '';
-    let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${groupLabel}${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
+    let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${groupLabel}第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
       <span class="tsum">总战力：<b style="color:var(--yellow)">${hsum+csum}</b> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
     team.slots.forEach((slot,sIdx)=>{
       const slotChar = slot.charId ? charList.find(x=>x.id===slot.charId) : null;
@@ -1496,7 +1640,7 @@ async function doCreateRoom(){
   const msg=document.getElementById("loginMsg");
   if(!rid){ msg.textContent="请输入房间号"; return; }
   if(!pwd){ msg.textContent="请输入密码"; return; }
-  if(!/^[A-Za-z0-9_-]{1,30}$/.test(rid)){ msg.textContent="房间号只能用字母、数字、下划线"; return; }
+  if(!/^[\u4e00-\u9fa5A-Za-z0-9_-]{1,30}$/.test(rid)){ msg.textContent="房间号只能用中文、字母、数字、下划线、短横线"; return; }
   msg.textContent = "创建中…";
   await SYNC.createRoom(rid, pwd,
     ()=>{
@@ -1692,7 +1836,8 @@ async function doAdminLogin(){
     await loadAdminRooms();
   }else{
     /* 尝试普通用户登录 */
-    const err=ACCT.login(u,p);
+    msg.textContent="验证中…";
+    const err=await ACCT.login(u,p);
     if(err){
       msg.textContent="✗ 账号或密码错误";
       return;
@@ -1779,9 +1924,9 @@ async function loadAdminRooms(){
     b.onclick=async()=>{
       const oldId=b.dataset.adminRename;
       const sha=b.dataset.adminSha;
-      const newId=prompt("请输入新的房间号（字母、数字、下划线、短横线）：",oldId);
+      const newId=prompt("请输入新的房间号（中文、字母、数字、下划线、短横线）：",oldId);
       if(!newId||newId.trim()===oldId) return;
-      if(!/^[A-Za-z0-9_-]{1,30}$/.test(newId.trim())){ alert("房间号只能用字母、数字、下划线、短横线，最多30字符"); return; }
+      if(!/^[\u4e00-\u9fa5A-Za-z0-9_-]{1,30}$/.test(newId.trim())){ alert("房间号只能用中文、字母、数字、下划线、短横线，最多30字符"); return; }
       const result=await ADMIN.renameRoom(oldId,newId.trim(),sha);
       if(result===true){ alert("房间已从 "+oldId+" 重命名为 "+newId.trim()); await loadAdminRooms(); }
       else if(result==="exists"){ alert("房间号 "+newId.trim()+" 已存在，请换一个"); }
@@ -1903,6 +2048,17 @@ function init(){
 
   document.getElementById("openHelp").onclick=()=>openModal("helpModal");
   document.getElementById("closeHelp").onclick=()=>closeModal("helpModal");
+
+  // 主题切换
+  const themeSelect=document.getElementById("themeSelect");
+  const savedTheme=localStorage.getItem("busha_theme")||"dark";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+  themeSelect.value=savedTheme;
+  themeSelect.onchange=()=>{
+    const v=themeSelect.value;
+    document.documentElement.setAttribute("data-theme", v);
+    localStorage.setItem("busha_theme", v);
+  };
 
   // 管理员
   document.getElementById("openAdminLogin").onclick=()=>{ closeModal("loginModal"); openModal("adminLoginModal"); document.getElementById("adminUser").focus(); };
