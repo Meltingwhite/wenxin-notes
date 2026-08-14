@@ -21,11 +21,9 @@
   --radius:8px;
 }
 [data-theme="bilibili"] body{background:#f4f5f7}
-[data-theme="bilibili"] input,[data-theme="bilibili"] select,[data-theme="bilibili"] textarea{background:#f4f5f7;border-color:#e3e5e8}
-[data-theme="bilibili"] .room-bar{background:linear-gradient(135deg,#fff,#fafafa)}
+[data-theme="bilibili"] input,[data-theme="bilibili"] select,[data-theme="bilibili"] textarea{background:#f0f1f3;border-color:#e3e5e8}
 [data-theme="bilibili"] .chip{background:#fff0f4;border-color:#fb7299;color:#fb7299}
 [data-theme="bilibili"] .chip.me{background:#e8f8ee;border-color:var(--green);color:var(--green)}
-[data-theme="bilibili"] button.secondary{background:#f0f1f3;color:#18191c}
 [data-theme="bilibili"] .raid-tag.red{background:#fee2e2;color:#dc2626}
 [data-theme="bilibili"] .raid-tag.yellow{background:#fef3c7;color:#d97706}
 [data-theme="bilibili"] .raid-tag.green{background:#d1fae5;color:#059669}
@@ -39,8 +37,6 @@
 }
 [data-theme="light"] body{background:#f8f9fa}
 [data-theme="light"] input,[data-theme="light"] select,[data-theme="light"] textarea{background:#fff;border-color:#dee2e6}
-[data-theme="light"] .room-bar{background:linear-gradient(135deg,#fff,#f8f9fa)}
-[data-theme="light"] button.secondary{background:#e9ecef;color:#495057}
 
 /* 深夜紫主题 */
 [data-theme="midnight"]{
@@ -51,36 +47,99 @@
 }
 [data-theme="midnight"] body{background:#1a0f2e}
 [data-theme="midnight"] input,[data-theme="midnight"] select,[data-theme="midnight"] textarea{background:#1a0f2e;border-color:#3d2860}
-[data-theme="midnight"] .room-bar{background:linear-gradient(135deg,#2d1d4a,#241638)}
-[data-theme="midnight"] button.secondary{background:#3d2860;color:#e8d9f5}
 [data-theme="midnight"] .chip{background:#3d2860;border-color:#5d3893;color:#d4c1f0}
+
+/* === 浅色主题统一修复：B站粉/极简白 === */
+[data-theme="bilibili"] button.secondary,
+[data-theme="light"] button.secondary{background:var(--panel2);color:var(--txt)}
+[data-theme="bilibili"] input,
+[data-theme="bilibili"] select,
+[data-theme="bilibili"] textarea,
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea{background:var(--panel2);color:var(--txt)}
+[data-theme="bilibili"] .badge,
+[data-theme="light"] .badge{background:var(--panel2);color:var(--txt)}
+[data-theme="bilibili"] .chip,
+[data-theme="light"] .chip{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="bilibili"] .chip.me,
+[data-theme="light"] .chip.me{background:#e8f8ee;border-color:var(--green);color:var(--green)}
+[data-theme="bilibili"] .card,
+[data-theme="light"] .card{background:var(--panel);border-color:var(--line)}
+[data-theme="bilibili"] .team-block,
+[data-theme="light"] .team-block{background:var(--panel);border-color:var(--line)}
+[data-theme="bilibili"] .slot,
+[data-theme="light"] .slot{background:var(--panel2);border-color:var(--line)}
+[data-theme="bilibili"] .slot.c,
+[data-theme="light"] .slot.c{background:#fff5f0;border-color:var(--orange)}
+[data-theme="bilibili"] .slot.N,
+[data-theme="light"] .slot.N{background:#f0faf5;border-color:var(--green)}
+[data-theme="bilibili"] .slot-empty,
+[data-theme="light"] .slot-empty{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="bilibili"] .team-block.raid-red,
+[data-theme="light"] .team-block.raid-red{background:#fff5f5;border-color:var(--red)}
+[data-theme="bilibili"] .team-block.raid-yellow,
+[data-theme="light"] .team-block.raid-yellow{background:#fffdf5;border-color:var(--yellow)}
+[data-theme="bilibili"] .team-block.raid-green,
+[data-theme="light"] .team-block.raid-green{background:#f5fff8;border-color:var(--green)}
+[data-theme="bilibili"] .modal,
+[data-theme="light"] .modal{background:rgba(0,0,0,.45)}
+[data-theme="bilibili"] .modal-box,
+[data-theme="light"] .modal-box{background:var(--panel);color:var(--txt)}
+[data-theme="bilibili"] .help code,
+[data-theme="light"] .help code{background:var(--panel2);color:var(--blue)}
+[data-theme="bilibili"] .notice,
+[data-theme="light"] .notice{background:#fffbe6;border-color:var(--yellow);color:#8a6d00}
+[data-theme="bilibili"] .slot.highlight,
+[data-theme="light"] .slot.highlight{background:#fffde6!important;border-color:var(--yellow)!important}
+[data-theme="bilibili"] .slot.click-hl,
+[data-theme="light"] .slot.click-hl{background:#eef5ff!important;border-color:var(--blue)!important}
+[data-theme="bilibili"] .owner-header,
+[data-theme="light"] .owner-header{color:var(--blue)}
+[data-theme="bilibili"] .team-title,
+[data-theme="light"] .team-title{color:var(--blue)}
+[data-theme="bilibili"] .tab.active,
+[data-theme="light"] .tab.active{color:#fff}
+
+/* === 深夜紫主题细化 === */
+[data-theme="midnight"] .card{background:var(--panel2);border-color:var(--line)}
+[data-theme="midnight"] .team-block{background:var(--panel2);border-color:var(--line)}
+[data-theme="midnight"] .slot{background:var(--panel2);border-color:var(--line)}
+[data-theme="midnight"] .slot.c{background:#2a1f3d;border-color:var(--orange)}
+[data-theme="midnight"] .slot.N{background:#1a2a1f;border-color:var(--green)}
+[data-theme="midnight"] .slot-empty{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="midnight"] .team-block.raid-red{background:#2a1530;border-color:var(--red)}
+[data-theme="midnight"] .team-block.raid-yellow{background:#2a2530;border-color:var(--yellow)}
+[data-theme="midnight"] .team-block.raid-green{background:#152a20;border-color:var(--green)}
+[data-theme="midnight"] .badge{background:var(--panel2);color:var(--txt)}
+[data-theme="midnight"] .modal{background:rgba(10,5,20,.8)}
+[data-theme="midnight"] .help code{background:var(--panel2);color:var(--blue2)}
+[data-theme="midnight"] .notice{background:#2a2418;border-color:var(--yellow);color:#fde68a}
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,"Microsoft YaHei",sans-serif}
 body{background:var(--bg);color:var(--txt);padding:12px;min-height:100vh;font-size:14px}
 .container{max-width:1640px;margin:0 auto}
 button{background:var(--blue);color:#fff;border:none;padding:8px 14px;border-radius:7px;cursor:pointer;font-size:13px;transition:.15s}
 button:hover{filter:brightness(1.1)}
-button.secondary{background:#3a3f4d}
+button.secondary{background:var(--panel2);color:var(--txt)}
 button.danger{background:var(--red)}
 button.success{background:var(--green)}
 button.sm{padding:4px 9px;font-size:12px;border-radius:5px}
-input,select,textarea{width:100%;padding:7px 9px;background:#13161f;border:1px solid var(--line);color:var(--txt);border-radius:6px;font-size:13px}
+input,select,textarea{width:100%;padding:7px 9px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:6px;font-size:13px}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .muted{color:var(--mut)}
 
 /* 房间协作栏 */
-.room-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:linear-gradient(135deg,#1b2233,#1a1d27);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px}
+.room-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px}
 .room-bar .grp{display:flex;align-items:center;gap:6px}
 .room-bar input.nick{width:120px}
-.room-bar .linkbox{flex:1;min-width:240px;display:flex;gap:6px;align-items:center;background:#13161f;border:1px solid var(--line);border-radius:7px;padding:4px 8px}
-.room-bar .linkbox input{border:none;background:transparent;padding:4px;font-size:12px}
-.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;font-size:12px;background:#222633;border:1px solid var(--line)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;font-size:12px;background:var(--panel2);border:1px solid var(--line);color:var(--txt)}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
 .dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
 .dot.off{background:var(--mut)}
 .dot.err{background:var(--red)}
 .online-chips{display:flex;gap:5px;flex-wrap:wrap}
-.chip{font-size:11px;padding:2px 8px;border-radius:14px;background:#2b3550;border:1px solid #3a4a6a;color:#cfe0ff}
+.chip{font-size:11px;padding:2px 8px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);color:var(--mut)}
 .chip.me{background:#1f3d2a;border-color:var(--green);color:#bff5d0}
 
 /* 顶栏 */
@@ -119,15 +178,15 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .raid-tag.green{background:#2ecc71;color:#fff}
 .team-title .tsum{font-size:12px;color:var(--mut)}
 .team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
-.slot{padding:9px;border-radius:7px;min-height:74px;border:1px solid var(--line)}
+.slot{padding:9px;border-radius:7px;min-height:74px;border:1px solid var(--line);background:var(--panel2)}
 .slot.c{background:#342318;border-color:var(--orange)}
 .slot.N{background:#15301f;border-color:var(--green)}
-.slot-empty{background:#191c25;border:1px dashed #444;color:#666}
+.slot-empty{background:var(--panel2);border:1px dashed var(--line);color:var(--mut)}
 .slot .sn{font-weight:600;font-size:13px}
 .slot .sp{font-size:11px;color:var(--mut);margin:2px 0 5px}
 .slot select{font-size:11px;padding:4px}
 .warn{color:var(--yellow);font-size:11px}
-textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px solid var(--line);padding:8px;border-radius:7px;font-family:Consolas,monospace}
+textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);border:1px solid var(--line);padding:8px;border-radius:7px;font-family:Consolas,monospace}
 
 /* 弹窗 */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);padding:30px;z-index:50}
@@ -136,7 +195,7 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
 .modal-box h3{margin-bottom:12px;font-size:16px}
 .modal-box .row{margin:10px 0}
 .help{font-size:12px;color:var(--mut);line-height:1.7}
-.help code{background:#13161f;padding:1px 5px;border-radius:4px;color:var(--blue2)}
+.help code{background:var(--panel2);padding:1px 5px;border-radius:4px;color:var(--blue2)}
 .help b{color:var(--txt)}
 .notice{background:#2a2418;border:1px solid var(--yellow);color:#fde68a;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px}
 @media(max-width:760px){
@@ -227,10 +286,10 @@ textarea{width:100%;height:130px;background:#13161f;color:var(--txt);border:1px 
       <span class="muted" style="font-size:12px">昵称</span>
       <input class="nick" id="nickInput" placeholder="你的名字" maxlength="12">
     </div>
-    <div class="linkbox">
+    <div class="grp">
       <span class="dot off" id="syncDot" title="同步状态"></span>
-      <input id="roomLink" readonly placeholder="未加入房间">
-      <button class="sm secondary" id="copyLink">复制</button>
+      <span class="badge" id="syncBadge">未加入房间</span>
+      <button class="sm" id="copyLink">🔗 分享链接</button>
     </div>
     <div class="grp">
       <span class="badge">房间号 <b id="roomIdDisplay">-</b></span>
@@ -1264,10 +1323,10 @@ function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':
 
 /* ---------- 渲染 ---------- */
 function renderAll(){ renderCharList(); renderTeamTable(); updateStat(); SYNC.renderPresence(); 
-  const linkEl=document.getElementById("roomLink");
+  const badge=document.getElementById("syncBadge");
   const roomEl=document.getElementById("roomIdDisplay");
-  if(SYNC.room){ linkEl.value=location.href; roomEl.textContent=SYNC.room.id; }
-  else { linkEl.value=""; roomEl.textContent="-"; }
+  if(SYNC.room){ if(badge) badge.textContent="房间 "+SYNC.room.id; roomEl.textContent=SYNC.room.id; }
+  else { if(badge) badge.textContent="未加入房间"; roomEl.textContent="-"; }
 }
 
 function updateModeBtns(){
@@ -1607,7 +1666,7 @@ function exitRoom(){
   openModal("loginModal");
   document.getElementById("loginMsg").textContent = "";
 }
-function copyLink(){ navigator.clipboard.writeText(location.href).then(()=>{ const b=document.getElementById("copyLink"); b.textContent="已复制"; setTimeout(()=>b.textContent="复制",1200); }).catch(()=>prompt("请手动复制：",location.href)); }
+function copyLink(){ navigator.clipboard.writeText(location.href).then(()=>{ const b=document.getElementById("copyLink"); b.textContent="✓ 已复制"; setTimeout(()=>b.textContent="🔗 分享链接",1200); }).catch(()=>prompt("请手动复制：",location.href)); }
 
 /* ---------- 登录弹窗 ---------- */
 function bindLoginTabs(){
@@ -2110,7 +2169,8 @@ function init(){
   updateModeBtns();
   // 不在登录前渲染数据，登录后由 checkRoom/createRoom 触发 renderAll
   document.getElementById("roomIdDisplay").textContent = "-";
-  document.getElementById("roomLink").value = "";
+  const syncBadgeEl=document.getElementById("syncBadge");
+  if(syncBadgeEl) syncBadgeEl.textContent="未加入房间";
   // 检查是否有已登录会话，有则直接进入房间步骤
   if(ACCT.isLoggedIn()){
     showRoomStep();
