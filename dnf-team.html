@@ -740,6 +740,39 @@ const ACCT = {
       }
     }catch(e){}
   },
+  /* 更新昵称到云端 */
+  _nickTimer:null,
+  async updateNick(nick){
+    const user=this.currentUser();
+    if(!user) return;
+    /* 先更新本地缓存 */
+    const local=this.getUsers();
+    if(local[user]) local[user].nick=nick;
+    this.saveUsers(local);
+    /* 同步到远端 */
+    const cfg=this.syncCfg();
+    if(!cfg) return;
+    try{
+      const remote=await this.fetchRemoteUsers();
+      if(!remote.users) return;
+      if(!remote.users[user]) return;
+      remote.users[user].nick=nick;
+      remote.users[user].ts=Date.now();
+      await this.pushRemoteUsers(remote.users, remote.sha);
+    }catch(e){}
+  },
+  updateNickDebounced(nick){
+    clearTimeout(this._nickTimer);
+    this._nickTimer=setTimeout(()=>this.updateNick(nick), 1500);
+  },
+  /* 从云端获取当前用户的昵称 */
+  async fetchNick(){
+    const user=this.currentUser();
+    if(!user) return null;
+    const remote=await this.fetchRemoteUsers();
+    if(!remote.users || !remote.users[user]) return null;
+    return remote.users[user].nick || null;
+  },
   isLoggedIn(){
     const s=this.getSession();
     return s && s.user;
@@ -808,12 +841,18 @@ function showRoomStep(){
   document.getElementById("acctDisplayName").textContent=user;
   document.getElementById("acctStep").style.display="none";
   document.getElementById("roomStep").style.display="block";
-  // 自动填充昵称
+  // 从云端拉取已保存的昵称
   const nickInput=document.getElementById("nickInput");
-  if(!nickInput.value.trim()){
-    nickInput.value=user;
-    localStorage.setItem(LS_NICK, user);
-  }
+  ACCT.fetchNick().then(savedNick=>{
+    if(savedNick){
+      nickInput.value=savedNick;
+      localStorage.setItem(LS_NICK, savedNick);
+      if(SYNC.room) SYNC.renderPresence();
+    } else if(!nickInput.value.trim()){
+      nickInput.value=user;
+      localStorage.setItem(LS_NICK, user);
+    }
+  });
   // 如果URL有房间号，预填
   const m=location.hash.match(/room=([^&]+)/);
   if(m){
@@ -2042,7 +2081,13 @@ function init(){
   // 昵称
   const nick=localStorage.getItem(LS_NICK)||("");
   document.getElementById("nickInput").value=nick;
-  document.getElementById("nickInput").addEventListener("input",function(){ localStorage.setItem(LS_NICK,this.value.trim()); SYNC.renderPresence(); });
+  document.getElementById("nickInput").addEventListener("input",function(){ 
+    const v=this.value.trim();
+    localStorage.setItem(LS_NICK,v); 
+    SYNC.renderPresence(); 
+    /* 同步昵称到云端 */
+    if(ACCT.isLoggedIn()) ACCT.updateNickDebounced(v);
+  });
 
   bindTab();
   document.getElementById("autoArrange").onclick=doAutoArrange;
