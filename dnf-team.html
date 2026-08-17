@@ -2428,7 +2428,17 @@ async function doAddTeamToWave(groupNum){
     const availColors = colors.filter(c=>!usedColors.has(c));
     if(availColors.length===0) return st;
     const newColor = availColors[0];
-    st.teamList.push({slots:[{charId:null},{charId:null},{charId:null},{charId:null}],raidColor:newColor,group:groupNum});
+    /* 找当前波数最后一个队伍的索引，插入到其后方，而非追加到数组末尾 */
+    let lastIdx=-1;
+    for(let i=st.teamList.length-1;i>=0;i--){
+      if(st.teamList[i].group===groupNum){ lastIdx=i; break; }
+    }
+    const newTeam={slots:[{charId:null},{charId:null},{charId:null},{charId:null}],raidColor:newColor,group:groupNum};
+    if(lastIdx>=0){
+      st.teamList.splice(lastIdx+1,0,newTeam);
+    } else {
+      st.teamList.push(newTeam);
+    }
     return st;
   });
 }
