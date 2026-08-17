@@ -1844,7 +1844,21 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       }
       const teamOwners=new Set();
       team.slots.forEach((ss,si)=>{ if(ss.charId && si!==sIdx){ const cc=charList.find(x=>x.id===ss.charId); if(cc) teamOwners.add(cc.owner); } });
-      const findTeamOf=(cid)=>{ for(let ti=0;ti<teamList.length;ti++){ if(teamList[ti].slots.some(s=>s.charId===cid)) return ti+1; } return 0; };
+      const findTeamOf=(cid)=>{
+        for(let ti=0;ti<teamList.length;ti++){
+          if(teamList[ti].slots.some(s=>s.charId===cid)){
+            const isRaid12 = raidMode===12;
+            if(isRaid12){
+              const waveNum = teamList[ti].group || Math.floor(ti/3)+1;
+              const colorMap = {"red":"红队","yellow":"黄队","green":"绿队"};
+              const colorLabel = colorMap[teamList[ti].raidColor] || ("第"+(ti%3+1)+"队");
+              return {label: "第"+waveNum+"波-"+colorLabel, wave: waveNum, color: teamList[ti].raidColor};
+            }
+            return {label: "第"+(ti+1)+"队", wave: 0, color: ""};
+          }
+        }
+        return null;
+      };
       const samePlayer=charList.filter(x=>x.owner===c.owner && x.id!==slot.charId)
         .slice().sort((a,b)=>{
           const aT=findTeamOf(a.id), bT=findTeamOf(b.id);
@@ -1863,7 +1877,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
         optsHtml+=`<optgroup label="【${escapeHtml(c.owner)}】的角色">`;
         samePlayer.forEach(x=>{
           const tn=findTeamOf(x.id);
-          optsHtml+=`<option value="${x.id}">${escapeHtml(x.name)}(${x.power}) ${x.type==="c"?"C":"奶"}${tn?" → 当前在第"+tn+"队":" (未配置)"}</option>`;
+          optsHtml+=`<option value="${x.id}">${escapeHtml(x.name)}(${x.power}) ${x.type==="c"?"C":"奶"}${tn?" → 当前在"+tn.label:" (未配置)"}</option>`;
         });
         optsHtml+=`</optgroup>`;
       }
