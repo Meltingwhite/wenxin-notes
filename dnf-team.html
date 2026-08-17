@@ -1002,9 +1002,10 @@ function arrange(chars, mode){
 }
 
 /* 12人团本：多组3队×4人，红>黄>绿战力梯度，保证全部入队
-   改进逻辑：
+   核心逻辑：
    1. 同一波数不得出现同一玩家（跨队伍也禁止）
-   2. 各波红队战力均衡且保持梯度递减（wave1红>wave2红>wave3红）
+   2. 各波同色队伍战力均衡（wave1红 ≈ wave2红 ≈ wave3红）
+   3. 每波内部保持红>黄>绿战力梯度递减
 */
 function arrange12(chars){
   const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
@@ -1118,27 +1119,27 @@ function arrange12(chars){
     waveTeams.push(teams);
   }
 
-  /* ---- Phase 3: 跨波同色战力均衡 + 输出 ---- */
-  /* 蛇形分配已使各波总战力接近，这里进一步均衡各波同色队伍 */
+  /* ---- Phase 3: 跨波同色战力均衡 ---- */
   const charMap={};
   chars.forEach(c=>charMap[c.id]=c);
 
-  /* 检查某角色owner在同一波内是否有其他角色 */
-  function hasOtherCharInWave(waveIdx, charId, owner){
+  /* 通过遍历队伍slots检查某owner是否在某波中 */
+  function ownerInWave(waveIdx, owner){
     for(const team of waveTeams[waveIdx]){
       if(!team) continue;
       for(const s of team.slots){
         const c=charMap[s.charId];
-        if(c && c.owner===owner && c.id!==charId) return true;
+        if(c && c.owner===owner) return true;
       }
     }
     return false;
   }
 
-  for(let pass=0;pass<5;pass++){
+  /* 多轮迭代：对每种颜色(红/黄/绿)分别做跨波均衡 */
+  for(let pass=0;pass<30;pass++){
     let improved=false;
     for(let ci=0;ci<3;ci++){
-      /* 收集该颜色所有波的队伍，按战力排序 */
+      /* 收集该颜色所有波的队伍，按战力降序 */
       const ct=[];
       for(let wi=0;wi<numWaves;wi++){
         if(waveTeams[wi]&&waveTeams[wi][ci]) ct.push({wave:wi,team:waveTeams[wi][ci]});
@@ -1146,65 +1147,57 @@ function arrange12(chars){
       if(ct.length<2) continue;
       ct.sort((a,b)=>b.team.total-a.team.total);
 
+      /* 最强队 vs 最弱队，寻找最佳交换 */
       const maxCT=ct[0], minCT=ct[ct.length-1];
       const gap=maxCT.team.total-minCT.team.total;
-      if(gap<50) continue;
+      if(gap<10) continue;
 
-      /* 寻找最佳交换：从最强队移一个高战C到最弱队，从最弱队移一个低战C到最强队 */
       let bestSwap=null, bestGap=gap;
       for(const s1 of maxCT.team.slots){
         const c1=charMap[s1.charId];
         if(!c1||c1.type!=="c") continue;
-        /* 安全检查：c1的owner在maxCT波中没有其他角色 */
-        if(hasOtherCharInWave(maxCT.wave,c1.id,c1.owner)) continue;
+        /* c1将移到minCT波：c1的owner不能已在minCT波中 */
+        if(ownerInWave(minCT.wave, c1.owner)) continue;
         for(const s2 of minCT.team.slots){
           const c2=charMap[s2.charId];
           if(!c2||c2.type!=="c") continue;
-          /* 安全检查：c2的owner在minCT波中没有其他角色 */
-          if(hasOtherCharInWave(minCT.wave,c2.id,c2.owner)) continue;
+          /* c2将移到maxCT波：c2的owner不能已在maxCT波中 */
+          if(ownerInWave(maxCT.wave, c2.owner)) continue;
+          /* 只交换高战→低战，使差距缩小 */
           if(c1.power<=c2.power) continue;
-          /* owner不能已在目标波中 */
-          if(waves[maxCT.wave].owners.has(c2.owner)) continue;
-          if(waves[minCT.wave].owners.has(c1.owner)) continue;
           const newMax=maxCT.team.total-c1.power+c2.power;
           const newMin=minCT.team.total-c2.power+c1.power;
           const newGap=Math.abs(newMax-newMin);
-          if(newGap<bestGap){
-            bestGap=newGap;
-            bestSwap={s1,s2,c1,c2};
-          }
+          if(newGap>=bestGap) continue;
+
+          /* 梯度保护：maxCT变弱后不能低于下一色 */
+          if(ci<2 && newMax < waveTeams[maxCT.wave][ci+1].total) continue;
+          /* 梯度保护：minCT变强后不能高于上一色 */
+          if(ci>0 && newMin > waveTeams[minCT.wave][ci-1].total) continue;
+
+          bestGap=newGap;
+          bestSwap={s1,s2,c1,c2};
         }
       }
 
       if(bestSwap){
-        /* 执行交换 */
+        /* 执行交换：c1从maxCT→minCT，c2从minCT→maxCT */
         const mx=maxCT.team, mn=minCT.team;
         mx.slots=mx.slots.filter(s=>s!==bestSwap.s1);
-        mx.owners.delete(bestSwap.c1.owner);
         mx.total-=bestSwap.c1.power;
         mx.slots.push({charId:bestSwap.c2.id});
-        mx.owners.add(bestSwap.c2.owner);
         mx.total+=bestSwap.c2.power;
-        waves[maxCT.wave].owners.delete(bestSwap.c1.owner);
-        waves[maxCT.wave].owners.add(bestSwap.c2.owner);
 
         mn.slots=mn.slots.filter(s=>s!==bestSwap.s2);
-        mn.owners.delete(bestSwap.c2.owner);
         mn.total-=bestSwap.c2.power;
         mn.slots.push({charId:bestSwap.c1.id});
-        mn.owners.add(bestSwap.c1.owner);
         mn.total+=bestSwap.c1.power;
-        waves[minCT.wave].owners.delete(bestSwap.c2.owner);
-        waves[minCT.wave].owners.add(bestSwap.c1.owner);
 
         improved=true;
       }
     }
     if(!improved) break;
-    /* 每轮后重新排序波内队伍（保持红>黄>绿） */
-    for(let wi=0;wi<numWaves;wi++){
-      if(waveTeams[wi]) waveTeams[wi].sort((a,b)=>b.total-a.total);
-    }
+    /* 不在pass间重排序，保持颜色分配固定 */
   }
 
   /* 输出最终队伍列表（按波数自然顺序，蛇形分配+跨波均衡已使各波同色战力接近） */
@@ -1800,9 +1793,11 @@ async function doAutoArrange(){ pushHistory(); await SYNC.writeState(st=>{ st.te
 async function switchMode(m){
   if(m===raidMode) return;
   pushHistory();
+  const wasEmpty = !teamList || teamList.length===0;
   await SYNC.writeState(st=>{
     st.raidMode=m; raidMode=m;
-    st.teamList=arrange(st.charList);
+    /* 排表已清空时切换模式不自动重排，保持空状态由用户手动一键排表 */
+    if(!wasEmpty) st.teamList=arrange(st.charList);
     return st;
   });
   updateModeBtns();
