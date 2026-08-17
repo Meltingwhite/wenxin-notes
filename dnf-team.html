@@ -1091,11 +1091,12 @@ function arrange12(chars){
     w.H.sort((a,b)=>b.power-a.power);
     w.C.sort((a,b)=>b.power-a.power);
 
-    const teams=[];
-    for(let i=0;i<3;i++) teams.push({slots:[],owners:new Set(),cTotal:0,hMax:0,hChar:null,total:0});
-
-    /* 分配奶：最多3个，按战力降序→红/黄/绿 */
+    /* 只为有奶的队伍创建对象——没奶不生成队伍 */
     const numH=Math.min(w.H.length,3);
+    const teams=[];
+    for(let i=0;i<numH;i++) teams.push({slots:[],owners:new Set(),cTotal:0,hMax:0,hChar:null,total:0});
+
+    /* 分配奶：按战力降序，每队一个 */
     for(let i=0;i<numH;i++){
       teams[i].slots.push({charId:w.H[i].id});
       teams[i].owners.add(w.H[i].owner);
@@ -1104,10 +1105,9 @@ function arrange12(chars){
       teams[i].total=teams[i].cTotal+teams[i].hMax;
     }
 
-    /* 分配C：按红>黄>绿优先级填充，每队最多3个C
-       严格检查：同波任何队伍已有此owner则跳过 */
+    /* 分配C：只分配给有奶的队伍，凑不到奶的C不生成队伍，留未配置 */
     let ci=0;
-    for(let ti=0;ti<3;ti++){
+    for(let ti=0;ti<teams.length;ti++){
       while(teams[ti].slots.length<4 && ci<w.C.length){
         const c=w.C[ci]; ci++;
         if(ownerInAnyTeam(teams, c.owner)) continue; /* 检查同波所有队伍 */
@@ -1221,7 +1221,9 @@ function arrange12(chars){
     if(maxVal-minVal<5) break;
 
     let bestSwap=null, bestGap=maxVal-minVal;
-    for(let ci=0;ci<3;ci++){
+    const maxTeams=waveTeams[maxWi]?waveTeams[maxWi].length:0;
+    const minTeams=waveTeams[minWi]?waveTeams[minWi].length:0;
+    for(let ci=0;ci<Math.min(maxTeams,minTeams);ci++){
       const t1=waveTeams[maxWi][ci], t2=waveTeams[minWi][ci];
       if(!t1||!t2||!t1.hChar||!t2.hChar) continue;
       const h1=charMap[t1.hChar], h2=charMap[t2.hChar];
@@ -1235,11 +1237,15 @@ function arrange12(chars){
       const newGap=Math.abs(newMax-newMin);
       if(newGap>=bestGap) continue;
 
+      /* 构建交换后各波奶战力，检查波内梯度（红>黄>绿）——支持不足3队 */
       const w1=waveTeams[maxWi], w2=waveTeams[minWi];
-      const newH1=ci===0?h2.power:w1[0].hMax, newH1b=ci===1?h2.power:w1[1].hMax, newH1c=ci===2?h2.power:w1[2].hMax;
-      const newH2=ci===0?h1.power:w2[0].hMax, newH2b=ci===1?h1.power:w2[1].hMax, newH2c=ci===2?h1.power:w2[2].hMax;
-      if(newH1<=newH1b||newH1b<=newH1c) continue;
-      if(newH2<=newH2b||newH2b<=newH2c) continue;
+      const hArr1=[], hArr2=[];
+      for(let k=0;k<w1.length;k++) hArr1.push(k===ci?h2.power:w1[k].hMax);
+      for(let k=0;k<w2.length;k++) hArr2.push(k===ci?h1.power:w2[k].hMax);
+      let gradOk=true;
+      for(let k=1;k<hArr1.length;k++) if(hArr1[k]>=hArr1[k-1]) gradOk=false;
+      for(let k=1;k<hArr2.length;k++) if(hArr2[k]>=hArr2[k-1]) gradOk=false;
+      if(!gradOk) continue;
 
       bestGap=newGap;
       bestSwap={ci,h1,h2,t1,t2};
@@ -1275,6 +1281,7 @@ function arrange12(chars){
     if(!teams) continue;
     teams.sort((a,b)=>b.total-a.total);
     teams.forEach((t,i)=>{
+      if(!t.hChar) return; /* 安全过滤：没奶的队伍不输出 */
       t.slots.forEach(s=>globalUsed.add(s.charId));
       allTeams.push({slots:t.slots,raidColor:colors[i],group:wi+1});
     });
@@ -1324,23 +1331,24 @@ function arrange12(chars){
       leftWaves[target].owners.add(c.owner);
     }
 
-    /* 组队：检查同波所有队伍 */
+    /* 组队：只为有奶的波生成队伍，没奶的C不生成队伍，留未配置 */
     for(let wi=0;wi<numLeftWaves;wi++){
       const w=leftWaves[wi];
-      if(w.H.length<1 && w.C.length<1) continue;
+      if(w.H.length<1) continue; /* 没奶不生成队伍 */
       w.H.sort((a,b)=>b.power-a.power);
       w.C.sort((a,b)=>b.power-a.power);
-      const teams=[];
-      for(let i=0;i<3;i++) teams.push({slots:[],owners:new Set(),cTotal:0,hMax:0,total:0});
       const numH=Math.min(w.H.length,3);
+      const teams=[];
+      for(let i=0;i<numH;i++) teams.push({slots:[],owners:new Set(),cTotal:0,hMax:0,hChar:null,total:0});
       for(let i=0;i<numH;i++){
         teams[i].slots.push({charId:w.H[i].id});
         teams[i].owners.add(w.H[i].owner);
         teams[i].hMax=w.H[i].power;
+        teams[i].hChar=w.H[i].id;
         teams[i].total=teams[i].cTotal+teams[i].hMax;
       }
       let ci=0;
-      for(let ti=0;ti<3;ti++){
+      for(let ti=0;ti<teams.length;ti++){
         while(teams[ti].slots.length<4 && ci<w.C.length){
           const c=w.C[ci]; ci++;
           if(ownerInAnyTeam(teams, c.owner)) continue; /* 检查同波所有队伍 */
@@ -1388,7 +1396,16 @@ function arrange12(chars){
     }
   }
 
-  return cleanedTeams;
+  /* ---- Phase 7: 最终过滤——去重后没奶的队伍也不输出 ---- */
+  /* 去重可能移除了奶导致队伍无奶，这些队伍的角色全部放未配置 */
+  const finalTeams=cleanedTeams.filter(t=>{
+    return t.slots.some(s=>{
+      const c=charMap[s.charId];
+      return c && c.type==="N";
+    });
+  });
+
+  return finalTeams;
 }
 
 /* 4人团本：全部角色均衡排表 */
