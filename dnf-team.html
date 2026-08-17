@@ -1785,13 +1785,16 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     return cls;
   };
   const teamsToRender = gTeams || teamList.map((t,i)=>({team:t,tIdx:i}));
+  let prevGroup=null;
   teamsToRender.forEach(({team,tIdx})=>{
-    /* 12人团本：每3队一组加波数标签；4人非一览：每队加波数标签 */
-    if(isRaid12 && tIdx%3===0){
+    /* 12人团本：按group（波数）变化加波数标签；4人非一览：每队加波数标签 */
+    const curGroup = isRaid12 ? (team.group||Math.floor(tIdx/3)+1) : (tIdx+1);
+    if(isRaid12 && curGroup!==prevGroup){
       const wl=document.createElement("div");
       wl.className="wave-label";
-      wl.innerHTML=`<span class="wnum">第 ${Math.floor(tIdx/3)+1} 波</span><span class="wline"></span>`;
+      wl.innerHTML=`<span class="wnum">第 ${curGroup} 波</span><span class="wline"></span>`;
       container.appendChild(wl);
+      prevGroup=curGroup;
     } else if(!isRaid12 && !isUltra){
       const wl=document.createElement("div");
       wl.className="wave-label";
@@ -1805,10 +1808,9 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; else { hmax=Math.max(hmax,c.power); hcount++; } } } });
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
     /* 12人团本：标签带波数，如"第1波-红队" */
-    const waveNum = isRaid12 ? Math.floor(tIdx/3)+1 : (tIdx+1);
+    const waveNum = isRaid12 ? curGroup : (tIdx+1);
     const teamLabel = rColor ? `第${waveNum}波-${raidLabels[rColor]}` : `第${tIdx+1}波`;
-    const groupLabel = team.group ? `组${team.group} ` : '';
-    let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${groupLabel}第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
+    let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
       <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hmax}</b>${hcount>1?` <span style="font-size:0.8em;color:var(--mut)">（C${csum}+奶${hmax}）</span>`:''} ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
     team.slots.forEach((slot,sIdx)=>{
       const slotChar = slot.charId ? charList.find(x=>x.id===slot.charId) : null;
