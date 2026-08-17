@@ -1972,7 +1972,13 @@ function renderTeamTable(){
               }
             }
           }
-          if(st.teamList[t] && st.teamList[t].slots[s]) st.teamList[t].slots[s].charId=newCid;
+          if(st.teamList[t]){
+            /* 如果s超出现有slots长度（空位补齐），扩展slots */
+            while(st.teamList[t].slots.length<=s){
+              st.teamList[t].slots.push({charId:null});
+            }
+            st.teamList[t].slots[s].charId=newCid;
+          }
           return st;
         });
       };
@@ -2028,7 +2034,12 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     const hDisp = hcount>0 ? hmax : 0;
     let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
       <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hDisp}</b> <span style="font-size:0.8em;color:var(--mut)">（C总${csum} + 奶${hDisp}${hcount>1?`(${hcount}奶最高)`:''}）</span> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
-    team.slots.forEach((slot,sIdx)=>{
+    /* 补齐空位到4人，支持用户手动分配角色 */
+    const slotsForRender = team.slots.slice();
+    while(slotsForRender.length<4 && !isUltra){
+      slotsForRender.push({charId:null});
+    }
+    slotsForRender.forEach((slot,sIdx)=>{
       const slotChar = slot.charId ? charList.find(x=>x.id===slot.charId) : null;
       if(!slotChar){
         /* 空位也支持选择角色分配 */
