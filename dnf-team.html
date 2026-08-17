@@ -1003,23 +1003,40 @@ function arrange(chars, mode){
 
 /* 12人团本：多组3队×4人，红>黄>绿战力梯度，保证全部入队
    核心逻辑：
-   1. 同一波数不得出现同一玩家（跨队伍也禁止）
-   2. 各波同色队伍战力均衡（wave1红 ≈ wave2红 ≈ wave3红，黄绿同理）
-   3. 全局梯度：任何红队 > 任何黄队 > 任何绿队
+   1. 同一波数不得出现同一玩家（跨队伍也禁止，含剩余角色池）
+   2. C战力独立均衡：各波同色队伍C总战力接近
+   3. 奶战力独立均衡：波内红奶>黄奶>绿奶，跨波各波三奶合计接近
+   4. 全局梯度：任何红队C总>任何黄队C总>任何绿队C总
+   5. 填充优先级：红>黄>绿，不足时留空
 */
 function arrange12(chars){
   const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
   const H = chars.filter(c=>c.type==="N").slice().sort((a,b)=>b.power-a.power);
-  if(H.length<3 || C.length<9) return [];
+  if(H.length<3 || C.length<3) return [];
 
-  const numWaves = Math.min(Math.floor(H.length/3), Math.floor(C.length/9));
+  const numWaves = Math.min(Math.floor(H.length/3), Math.floor(C.length/3));
   if(numWaves<1) return [];
 
-  /* ---- Phase 1: 贪心分配角色到各波，严格保证同波不重复玩家 ----
-     每次将角色分配到当前总战力最低且无此owner的波；
-     若所有波已有此owner则跳过（留到剩余角色池） */
+  const charMap={};
+  chars.forEach(c=>charMap[c.id]=c);
+
+  /* ---- Phase 1: 贪心分配角色到各波，严格同波无重复玩家 ---- */
+  /* 分配C：按战力降序，分配给cTotal最低且无此owner的波 */
   const waves=[];
   for(let i=0;i<numWaves;i++) waves.push({H:[],C:[],owners:new Set(),hTotal:0,cTotal:0});
+
+  for(const c of C){
+    let target=-1, minVal=Infinity;
+    for(let wi=0;wi<numWaves;wi++){
+      if(waves[wi].C.length>=9) continue;
+      if(waves[wi].owners.has(c.owner)) continue;
+      if(waves[wi].cTotal<minVal){ minVal=waves[wi].cTotal; target=wi; }
+    }
+    if(target===-1) continue;
+    waves[target].C.push(c);
+    waves[target].owners.add(c.owner);
+    waves[target].cTotal+=c.power;
+  }
 
   /* 分配奶：按战力降序，分配给hTotal最低且无此owner的波 */
   for(const h of H){
@@ -1029,69 +1046,55 @@ function arrange12(chars){
       if(waves[wi].owners.has(h.owner)) continue;
       if(waves[wi].hTotal<minVal){ minVal=waves[wi].hTotal; target=wi; }
     }
-    if(target===-1) continue; /* 无法分配，留到剩余池 */
+    if(target===-1) continue;
     waves[target].H.push(h);
     waves[target].owners.add(h.owner);
     waves[target].hTotal+=h.power;
   }
 
-  /* 分配C：按战力降序，分配给(hTotal+cTotal)最低且无此owner的波 */
-  for(const c of C){
-    let target=-1, minVal=Infinity;
-    for(let wi=0;wi<numWaves;wi++){
-      if(waves[wi].C.length>=9) continue;
-      if(waves[wi].owners.has(c.owner)) continue;
-      const t=waves[wi].hTotal+waves[wi].cTotal;
-      if(t<minVal){ minVal=t; target=wi; }
-    }
-    if(target===-1) continue; /* 无法分配，留到剩余池 */
-    waves[target].C.push(c);
-    waves[target].owners.add(c.owner);
-    waves[target].cTotal+=c.power;
-  }
-
-  /* ---- Phase 2: 每波内部组3支队伍，按红>黄>绿优先级填充 ---- */
+  /* ---- Phase 2: 每波内部组3支队伍 ---- */
+  /* 奶：最强→红, 中→黄, 最弱→绿（保证红奶>黄奶>绿奶）
+     C：按优先级红>黄>绿填充，保证红C总>黄C总>绿C总 */
   const waveTeams=[];
   for(let wi=0;wi<numWaves;wi++){
     const w=waves[wi];
-    if(w.H.length<3){ waveTeams.push(null); continue; } /* 奶不足3个则跳过此波 */
+    if(w.H.length<1){ waveTeams.push(null); continue; }
 
     w.H.sort((a,b)=>b.power-a.power);
     w.C.sort((a,b)=>b.power-a.power);
 
     const teams=[];
-    for(let i=0;i<3;i++) teams.push({slots:[],owners:new Set(),total:0});
+    for(let i=0;i<3;i++) teams.push({slots:[],owners:new Set(),cTotal:0,hMax:0,hChar:null,total:0});
 
-    /* 奶：最强→team0(红), 中→team1(黄), 最弱→team2(绿) */
-    for(let i=0;i<3;i++){
+    /* 分配奶：最多3个，按战力降序→红/黄/绿 */
+    const numH=Math.min(w.H.length,3);
+    for(let i=0;i<numH;i++){
       teams[i].slots.push({charId:w.H[i].id});
       teams[i].owners.add(w.H[i].owner);
-      teams[i].total+=w.H[i].power;
+      teams[i].hMax=w.H[i].power;
+      teams[i].hChar=w.H[i].id;
+      teams[i].total=teams[i].cTotal+teams[i].hMax;
     }
 
-    /* C按优先级顺序填充：先填满红队(3C)，再黄队(3C)，再绿队(3C)
-       不足时自动留空，保证红>黄>绿战力梯度 */
+    /* 分配C：按红>黄>绿优先级填充，每队最多3个C */
     let ci=0;
     for(let ti=0;ti<3;ti++){
       while(teams[ti].slots.length<4 && ci<w.C.length){
         const c=w.C[ci]; ci++;
-        /* 同波已严格无重复owner，此处安全检查为防御性 */
         if(teams[ti].owners.has(c.owner)) continue;
         teams[ti].slots.push({charId:c.id});
         teams[ti].owners.add(c.owner);
-        teams[ti].total+=c.power;
+        teams[ti].cTotal+=c.power;
+        teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
       }
     }
 
-    /* 按战力排序：红>黄>绿 */
+    /* 按total降序排：红>黄>绿 */
     teams.sort((a,b)=>b.total-a.total);
     waveTeams.push(teams);
   }
 
-  /* ---- Phase 3: 跨波同色战力均衡（全局梯度约束） ---- */
-  const charMap={};
-  chars.forEach(c=>charMap[c.id]=c);
-
+  /* ---- Phase 3: 跨波C战力均衡（全局梯度约束） ---- */
   function ownerInWave(waveIdx, owner){
     for(const team of waveTeams[waveIdx]){
       if(!team) continue;
@@ -1102,10 +1105,10 @@ function arrange12(chars){
     }
     return false;
   }
-  function maxColorTotal(ci){ let m=-Infinity; for(let wi=0;wi<numWaves;wi++){ if(waveTeams[wi]&&waveTeams[wi][ci]) m=Math.max(m,waveTeams[wi][ci].total); } return m; }
-  function minColorTotal(ci){ let m=Infinity; for(let wi=0;wi<numWaves;wi++){ if(waveTeams[wi]&&waveTeams[wi][ci]) m=Math.min(m,waveTeams[wi][ci].total); } return m; }
+  function maxColorCTotal(ci){ let m=-Infinity; for(let wi=0;wi<numWaves;wi++){ if(waveTeams[wi]&&waveTeams[wi][ci]) m=Math.max(m,waveTeams[wi][ci].cTotal); } return m; }
+  function minColorCTotal(ci){ let m=Infinity; for(let wi=0;wi<numWaves;wi++){ if(waveTeams[wi]&&waveTeams[wi][ci]) m=Math.min(m,waveTeams[wi][ci].cTotal); } return m; }
 
-  /* 迭代均衡：对每种颜色做跨波C角色交换 */
+  /* 迭代C均衡：对每种颜色做跨波C角色交换 */
   for(let pass=0;pass<50;pass++){
     let improved=false;
     for(let ci=0;ci<3;ci++){
@@ -1114,10 +1117,10 @@ function arrange12(chars){
         if(waveTeams[wi]&&waveTeams[wi][ci]) ct.push({wave:wi,team:waveTeams[wi][ci]});
       }
       if(ct.length<2) continue;
-      ct.sort((a,b)=>b.team.total-a.team.total);
+      ct.sort((a,b)=>b.team.cTotal-a.team.cTotal);
 
       const maxCT=ct[0], minCT=ct[ct.length-1];
-      const gap=maxCT.team.total-minCT.team.total;
+      const gap=maxCT.team.cTotal-minCT.team.cTotal;
       if(gap<5) continue;
 
       let bestSwap=null, bestGap=gap;
@@ -1131,24 +1134,16 @@ function arrange12(chars){
           if(ownerInWave(maxCT.wave, c2.owner)) continue;
           if(c1.power<=c2.power) continue;
 
-          const newMax=maxCT.team.total-c1.power+c2.power;
-          const newMin=minCT.team.total-c2.power+c1.power;
+          const newMax=maxCT.team.cTotal-c1.power+c2.power;
+          const newMin=minCT.team.cTotal-c2.power+c1.power;
           const newGap=Math.abs(newMax-newMin);
           if(newGap>=bestGap) continue;
 
-          /* 全局梯度约束：
-             ci=0(红): newMax下降后仍须>所有黄队最大值
-             ci=1(黄): newMax下降后仍须>所有绿队最大值, newMin上升后仍须<所有红队最小值
-             ci=2(绿): newMin上升后仍须<所有黄队最小值 */
+          /* 全局C梯度约束 */
           let valid=true;
-          if(ci===0){
-            if(newMax<=maxColorTotal(1)) valid=false;
-          }else if(ci===1){
-            if(newMax<=maxColorTotal(2)) valid=false;
-            if(newMin>=minColorTotal(0)) valid=false;
-          }else if(ci===2){
-            if(newMin>=minColorTotal(1)) valid=false;
-          }
+          if(ci===0){ if(newMax<=maxColorCTotal(1)) valid=false; }
+          else if(ci===1){ if(newMax<=maxColorCTotal(2)) valid=false; if(newMin>=minColorCTotal(0)) valid=false; }
+          else if(ci===2){ if(newMin>=minColorCTotal(1)) valid=false; }
           if(!valid) continue;
 
           bestGap=newGap;
@@ -1160,20 +1155,94 @@ function arrange12(chars){
         const mx=maxCT.team, mn=minCT.team;
         mx.slots=mx.slots.filter(s=>s!==bestSwap.s1);
         mx.owners.delete(bestSwap.c1.owner);
-        mx.total-=bestSwap.c1.power;
+        mx.cTotal-=bestSwap.c1.power;
         mx.slots.push({charId:bestSwap.c2.id});
         mx.owners.add(bestSwap.c2.owner);
-        mx.total+=bestSwap.c2.power;
+        mx.cTotal+=bestSwap.c2.power;
+        mx.total=mx.cTotal+mx.hMax;
 
         mn.slots=mn.slots.filter(s=>s!==bestSwap.s2);
         mn.owners.delete(bestSwap.c2.owner);
-        mn.total-=bestSwap.c2.power;
+        mn.cTotal-=bestSwap.c2.power;
         mn.slots.push({charId:bestSwap.c1.id});
         mn.owners.add(bestSwap.c1.owner);
-        mn.total+=bestSwap.c1.power;
+        mn.cTotal+=bestSwap.c1.power;
+        mn.total=mn.cTotal+mn.hMax;
 
         improved=true;
       }
+    }
+    if(!improved) break;
+  }
+
+  /* ---- Phase 4: 跨波奶战力均衡 ---- */
+  /* 目标：各波三奶合计(hMax之和)接近，同时保持波内红奶>黄奶>绿奶 */
+  function waveHSum(wi){
+    let s=0; for(const t of waveTeams[wi]){ if(t&&t.hMax) s+=t.hMax; } return s;
+  }
+  function maxWaveHSum(){ let m=-Infinity; for(let wi=0;wi<numWaves;wi++){ if(waveTeams[wi]) m=Math.max(m,waveHSum(wi)); } return m; }
+  function minWaveHSum(){ let m=Infinity; for(let wi=0;wi<numWaves;wi++){ if(waveTeams[wi]) m=Math.min(m,waveHSum(wi)); } return m; }
+
+  for(let pass=0;pass<50;pass++){
+    let improved=false;
+    /* 找奶合计最大和最小的波 */
+    let maxWi=-1, minWi=-1, maxVal=-Infinity, minVal=Infinity;
+    for(let wi=0;wi<numWaves;wi++){
+      if(!waveTeams[wi]) continue;
+      const s=waveHSum(wi);
+      if(s>maxVal){ maxVal=s; maxWi=wi; }
+      if(s<minVal){ minVal=s; minWi=wi; }
+    }
+    if(maxWi===-1||minWi===-1||maxWi===minWi) break;
+    if(maxVal-minVal<5) break;
+
+    /* 在maxWi和minWi之间交换奶：从maxWi取一个奶给minWi，反之亦然 */
+    /* 交换同色位置的奶，保持红>黄>绿 */
+    let bestSwap=null, bestGap=maxVal-minVal;
+    for(let ci=0;ci<3;ci++){
+      const t1=waveTeams[maxWi][ci], t2=waveTeams[minWi][ci];
+      if(!t1||!t2||!t1.hChar||!t2.hChar) continue;
+      const h1=charMap[t1.hChar], h2=charMap[t2.hChar];
+      if(!h1||!h2) continue;
+      /* 检查owner不冲突 */
+      if(ownerInWave(minWi, h1.owner)) continue;
+      if(ownerInWave(maxWi, h2.owner)) continue;
+
+      const newMax=maxVal-h1.power+h2.power;
+      const newMin=minVal-h2.power+h1.power;
+      const newGap=Math.abs(newMax-newMin);
+      if(newGap>=bestGap) continue;
+
+      /* 梯度约束：交换后波内仍须红奶>黄奶>绿奶 */
+      const w1=waveTeams[maxWi], w2=waveTeams[minWi];
+      const newH1=ci===0?h2.power:w1[0].hMax, newH1b=ci===1?h2.power:w1[1].hMax, newH1c=ci===2?h2.power:w1[2].hMax;
+      const newH2=ci===0?h1.power:w2[0].hMax, newH2b=ci===1?h1.power:w2[1].hMax, newH2c=ci===2?h1.power:w2[2].hMax;
+      if(newH1<=newH1b||newH1b<=newH1c) continue;
+      if(newH2<=newH2b||newH2b<=newH2c) continue;
+
+      bestGap=newGap;
+      bestSwap={ci,h1,h2,t1,t2};
+    }
+
+    if(bestSwap){
+      const {ci,h1,h2,t1,t2}=bestSwap;
+      /* 从t1移除h1，加入h2 */
+      t1.slots=t1.slots.filter(s=>s.charId!==h1.id);
+      t1.owners.delete(h1.owner);
+      t1.slots.push({charId:h2.id});
+      t1.owners.add(h2.owner);
+      t1.hMax=h2.power;
+      t1.hChar=h2.id;
+      t1.total=t1.cTotal+t1.hMax;
+      /* 从t2移除h2，加入h1 */
+      t2.slots=t2.slots.filter(s=>s.charId!==h2.id);
+      t2.owners.delete(h2.owner);
+      t2.slots.push({charId:h1.id});
+      t2.owners.add(h1.owner);
+      t2.hMax=h1.power;
+      t2.hChar=h1.id;
+      t2.total=t2.cTotal+t2.hMax;
+      improved=true;
     }
     if(!improved) break;
   }
@@ -1185,6 +1254,7 @@ function arrange12(chars){
   for(let wi=0;wi<numWaves;wi++){
     const teams=waveTeams[wi];
     if(!teams) continue;
+    /* 按total降序确保红>黄>绿 */
     teams.sort((a,b)=>b.total-a.total);
     teams.forEach((t,i)=>{
       t.slots.forEach(s=>globalUsed.add(s.charId));
@@ -1192,33 +1262,87 @@ function arrange12(chars){
     });
   }
 
-  /* ---- 剩余角色按4人队补排 ---- */
+  /* ---- Phase 5: 剩余角色按波分组补排（严格同波无重复） ---- */
   const leftoverC=C.filter(c=>!globalUsed.has(c.id));
   const leftoverH=H.filter(c=>!globalUsed.has(c.id));
-  let lastGroup=numWaves+1;
-  for(const h of leftoverH){
-    globalUsed.add(h.id);
-    const team={slots:[{charId:h.id}],owners:new Set([h.owner]),total:h.power};
-    for(let round=0;round<3;round++){
-      for(const c of leftoverC){
-        if(!globalUsed.has(c.id) && !team.owners.has(c.owner)){
-          team.slots.push({charId:c.id});team.owners.add(c.owner);
-          team.total+=c.power;globalUsed.add(c.id);break;
+  if(leftoverH.length>0){
+    const numLeftWaves=Math.ceil(leftoverH.length/3);
+    let lastGroup=numWaves+1;
+    const leftWaves=[];
+    for(let i=0;i<numLeftWaves;i++) leftWaves.push({H:[],C:[],owners:new Set()});
+
+    /* 分配奶到剩余波：贪心，无重复owner */
+    for(const h of leftoverH){
+      let target=-1;
+      for(let wi=0;wi<numLeftWaves;wi++){
+        if(leftWaves[wi].H.length>=3) continue;
+        if(leftWaves[wi].owners.has(h.owner)) continue;
+        target=wi; break;
+      }
+      if(target===-1){
+        /* 找第一个有空位的波 */
+        for(let wi=0;wi<numLeftWaves;wi++){
+          if(leftWaves[wi].H.length>=3) continue;
+          target=wi; break;
         }
       }
+      if(target===-1) continue;
+      leftWaves[target].H.push(h);
+      leftWaves[target].owners.add(h.owner);
     }
-    while(team.slots.length<4){
-      let placed=false;
-      for(const c of leftoverC){
-        if(!globalUsed.has(c.id)){
-          team.slots.push({charId:c.id});team.total+=c.power;globalUsed.add(c.id);
-          placed=true;break;
+
+    /* 分配C到剩余波：贪心，无重复owner */
+    for(const c of leftoverC){
+      let target=-1, minC=Infinity;
+      for(let wi=0;wi<numLeftWaves;wi++){
+        if(leftWaves[wi].owners.has(c.owner)) continue;
+        const cnt=leftWaves[wi].C.length;
+        if(cnt<minC){ minC=cnt; target=wi; }
+      }
+      if(target===-1){
+        for(let wi=0;wi<numLeftWaves;wi++){
+          if(leftWaves[wi].C.length<9){ target=wi; break; }
         }
       }
-      if(!placed) break;
+      if(target===-1) continue;
+      leftWaves[target].C.push(c);
+      leftWaves[target].owners.add(c.owner);
     }
-    allTeams.push({slots:team.slots,group:lastGroup});
-    lastGroup++;
+
+    /* 组队 */
+    for(let wi=0;wi<numLeftWaves;wi++){
+      const w=leftWaves[wi];
+      if(w.H.length<1) continue;
+      w.H.sort((a,b)=>b.power-a.power);
+      w.C.sort((a,b)=>b.power-a.power);
+      const teams=[];
+      for(let i=0;i<3;i++) teams.push({slots:[],owners:new Set(),cTotal:0,hMax:0,total:0});
+      const numH=Math.min(w.H.length,3);
+      for(let i=0;i<numH;i++){
+        teams[i].slots.push({charId:w.H[i].id});
+        teams[i].owners.add(w.H[i].owner);
+        teams[i].hMax=w.H[i].power;
+        teams[i].total=teams[i].cTotal+teams[i].hMax;
+      }
+      let ci=0;
+      for(let ti=0;ti<3;ti++){
+        while(teams[ti].slots.length<4 && ci<w.C.length){
+          const c=w.C[ci]; ci++;
+          if(teams[ti].owners.has(c.owner)) continue;
+          teams[ti].slots.push({charId:c.id});
+          teams[ti].owners.add(c.owner);
+          teams[ti].cTotal+=c.power;
+          teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
+        }
+      }
+      teams.sort((a,b)=>b.total-a.total);
+      teams.forEach((t,i)=>{
+        if(t.slots.length===0) return;
+        t.slots.forEach(s=>globalUsed.add(s.charId));
+        allTeams.push({slots:t.slots,raidColor:colors[i]||undefined,group:lastGroup});
+      });
+      lastGroup++;
+    }
   }
 
   return allTeams;
@@ -1634,15 +1758,15 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     const rColor = team.raidColor || (isRaid12 ? ["red","yellow","green"][tIdx%3] : null);
     const block=document.createElement("div");
     block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass;
-    const owners=new Set(); let csum=0, hsum=0;
-    team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; else hsum+=c.power; } } });
+    const owners=new Set(); let csum=0, hmax=0, hcount=0;
+    team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; else { hmax=Math.max(hmax,c.power); hcount++; } } } });
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
     /* 12人团本：标签带波数，如"第1波-红队" */
     const waveNum = isRaid12 ? Math.floor(tIdx/3)+1 : (tIdx+1);
     const teamLabel = rColor ? `第${waveNum}波-${raidLabels[rColor]}` : `第${tIdx+1}波`;
     const groupLabel = team.group ? `组${team.group} ` : '';
     let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">${groupLabel}第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
-      <span class="tsum">总战力：<b style="color:var(--yellow)">${hsum+csum}</b> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
+      <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hmax}</b>${hcount>1?` <span style="font-size:0.8em;color:var(--mut)">（C${csum}+奶${hmax}）</span>`:''} ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
     team.slots.forEach((slot,sIdx)=>{
       const slotChar = slot.charId ? charList.find(x=>x.id===slot.charId) : null;
       if(!slotChar){
