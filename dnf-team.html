@@ -227,6 +227,11 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 .wave-label{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:8px 0 2px;padding-bottom:4px;border-bottom:1px solid var(--line)}
 .wave-label .wnum{background:var(--blue);color:#fff;padding:2px 12px;border-radius:12px;font-size:13px;font-weight:bold;white-space:nowrap}
 .wave-label .wline{flex:1;height:1px;background:var(--line)}
+.wave-add-team{grid-column:1/-1;display:flex;justify-content:center;margin:4px 0 6px}
+.add-team-inline,.add-wave-btn{padding:6px 20px;border:1px dashed var(--mut);border-radius:8px;background:var(--panel2);color:var(--mut);cursor:pointer;font-size:13px;transition:all .2s}
+.add-team-inline:hover,.add-wave-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--bg)}
+.wave-add-new{grid-column:1/-1;display:flex;justify-content:center;margin:10px 0 4px}
+.add-wave-btn{border-style:solid;border-color:var(--blue);color:var(--blue);font-weight:bold}
 @media(max-width:900px){
   .team-grid-12{grid-template-columns:repeat(2,1fr)}
 }
@@ -2008,6 +2013,28 @@ function renderTeamTable(){
       doRemoveTeam(tIdx);
     });
   });
+  // 绑定波内添加队伍按钮（12人模式）
+  document.querySelectorAll(".add-team-inline[data-wave]").forEach(btn=>{
+    btn.addEventListener("click",function(e){
+      e.stopPropagation();
+      const wave=Number(this.dataset.wave);
+      doAddTeamToWave(wave);
+    });
+  });
+  // 绑定新建波数按钮（12人模式）
+  document.querySelectorAll(".add-wave-btn").forEach(btn=>{
+    btn.addEventListener("click",function(e){
+      e.stopPropagation();
+      doAddNewWave();
+    });
+  });
+  // 绑定4人模式新建队伍按钮
+  document.querySelectorAll(".add-team-inline[data-newteam]").forEach(btn=>{
+    btn.addEventListener("click",function(e){
+      e.stopPropagation();
+      doAddTeam();
+    });
+  });
 }
 
 function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, raidLabels, gTeams){
@@ -2021,22 +2048,36 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
   };
   const teamsToRender = gTeams || teamList.map((t,i)=>({team:t,tIdx:i}));
   let prevGroup=null;
+  let curWaveColors=[];
+  const raidColors=["red","yellow","green"];
+  const raidColorLabels={red:"红队",yellow:"黄队",green:"绿队"};
   teamsToRender.forEach(({team,tIdx})=>{
     /* 12人团本：按group（波数）变化加波数标签；4人非一览：每队加波数标签 */
     const curGroup = isRaid12 ? (team.group||Math.floor(tIdx/3)+1) : (tIdx+1);
     if(isRaid12 && curGroup!==prevGroup){
+      /* 前一波结束，如未满3色则添加+号按钮 */
+      if(prevGroup!==null && curWaveColors.length<3){
+        const used=new Set(curWaveColors);
+        const nextColor=raidColors.find(c=>!used.has(c));
+        const addBtn=document.createElement("div");
+        addBtn.className="wave-add-team";
+        addBtn.innerHTML=`<button class="add-team-inline" data-wave="${prevGroup}">+ 添加${raidColorLabels[nextColor]}</button>`;
+        container.appendChild(addBtn);
+      }
       const wl=document.createElement("div");
       wl.className="wave-label";
       wl.innerHTML=`<span class="wnum">第 ${curGroup} 波</span><span class="wline"></span>`;
       container.appendChild(wl);
       prevGroup=curGroup;
+      curWaveColors=[];
     } else if(!isRaid12 && !isUltra){
       const wl=document.createElement("div");
       wl.className="wave-label";
       wl.innerHTML=`<span class="wnum">第 ${tIdx+1} 波</span><span class="wline"></span>`;
       container.appendChild(wl);
     }
-    const rColor = team.raidColor || (isRaid12 ? ["red","yellow","green"][tIdx%3] : null);
+    const rColor = team.raidColor || (isRaid12 ? raidColors[tIdx%3] : null);
+    if(isRaid12 && rColor){ curWaveColors.push(rColor); }
     const block=document.createElement("div");
     block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass;
     const owners=new Set(); let csum=0, hmax=0, hcount=0;
@@ -2139,6 +2180,28 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     html+=`</div>`;
     block.innerHTML=html; container.appendChild(block);
   });
+  /* 循环结束后：12人模式添加最后一波的+号（如未满3色）+ 底部新建波数按钮 */
+  if(isRaid12){
+    if(prevGroup!==null && curWaveColors.length<3){
+      const used=new Set(curWaveColors);
+      const nextColor=raidColors.find(c=>!used.has(c));
+      const addBtn=document.createElement("div");
+      addBtn.className="wave-add-team";
+      addBtn.innerHTML=`<button class="add-team-inline" data-wave="${prevGroup}">+ 添加${raidColorLabels[nextColor]}</button>`;
+      container.appendChild(addBtn);
+    }
+    /* 底部新建波数+号 */
+    const newWaveBtn=document.createElement("div");
+    newWaveBtn.className="wave-add-new";
+    newWaveBtn.innerHTML=`<button class="add-wave-btn">+ 新增波数</button>`;
+    container.appendChild(newWaveBtn);
+  } else if(!isUltra){
+    /* 4人模式底部+号新建队伍 */
+    const addBtn=document.createElement("div");
+    addBtn.className="wave-add-team";
+    addBtn.innerHTML=`<button class="add-team-inline" data-newteam="1">+ 新建队伍</button>`;
+    container.appendChild(addBtn);
+  }
 }
 
 /* ---------- 编辑角色 ---------- */
@@ -2351,6 +2414,32 @@ async function doAddTeam(){
       /* 4人模式：直接添加空队伍 */
       st.teamList.push({slots:[{charId:null},{charId:null},{charId:null},{charId:null}]});
     }
+    return st;
+  });
+}
+
+/* ---------- 波内添加队伍（12人模式） ---------- */
+async function doAddTeamToWave(groupNum){
+  pushHistory();
+  await SYNC.writeState(st=>{
+    const colors=["red","yellow","green"];
+    const waveTeams = st.teamList.filter(t=>t.group===groupNum);
+    const usedColors = new Set(waveTeams.map(t=>t.raidColor));
+    const availColors = colors.filter(c=>!usedColors.has(c));
+    if(availColors.length===0) return st;
+    const newColor = availColors[0];
+    st.teamList.push({slots:[{charId:null},{charId:null},{charId:null},{charId:null}],raidColor:newColor,group:groupNum});
+    return st;
+  });
+}
+
+/* ---------- 新增波数（12人模式） ---------- */
+async function doAddNewWave(){
+  pushHistory();
+  await SYNC.writeState(st=>{
+    const maxGroup = st.teamList.reduce((mx,t)=>Math.max(mx,t.group||0),0);
+    const newGroup = maxGroup + 1;
+    st.teamList.push({slots:[{charId:null},{charId:null},{charId:null},{charId:null}],raidColor:"red",group:newGroup});
     return st;
   });
 }
