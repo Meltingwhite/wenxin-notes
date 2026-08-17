@@ -6,6 +6,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233b82f6'/%3E%3Cstop offset='1' stop-color='%23f97316'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230f1117'/%3E%3Cpath d='M32 12 L48 18 L48 34 C48 44 40 50 32 54 C24 50 16 44 16 34 L16 18 Z' fill='url(%23g)' opacity='0.9'/%3E%3Cpath d='M32 20 L32 46' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M24 28 L32 24 L40 28' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Ccircle cx='32' cy='36' r='3' fill='%23fff'/%3E%3Cpath d='M28 40 L32 44 L36 40' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
 <title>薄纱团本 · 排表协作工具</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>try{var t=localStorage.getItem("busha_theme");if(t&&t!=="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <style>
 :root{
@@ -324,6 +325,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <button id="autoArrange">一键均衡排完所有角色</button>
       <button class="secondary" id="clearTeams">清空排表</button>
       <button class="secondary" id="exportData">导出Excel</button>
+      <button class="secondary" id="exportImg">导出图片</button>
       <button class="secondary" id="importData">导入Excel</button>
       <button class="danger" id="resetAll">重置为导入状态</button>
     </div>
@@ -398,6 +400,20 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <div style="display:flex;gap:8px">
         <button id="doImport">确认导入</button>
         <button class="secondary" id="closeImport">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 图片预览弹窗 -->
+  <div class="modal" id="imgModal">
+    <div class="modal-box" style="max-width:900px">
+      <h3>排表截图预览</h3>
+      <p class="help" style="margin-bottom:8px">长按图片可保存，或点击下方按钮复制/下载。</p>
+      <div id="imgPreview" style="text-align:center;margin-bottom:12px;max-height:60vh;overflow:auto"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="copyImg">复制到剪贴板</button>
+        <button class="secondary" id="downloadImg">下载图片</button>
+        <button class="secondary" id="closeImg">关闭</button>
       </div>
     </div>
   </div>
@@ -1921,6 +1937,57 @@ function exportData(){
   XLSX.utils.book_append_sheet(wb,ws,"角色数据");
   XLSX.writeFile(wb,"薄纱团本角色数据.xlsx");
 }
+
+/* 导出排表为图片 */
+let _lastImgBlob=null;
+async function exportImg(){
+  if(typeof html2canvas==="undefined"){ alert("截图库未加载，请刷新页面重试"); return; }
+  const target=document.getElementById("teamWrap");
+  if(!target || !target.children.length){ alert("当前没有排表数据，请先排表"); return; }
+
+  /* 临时移除下拉框等交互元素，避免截图异常 */
+  const selects=target.querySelectorAll("select");
+  const origDisplay=[];
+  selects.forEach(s=>{ origDisplay.push(s.style.display); s.style.display="none"; });
+
+  try{
+    const canvas=await html2canvas(target,{
+      backgroundColor:getComputedStyle(document.documentElement).getPropertyValue("--bg").trim()||"#0f1117",
+      scale:2,
+      useCORS:true,
+      logging:false
+    });
+    const blob=await new Promise(res=>canvas.toBlob(res,"image/png"));
+    _lastImgBlob=blob;
+    const url=URL.createObjectURL(blob);
+    const preview=document.getElementById("imgPreview");
+    preview.innerHTML=`<img src="${url}" style="max-width:100%;border-radius:8px;border:1px solid var(--line)" />`;
+    openModal("imgModal");
+  }catch(e){
+    alert("截图失败："+e.message);
+  }finally{
+    selects.forEach((s,i)=>{ s.style.display=origDisplay[i]||""; });
+  }
+}
+
+async function copyImgToClipboard(){
+  if(!_lastImgBlob){ alert("图片未生成"); return; }
+  try{
+    await navigator.clipboard.write([new ClipboardItem({"image/png":_lastImgBlob})]);
+    alert("已复制到剪贴板，可直接粘贴发送");
+  }catch(e){
+    alert("复制失败，请改用下载按钮："+e.message);
+  }
+}
+
+function downloadImg(){
+  if(!_lastImgBlob){ alert("图片未生成"); return; }
+  const url=URL.createObjectURL(_lastImgBlob);
+  const a=document.createElement("a");
+  a.href=url; a.download="薄纱团本排表_"+new Date().toISOString().slice(0,10)+".png";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 async function doImport(){
   if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
   const fileInput=document.getElementById("importFile");
@@ -2385,6 +2452,10 @@ function init(){
   document.getElementById("saveChar").onclick=saveChar;
   document.getElementById("cancelEdit").onclick=clearEdit;
   document.getElementById("exportData").onclick=exportData;
+  document.getElementById("exportImg").onclick=exportImg;
+  document.getElementById("copyImg").onclick=copyImgToClipboard;
+  document.getElementById("downloadImg").onclick=downloadImg;
+  document.getElementById("closeImg").onclick=()=>closeModal("imgModal");
   document.getElementById("resetAll").onclick=doReset;
   document.getElementById("clearTeams").onclick=doClearTeams;
 
