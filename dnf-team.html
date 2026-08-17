@@ -1316,6 +1316,103 @@ function arrange12(chars, opts){
     });
   }
 
+  /* ---- Phase 4b: 跨波同色奶均衡（在颜色分配后执行） ---- */
+  /* 目标：各波红奶接近、各波黄奶接近、各波绿奶接近，同时保持波内红>黄>绿 */
+  function teamHMax(team){
+    let hmax=0;
+    for(const s of team.slots){
+      const c=charMap[s.charId];
+      if(c && c.type==="N") hmax=Math.max(hmax,c.power);
+    }
+    return hmax;
+  }
+  function teamHChar(team){
+    let best=null,bestP=0;
+    for(const s of team.slots){
+      const c=charMap[s.charId];
+      if(c && c.type==="N" && c.power>bestP){ best=c; bestP=c.power; }
+    }
+    return best;
+  }
+  function teamCTotal(team){
+    let sum=0;
+    for(const s of team.slots){
+      const c=charMap[s.charId];
+      if(c && c.type==="c") sum+=c.power;
+    }
+    return sum;
+  }
+  function ownerInGroup(group, owner){
+    for(const t of allTeams){
+      if(t.group!==group) continue;
+      for(const s of t.slots){
+        const c=charMap[s.charId];
+        if(c && c.owner===owner) return true;
+      }
+    }
+    return false;
+  }
+  function waveHByColor(group, color){
+    for(const t of allTeams){
+      if(t.group===group && t.raidColor===color) return teamHMax(t);
+    }
+    return null;
+  }
+
+  for(let pass=0;pass<100;pass++){
+    let improved=false;
+    /* 对每种颜色，找跨波最大和最小差距，尝试交换 */
+    for(const color of colors){
+      const teamsOfColor=allTeams.filter(t=>t.raidColor===color);
+      if(teamsOfColor.length<2) continue;
+      /* 按奶战力降序 */
+      teamsOfColor.sort((a,b)=>teamHMax(b)-teamHMax(a));
+      const maxTeam=teamsOfColor[0], minTeam=teamsOfColor[teamsOfColor.length-1];
+      const maxH=teamHMax(maxTeam), minH=teamHMax(minTeam);
+      if(maxH-minH<5) continue;
+      /* 找maxTeam的奶和minTeam的奶，尝试交换 */
+      const h1=teamHChar(maxTeam), h2=teamHChar(minTeam);
+      if(!h1||!h2) continue;
+      if(h1.owner===h2.owner) continue;
+      /* 检查owner不在对方波 */
+      if(ownerInGroup(minTeam.group, h1.owner)) continue;
+      if(ownerInGroup(maxTeam.group, h2.owner)) continue;
+      /* 交换后新的奶战力 */
+      const newMaxH=h2.power, newMinH=h1.power;
+      if(Math.abs(newMaxH-newMinH)>=Math.abs(maxH-minH)) continue;
+      /* 检查波内梯度：交换后该波的奶仍需红>黄>绿 */
+      /* maxTeam的波：替换color位置的奶 */
+      const maxWaveRed=waveHByColor(maxTeam.group,"red");
+      const maxWaveYellow=waveHByColor(maxTeam.group,"yellow");
+      const maxWaveGreen=waveHByColor(maxTeam.group,"green");
+      const minWaveRed=waveHByColor(minTeam.group,"red");
+      const minWaveYellow=waveHByColor(minTeam.group,"yellow");
+      const minWaveGreen=waveHByColor(minTeam.group,"green");
+      const maxNew=color==="red"?newMaxH:(color==="yellow"?maxWaveYellow:maxWaveGreen);
+      const maxNewY=color==="yellow"?newMaxH:maxWaveYellow;
+      const maxNewG=color==="green"?newMaxH:maxWaveGreen;
+      const maxNewR=color==="red"?newMaxH:maxWaveRed;
+      const minNew=color==="red"?newMinH:(color==="yellow"?minWaveYellow:minWaveGreen);
+      const minNewY=color==="yellow"?newMinH:minWaveYellow;
+      const minNewG=color==="green"?newMinH:minWaveGreen;
+      const minNewR=color==="red"?newMinH:minWaveRed;
+      let gradOk=true;
+      if(maxNewR&&maxNewY&&maxNewR<=maxNewY) gradOk=false;
+      if(maxNewY&&maxNewG&&maxNewY<=maxNewG) gradOk=false;
+      if(minNewR&&minNewY&&minNewR<=minNewY) gradOk=false;
+      if(minNewY&&minNewG&&minNewY<=minNewG) gradOk=false;
+      if(!gradOk) continue;
+      /* 执行交换 */
+      maxTeam.slots=maxTeam.slots.filter(s=>s.charId!==h1.id);
+      maxTeam.slots.push({charId:h2.id});
+      minTeam.slots=minTeam.slots.filter(s=>s.charId!==h2.id);
+      minTeam.slots.push({charId:h1.id});
+      improved=true;
+      break; /* 重新开始外层循环 */
+    }
+    if(!improved) break;
+  }
+
   /* ---- Phase 5: 剩余角色按波分组补排（严格同波无重复） ---- */
   /* 计算剩余角色中每个owner的数量，确保波数足够 */
   const leftoverC=C.filter(c=>!globalUsed.has(c.id));
@@ -1437,7 +1534,7 @@ function arrange12(chars, opts){
           return c && c.type==="N";
         }).length;
         if(hCount>=2) continue; /* 最多双奶 */
-        if(t.slots.length>=5) continue; /* 队伍位置上限 */
+        if(t.slots.length>=4) continue; /* 队伍上限4人（支持2C2N） */
         /* 检查同波无重复owner */
         const group=t.group;
         const groupTeams=allTeams.filter(x=>x.group===group);
