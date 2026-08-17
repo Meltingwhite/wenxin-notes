@@ -1981,14 +1981,19 @@ function renderTeamTable(){
     document.querySelectorAll("[data-t]").forEach(sel=>{
       sel.onchange=async function(){
         const t=Number(this.dataset.t), s=Number(this.dataset.s);
-        const newCid=this.value?Number(this.value):null;
-        if(!newCid) return;
+        const val=this.value;
+        /* "clear"=清空为空位；""=未选择不做操作；其他=角色ID */
+        const newCid=(val==="clear"||!val)?null:Number(val);
+        if(val==="") return; /* 未选择任何项 */
         pushHistory();
         await SYNC.writeState(st=>{
-          for(let ti=0;ti<st.teamList.length;ti++){
-            for(let si=0;si<st.teamList[ti].slots.length;si++){
-              if(st.teamList[ti].slots[si].charId===newCid && !(ti===t && si===s)){
-                st.teamList[ti].slots[si].charId=null;
+          if(newCid){
+            /* 选中了角色：先从其他位置移除该角色 */
+            for(let ti=0;ti<st.teamList.length;ti++){
+              for(let si=0;si<st.teamList[ti].slots.length;si++){
+                if(st.teamList[ti].slots[si].charId===newCid && !(ti===t && si===s)){
+                  st.teamList[ti].slots[si].charId=null;
+                }
               }
             }
           }
@@ -2255,6 +2260,10 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
         return !usedElse && !sameOwner;
       }).slice().sort((a,b)=>b.power-a.power);
       let optsHtml=`<option value="">更换角色…</option>`;
+      /* 已有角色时，添加清空选项 */
+      if(slot.charId){
+        optsHtml+=`<option value="clear">⛔ 清空为空位</option>`;
+      }
       if(samePlayer.length){
         optsHtml+=`<optgroup label="【${escapeHtml(c.owner)}】的角色">`;
         samePlayer.forEach(x=>{
