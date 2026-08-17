@@ -322,9 +322,10 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <button class="sm secondary" id="undoBtn" disabled style="opacity:.4">↩ 撤销</button>
       <button class="sm secondary" id="redoBtn" disabled style="opacity:.4">↪ 重做</button>
       <button id="autoArrange">一键均衡排完所有角色</button>
+      <button class="secondary" id="clearTeams">清空排表</button>
       <button class="secondary" id="exportData">导出Excel</button>
       <button class="secondary" id="importData">导入Excel</button>
-      <button class="danger" id="resetAll">重置原始数据</button>
+      <button class="danger" id="resetAll">重置为导入状态</button>
     </div>
   </div>
 
@@ -430,7 +431,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
         <p>· 自动排表优先消耗全部奶，标准 1 奶 3 C，贪心均衡：高奶配低 C、低奶配高 C，每队总战力趋近一致。</p>
         <p>· 新增 / 编辑 / 删除角色后会自动重新生成全部队伍；队内下拉更换角色为手动微调，不会触发重排。</p>
         <p>· 队内「更换角色」下拉已自动过滤本队已有玩家，无法重复选择。</p>
-        <p>· 保留本地存储、导入 / 导出 Excel、重置原始数据。</p>
+        <p>· 保留本地存储、导入 / 导出 Excel、重置为导入状态。</p>
         <p style="margin-top:10px"><b>房间与登录</b></p>
         <p>· 打开页面需先输入房间号和密码登录，或新建房间（自定义房间号+密码）。</p>
         <p>· 默认房间号 <code>1</code>，密码 <code>123</code>，已预置全部角色数据。</p>
@@ -1810,7 +1811,7 @@ function exportData(){
   if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
   const rows=charList.map(c=>({
     "归属玩家":c.owner, "角色名称":c.name, "战力数值":c.power,
-    "类型":c.type, "A套":c.a||"", "B套":c.b||""
+    "类型":c.type==="c"?"C":c.type, "A套":c.a||"", "B套":c.b||""
   }));
   const ws=XLSX.utils.json_to_sheet(rows);
   const wb=XLSX.utils.book_new();
@@ -1832,8 +1833,8 @@ async function doImport(){
       const owner=(r["归属玩家"]||r["owner"]||"").toString().trim();
       const name=(r["角色名称"]||r["name"]||"").toString().trim();
       const power=Number(r["战力数值"]||r["power"]||0)||0;
-      let type=(r["类型"]||r["type"]||"c").toString().trim().toLowerCase();
-      if(type==="healer"||type==="n"||type==="N") type="N"; if(type!=="c"&&type!=="N") type="c";
+      let type=(r["类型"]||r["type"]||"C").toString().trim().toLowerCase();
+      if(type==="healer"||type==="n") type="N"; if(type!=="c"&&type!=="N") type="c";
       const a=(r["A套"]||r["a"]||"").toString().trim();
       const b=(r["B套"]||r["b"]||"").toString().trim();
       return {owner,name,power,type,a,b};
@@ -1847,9 +1848,15 @@ async function doImport(){
   }catch(e){ alert("Excel解析失败："+e.message); }
 }
 async function doReset(){
-  if(!confirm("确认重置为原始表格数据，所有修改将被覆盖并同步到房间？"))return;
+  if(!confirm("确认重置为导入状态？所有修改将被覆盖并同步到房间。"))return;
   pushHistory();
   await SYNC.writeState(st=>{ st.charList=getInitData(); st.teamList=arrange(st.charList); return st; });
+  clearEdit();
+}
+async function doClearTeams(){
+  if(!confirm("确认清空当前排表？角色数据保留，清空后可重新「一键均衡排完所有角色」。"))return;
+  pushHistory();
+  await SYNC.writeState(st=>{ st.teamList=[]; return st; });
   clearEdit();
 }
 
@@ -1913,7 +1920,7 @@ async function doCreateRoom(){
 function downloadTemplate(){
   if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
   const example=[
-    { "归属玩家":"鸟", "角色名称":"剑魂", "战力数值":15226, "类型":"c", "A套":"黄金乡", "B套":"黄金乡" },
+    { "归属玩家":"鸟", "角色名称":"剑魂", "战力数值":15226, "类型":"C", "A套":"黄金乡", "B套":"黄金乡" },
     { "归属玩家":"鸟", "角色名称":"缪斯", "战力数值":40328, "类型":"N", "A套":"黄金乡", "B套":"" }
   ];
   const ws=XLSX.utils.json_to_sheet(example);
@@ -2276,6 +2283,7 @@ function init(){
   document.getElementById("cancelEdit").onclick=clearEdit;
   document.getElementById("exportData").onclick=exportData;
   document.getElementById("resetAll").onclick=doReset;
+  document.getElementById("clearTeams").onclick=doClearTeams;
 
   document.getElementById("importData").onclick=()=>openModal("importModal");
   document.getElementById("closeImport").onclick=()=>closeModal("importModal");
