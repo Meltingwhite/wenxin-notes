@@ -179,6 +179,7 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .raid-tag.yellow{background:#f1c40f;color:#222}
 .raid-tag.green{background:#2ecc71;color:#fff}
 .team-title .tsum{font-size:12px;color:var(--mut)}
+.del-team-btn:hover{color:#e74c3c!important;background:rgba(231,76,60,0.1)!important}
 .team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
 .slot{padding:9px;border-radius:7px;min-height:74px;border:1px solid var(--line);background:var(--panel2)}
 .slot.c{background:#342318;border-color:var(--orange)}
@@ -323,6 +324,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <button class="sm secondary" id="undoBtn" disabled style="opacity:.4">↩ 撤销</button>
       <button class="sm secondary" id="redoBtn" disabled style="opacity:.4">↪ 重做</button>
       <button id="autoArrange">一键均衡排完所有角色</button>
+      <button class="secondary" id="addTeam">+ 新建队伍</button>
       <button class="secondary" id="clearTeams">清空排表</button>
       <button class="secondary" id="exportData">导出Excel</button>
       <button class="secondary" id="exportImg">导出图片</button>
@@ -1998,6 +2000,14 @@ function renderTeamTable(){
       renderTeamTable();
     });
   });
+  // 绑定删除队伍按钮
+  document.querySelectorAll(".del-team-btn").forEach(btn=>{
+    btn.addEventListener("click",function(e){
+      e.stopPropagation();
+      const tIdx=Number(this.dataset.t);
+      doRemoveTeam(tIdx);
+    });
+  });
 }
 
 function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, raidLabels, gTeams){
@@ -2036,8 +2046,8 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     const waveNum = isRaid12 ? curGroup : (tIdx+1);
     const teamLabel = rColor ? `第${waveNum}波-${raidLabels[rColor]}` : `第${tIdx+1}波`;
     const hDisp = hcount>0 ? hmax : 0;
-    let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
-      <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hDisp}</b> <span style="font-size:0.8em;color:var(--mut)">（C总${csum} + 奶${hDisp}${hcount>1?`(${hcount}奶最高)`:''}）</span> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
+    let html=`<div class="team-title"><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${rColor?`<span class="raid-tag ${rColor}">第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
+      <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hDisp}</b> <span style="font-size:0.8em;color:var(--mut)">（C总${csum} + 奶${hDisp}${hcount>1?`(${hcount}奶最高)`:''}）</span> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></span>${isUltra?'':`<button class="del-team-btn" data-t="${tIdx}" title="删除此队伍" style="background:none;border:none;color:var(--mut);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;line-height:1;margin-left:auto">✕</button>`}</div><div class="team-grid">`;
     /* 补齐空位到4人，支持用户手动分配角色 */
     const slotsForRender = team.slots.slice();
     while(slotsForRender.length<4 && !isUltra){
@@ -2312,6 +2322,49 @@ async function doClearTeams(){
   pushHistory();
   await SYNC.writeState(st=>{ st.teamList=[]; return st; });
   clearEdit();
+}
+
+/* ---------- 新建队伍 ---------- */
+async function doAddTeam(){
+  pushHistory();
+  await SYNC.writeState(st=>{
+    if(raidMode===12){
+      /* 12人模式：新建队伍需要确定波数和颜色 */
+      const maxGroup = st.teamList.reduce((mx,t)=>Math.max(mx,t.group||0),0);
+      /* 找当前最大波数中缺少的颜色 */
+      const colors=["red","yellow","green"];
+      const lastWaveTeams = st.teamList.filter(t=>t.group===maxGroup);
+      const usedColors = new Set(lastWaveTeams.map(t=>t.raidColor));
+      const availColors = colors.filter(c=>!usedColors.has(c));
+      let newGroup, newColor;
+      if(availColors.length>0){
+        /* 当前波还有空缺颜色，填补 */
+        newGroup = maxGroup || 1;
+        newColor = availColors[0];
+      } else {
+        /* 当前波已满，新开一波 */
+        newGroup = maxGroup + 1;
+        newColor = "red";
+      }
+      st.teamList.push({slots:[{charId:null},{charId:null},{charId:null},{charId:null}],raidColor:newColor,group:newGroup});
+    } else {
+      /* 4人模式：直接添加空队伍 */
+      st.teamList.push({slots:[{charId:null},{charId:null},{charId:null},{charId:null}]});
+    }
+    return st;
+  });
+}
+
+/* ---------- 删除队伍 ---------- */
+async function doRemoveTeam(tIdx){
+  if(!confirm("确认删除此队伍？队伍中的角色将回到未配置。"))return;
+  pushHistory();
+  await SYNC.writeState(st=>{
+    if(tIdx>=0 && tIdx<st.teamList.length){
+      st.teamList.splice(tIdx,1);
+    }
+    return st;
+  });
 }
 
 /* ---------- 房间 ---------- */
@@ -2742,6 +2795,7 @@ function init(){
   document.getElementById("closeImg").onclick=()=>closeModal("imgModal");
   document.getElementById("resetAll").onclick=doReset;
   document.getElementById("clearTeams").onclick=doClearTeams;
+  document.getElementById("addTeam").onclick=doAddTeam;
 
   document.getElementById("importData").onclick=()=>openModal("importModal");
   document.getElementById("closeImport").onclick=()=>closeModal("importModal");
