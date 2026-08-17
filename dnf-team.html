@@ -2008,6 +2008,7 @@ function renderTeamTable(){
   document.querySelectorAll(".slot[data-owner]").forEach(el=>{
     el.addEventListener("click",function(e){
       if(e.target.tagName==="SELECT"||e.target.tagName==="OPTION") return;
+      if(window._dragging) return; /* 拖拽进行中，忽略点击 */
       const owner=this.dataset.owner;
       if(clickHL && clickHL===owner){ clickHL=""; }
       else { clickHL=owner; }
@@ -2055,17 +2056,18 @@ function bindTeamDragHandlers(isRaid12){
   blocks.forEach(block=>{
     block.addEventListener("dragstart",function(e){
       e.stopPropagation();
+      window._dragging=true;
       e.dataTransfer.setData("text/plain",JSON.stringify({type:"team",idx:Number(this.dataset.teamDrag)}));
       e.dataTransfer.effectAllowed="move";
       this.classList.add("dragging");
     });
     block.addEventListener("dragend",function(){
+      window._dragging=false;
       this.classList.remove("dragging");
       document.querySelectorAll(".drag-over").forEach(el=>el.classList.remove("drag-over"));
     });
     block.addEventListener("dragover",function(e){
       e.preventDefault();
-      e.stopPropagation();
       e.dataTransfer.dropEffect="move";
       this.classList.add("drag-over");
     });
@@ -2074,10 +2076,12 @@ function bindTeamDragHandlers(isRaid12){
     });
     block.addEventListener("drop",async function(e){
       e.preventDefault();
-      e.stopPropagation();
       this.classList.remove("drag-over");
-      const data=JSON.parse(e.dataTransfer.getData("text/plain")||"{}");
-      if(data.type!=="team") return;
+      const raw=e.dataTransfer.getData("text/plain");
+      if(!raw){ return; }
+      let data;
+      try{ data=JSON.parse(raw); }catch(_){ return; }
+      if(!data||data.type!=="team") return;
       const fromIdx=data.idx, toIdx=Number(this.dataset.teamDrag);
       if(fromIdx===toIdx) return;
       if(isRaid12){
@@ -2091,29 +2095,20 @@ function bindTeamDragHandlers(isRaid12){
   /* 12人模式：波数拖拽（长按拖动整个波数） */
   if(isRaid12){
     waveLabels.forEach(wl=>{
-      let pressTimer=null, isLongPress=false;
-      /* 长按检测 */
-      wl.addEventListener("mousedown",function(){
-        isLongPress=false;
-        pressTimer=setTimeout(()=>{ isLongPress=true; },400);
-      });
-      wl.addEventListener("mouseup",function(){ if(pressTimer){clearTimeout(pressTimer);pressTimer=null;} });
-      wl.addEventListener("mouseleave",function(){ if(pressTimer){clearTimeout(pressTimer);pressTimer=null;} });
-
       wl.addEventListener("dragstart",function(e){
-        if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
         e.stopPropagation();
+        window._dragging=true;
         e.dataTransfer.setData("text/plain",JSON.stringify({type:"wave",wave:Number(this.dataset.waveDrag)}));
         e.dataTransfer.effectAllowed="move";
         this.classList.add("dragging");
       });
       wl.addEventListener("dragend",function(){
+        window._dragging=false;
         this.classList.remove("dragging");
         document.querySelectorAll(".drag-over").forEach(el=>el.classList.remove("drag-over"));
       });
       wl.addEventListener("dragover",function(e){
         e.preventDefault();
-        e.stopPropagation();
         e.dataTransfer.dropEffect="move";
         this.classList.add("drag-over");
       });
@@ -2122,10 +2117,12 @@ function bindTeamDragHandlers(isRaid12){
       });
       wl.addEventListener("drop",async function(e){
         e.preventDefault();
-        e.stopPropagation();
         this.classList.remove("drag-over");
-        const data=JSON.parse(e.dataTransfer.getData("text/plain")||"{}");
-        if(data.type!=="wave") return;
+        const raw=e.dataTransfer.getData("text/plain");
+        if(!raw){ return; }
+        let data;
+        try{ data=JSON.parse(raw); }catch(_){ return; }
+        if(!data||data.type!=="wave") return;
         const fromWave=data.wave, toWave=Number(this.dataset.waveDrag);
         if(fromWave===toWave) return;
         await doMoveWave(fromWave,toWave);
@@ -2189,7 +2186,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     const teamLabel = rColor ? `第${waveNum}波-${raidLabels[rColor]}` : `第${tIdx+1}波`;
     const hDisp = hcount>0 ? hmax : 0;
     let html=`<div class="team-title"><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${rColor?`<span class="raid-tag ${rColor}">第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
-      <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hDisp}</b> <span style="font-size:0.8em;color:var(--mut)">（C总${csum} + 奶${hDisp}${hcount>1?`(${hcount}奶最高)`:''}）</span> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></span>${isUltra?'':`<button class="del-team-btn" data-t="${tIdx}" title="删除此队伍" style="background:none;border:none;color:var(--mut);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;line-height:1;margin-left:auto">✕</button>`}</div><div class="team-grid">`;
+      <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hDisp}</b> <span style="font-size:0.8em;color:var(--mut)">（C总${csum} + 奶${hDisp}${hcount>1?`(${hcount}奶最高)`:''}）</span> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></span>${isUltra?'':`<button class="del-team-btn" draggable="false" data-t="${tIdx}" title="删除此队伍" style="background:none;border:none;color:var(--mut);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;line-height:1;margin-left:auto">✕</button>`}</div><div class="team-grid">`;
     /* 补齐空位到4人，支持用户手动分配角色 */
     const slotsForRender = team.slots.slice();
     while(slotsForRender.length<4 && !isUltra){
@@ -2219,7 +2216,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
         } else {
           optsHtml=`<option value="">无可用角色</option>`;
         }
-        html+=`<div class="slot slot-empty"><div class="sn" style="color:#555">空位</div><select data-t="${tIdx}" data-s="${sIdx}">${optsHtml}</select></div>`;
+        html+=`<div class="slot slot-empty" draggable="false"><div class="sn" style="color:#555">空位</div><select draggable="false" data-t="${tIdx}" data-s="${sIdx}">${optsHtml}</select></div>`;
         return;
       }
       const c=slotChar;
@@ -2273,10 +2270,10 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
         });
         optsHtml+=`</optgroup>`;
       }
-      html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}">
+      html+=`<div class="slot ${c.type}${hlClass(c.owner)}" draggable="false" data-owner="${escapeHtml(c.owner)}">
         <div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)}</div>
         <div class="sp">战力 ${c.power} ${c.type==="c"?"C":"奶"}</div>
-        <select data-t="${tIdx}" data-s="${sIdx}">${optsHtml}</select></div>`;
+        <select draggable="false" data-t="${tIdx}" data-s="${sIdx}">${optsHtml}</select></div>`;
     });
     html+=`</div>`;
     block.innerHTML=html; container.appendChild(block);
