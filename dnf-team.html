@@ -1128,63 +1128,16 @@ function arrange12(chars, opts){
     }
 
     /* 分配C：只分配给有奶的队伍，凑不到奶的C不生成队伍，留未配置 */
-    /* 如有门槛配置，按门槛优先分配C到对应战力区间的队伍 */
-    const hasThreshold = (typeof opts.thresholdRed==="number")||(typeof opts.thresholdYellow==="number")||(typeof opts.thresholdGreen==="number");
+    /* 门槛校验在输出阶段按颜色强制执行 */
     let ci=0;
-    if(hasThreshold){
-      /* 多轮分配：第一轮按门槛匹配，第二轮贪心补满 */
-      for(let ti=0;ti<teams.length;ti++){
-        while(teams[ti].slots.length<4 && ci<w.C.length){
-          const c=w.C[ci];
-          /* 尝试找符合当前队伍门槛的C */
-          let found=false;
-          for(let k=ci;k<w.C.length;k++){
-            if(ownerInAnyTeam(teams, w.C[k].owner)) continue;
-            /* 判断此C适合哪个门槛区间 */
-            const cPower=w.C[k].power;
-            let targetColor=null;
-            if(typeof opts.thresholdRed==="number" && cPower>=opts.thresholdRed) targetColor="red";
-            else if(typeof opts.thresholdYellow==="number" && cPower>=opts.thresholdYellow) targetColor="yellow";
-            else if(typeof opts.thresholdGreen==="number" && cPower>=opts.thresholdGreen) targetColor="green";
-            else targetColor="green"; /* 没有对应门槛的放到最低色 */
-            /* ti对应的队伍颜色还未确定（后面sort），先按ti序号匹配 */
-            /* 简化：直接按门槛把高战力C优先放前面队伍 */
-            if(k===ci || targetColor!=="green"){
-              teams[ti].slots.push({charId:w.C[k].id});
-              teams[ti].owners.add(w.C[k].owner);
-              teams[ti].cTotal+=w.C[k].power;
-              teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
-              /* 从w.C中移除已分配的 */
-              w.C.splice(k,1);
-              ci--; /* 补偿索引 */
-              found=true;
-              break;
-            }
-          }
-          if(!found){
-            /* 没有匹配门槛的C，贪心放入当前队伍 */
-            ci++;
-            if(ownerInAnyTeam(teams, c.owner)) continue;
-            teams[ti].slots.push({charId:c.id});
-            teams[ti].owners.add(c.owner);
-            teams[ti].cTotal+=c.power;
-            teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
-          } else {
-            ci++;
-          }
-        }
-      }
-    } else {
-      /* 无门槛：原贪心逻辑 */
-      for(let ti=0;ti<teams.length;ti++){
-        while(teams[ti].slots.length<4 && ci<w.C.length){
-          const c=w.C[ci]; ci++;
-          if(ownerInAnyTeam(teams, c.owner)) continue; /* 检查同波所有队伍 */
-          teams[ti].slots.push({charId:c.id});
-          teams[ti].owners.add(c.owner);
-          teams[ti].cTotal+=c.power;
-          teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
-        }
+    for(let ti=0;ti<teams.length;ti++){
+      while(teams[ti].slots.length<4 && ci<w.C.length){
+        const c=w.C[ci]; ci++;
+        if(ownerInAnyTeam(teams, c.owner)) continue; /* 检查同波所有队伍 */
+        teams[ti].slots.push({charId:c.id});
+        teams[ti].owners.add(c.owner);
+        teams[ti].cTotal+=c.power;
+        teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
       }
     }
 
@@ -1344,6 +1297,7 @@ function arrange12(chars, opts){
 
   /* ---- 输出 ---- */
   const colors=["red","yellow","green"];
+  const hasThreshold = (typeof opts.thresholdRed==="number")||(typeof opts.thresholdYellow==="number")||(typeof opts.thresholdGreen==="number");
   const allTeams=[];
   const globalUsed=new Set();
   for(let wi=0;wi<numWaves;wi++){
@@ -1352,6 +1306,11 @@ function arrange12(chars, opts){
     teams.sort((a,b)=>b.total-a.total);
     teams.forEach((t,i)=>{
       if(!t.hChar) return; /* 安全过滤：没奶的队伍不输出 */
+      /* 门槛强制校验：排序后按颜色检查C总战力是否达标 */
+      if(hasThreshold){
+        const thr=[opts.thresholdRed, opts.thresholdYellow, opts.thresholdGreen];
+        if(typeof thr[i]==="number" && t.cTotal<thr[i]) return; /* C总不达标，不输出此队伍 */
+      }
       t.slots.forEach(s=>globalUsed.add(s.charId));
       allTeams.push({slots:t.slots,raidColor:colors[i],group:wi+1});
     });
@@ -1438,13 +1397,39 @@ function arrange12(chars, opts){
     }
   }
 
-  /* ---- Phase 5.5: 双奶整合——把剩余奶分配到已有队伍中作为第二奶 ---- */
+  /* ---- Phase 5.5: 双奶整合——先解散只有奶没C的队伍，再把奶整合到其他队伍 ---- */
   if(dualHealer){
-    const usedAfterLeftover=new Set();
-    allTeams.forEach(t=>t.slots.forEach(s=>s.charId&&usedAfterLeftover.add(s.charId)));
-    const remainingH=H.filter(h=>!usedAfterLeftover.has(h.id));
-    /* 按波分组，将剩余奶添加到其他波中总战力最低的队伍 */
-    for(const h of remainingH){
+    /* Step 1: 找出只有奶没有C的队伍，解散它们，收集奶 */
+    const dissolvedHealers=[];
+    const teamsToKeep=[];
+    for(const t of allTeams){
+      const hasC=t.slots.some(s=>{
+        const c=charMap[s.charId];
+        return c && c.type==="c";
+      });
+      const healers=t.slots.filter(s=>{
+        const c=charMap[s.charId];
+        return c && c.type==="N";
+      });
+      if(!hasC && healers.length>0){
+        /* 只有奶没C，解散，收集奶 */
+        healers.forEach(s=>dissolvedHealers.push(charMap[s.charId]));
+      } else {
+        teamsToKeep.push(t);
+      }
+    }
+    /* 替换allTeams为保留的队伍 */
+    allTeams.length=0;
+    teamsToKeep.forEach(t=>allTeams.push(t));
+
+    /* Step 2: 收集所有未分配的奶（包括解散的 + 完全没入队的） */
+    const usedAfterDissolve=new Set();
+    allTeams.forEach(t=>t.slots.forEach(s=>s.charId&&usedAfterDissolve.add(s.charId)));
+    const remainingH=H.filter(h=>!usedAfterDissolve.has(h.id));
+    const allExtraH=[...remainingH, ...dissolvedHealers.filter(h=>!usedAfterDissolve.has(h.id))];
+
+    /* Step 3: 将所有额外奶分配到其他队伍中作为第二奶 */
+    for(const h of allExtraH){
       let bestTeam=null, bestTotal=Infinity;
       for(const t of allTeams){
         const hCount=t.slots.filter(s=>{
