@@ -332,19 +332,23 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
   </div>
 
   <!-- 12人团本专属配置 -->
-  <div id="raid12Config" style="display:none;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:10px;flex-wrap:wrap;gap:16px;align-items:center">
-    <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:13px;font-weight:bold;color:var(--text)">战力门槛：</span>
-      <label style="font-size:12px;color:var(--mut)">红队≥</label>
-      <input type="number" id="thresholdRed" placeholder="不填=自动" style="width:80px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
-      <label style="font-size:12px;color:var(--mut)">黄队≥</label>
-      <input type="number" id="thresholdYellow" placeholder="不填=自动" style="width:80px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
-      <label style="font-size:12px;color:var(--mut)">绿队≥</label>
-      <input type="number" id="thresholdGreen" placeholder="不填=自动" style="width:80px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
+  <div id="raid12Config" style="display:none;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:10px;flex-direction:column;gap:10px">
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px">
+      <span style="font-size:13px;font-weight:bold;color:var(--text);white-space:nowrap">战力门槛：</span>
+      <label style="font-size:12px;color:var(--mut);white-space:nowrap;display:flex;align-items:center;gap:4px">
+        红队≥<input type="number" id="thresholdRed" placeholder="留空=不限" style="width:90px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
+      </label>
+      <label style="font-size:12px;color:var(--mut);white-space:nowrap;display:flex;align-items:center;gap:4px">
+        黄队≥<input type="number" id="thresholdYellow" placeholder="留空=不限" style="width:90px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
+      </label>
+      <label style="font-size:12px;color:var(--mut);white-space:nowrap;display:flex;align-items:center;gap:4px">
+        绿队≥<input type="number" id="thresholdGreen" placeholder="留空=不限" style="width:90px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
+      </label>
+      <span style="font-size:11px;color:var(--mut);white-space:nowrap">填写后，C总战力低于门槛的队伍不生成</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
-      <label style="font-size:13px;font-weight:bold;color:var(--text);cursor:pointer" title="开启后，战力较低且没有C编队的奶会整合到其他队伍中，支持单队伍两个奶">
-        <input type="checkbox" id="dualHealer" style="vertical-align:middle"> 允许双奶
+      <label style="font-size:13px;font-weight:bold;color:var(--text);cursor:pointer;white-space:nowrap" title="开启后，战力较低且没有C编队的奶会整合到其他队伍中，支持单队伍两个奶">
+        <input type="checkbox" id="dualHealer" style="vertical-align:middle"> 允许双奶（2C2N配置）
       </label>
     </div>
   </div>
