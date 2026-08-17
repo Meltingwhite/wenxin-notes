@@ -331,6 +331,24 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     </div>
   </div>
 
+  <!-- 12人团本专属配置 -->
+  <div id="raid12Config" style="display:none;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:10px;flex-wrap:wrap;gap:16px;align-items:center">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:13px;font-weight:bold;color:var(--text)">战力门槛：</span>
+      <label style="font-size:12px;color:var(--mut)">红队≥</label>
+      <input type="number" id="thresholdRed" placeholder="不填=自动" style="width:80px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
+      <label style="font-size:12px;color:var(--mut)">黄队≥</label>
+      <input type="number" id="thresholdYellow" placeholder="不填=自动" style="width:80px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
+      <label style="font-size:12px;color:var(--mut)">绿队≥</label>
+      <input type="number" id="thresholdGreen" placeholder="不填=自动" style="width:80px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <label style="font-size:13px;font-weight:bold;color:var(--text);cursor:pointer" title="开启后，战力较低且没有C编队的奶会整合到其他队伍中，支持单队伍两个奶">
+        <input type="checkbox" id="dualHealer" style="vertical-align:middle"> 允许双奶
+      </label>
+    </div>
+  </div>
+
   <div class="stat-row">
     总角色 <b id="totalAll">0</b> ｜ C位 <b id="totalC">0</b> ｜ 奶位 <b id="totalHealer">0</b> ｜ 已生成队伍 <b id="teamCount">0</b> ｜ 未入队 <b id="leftCount">0</b>
   </div>
@@ -1011,9 +1029,9 @@ function loadStorage(){
 }
 
 /* ---------- 排表（纯函数） ---------- */
-function arrange(chars, mode){
+function arrange(chars, mode, opts){
   const m = mode || raidMode || 4;
-  if(m===12) return arrange12(chars);
+  if(m===12) return arrange12(chars, opts||{});
   return arrange4(chars);
 }
 
@@ -1025,8 +1043,12 @@ function arrange(chars, mode){
    4. 全局梯度：任何红队C总>任何黄队C总>任何绿队C总
    5. 填充优先级：红>黄>绿，不足时留空
    6. 最终输出前强制验证：扫描所有波，移除任何同波重复玩家
+   7. 可选门槛：opts.thresholdRed/Yellow/Green 按用户填写值分配各色C
+   8. 可选双奶：opts.dualHealer 开启后，剩余奶可整合到队伍中作为第二奶
 */
-function arrange12(chars){
+function arrange12(chars, opts){
+  opts = opts || {};
+  const dualHealer = !!opts.dualHealer;
   const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
   const H = chars.filter(c=>c.type==="N").slice().sort((a,b)=>b.power-a.power);
   if(H.length<3 || C.length<3) return [];
@@ -1106,15 +1128,63 @@ function arrange12(chars){
     }
 
     /* 分配C：只分配给有奶的队伍，凑不到奶的C不生成队伍，留未配置 */
+    /* 如有门槛配置，按门槛优先分配C到对应战力区间的队伍 */
+    const hasThreshold = (typeof opts.thresholdRed==="number")||(typeof opts.thresholdYellow==="number")||(typeof opts.thresholdGreen==="number");
     let ci=0;
-    for(let ti=0;ti<teams.length;ti++){
-      while(teams[ti].slots.length<4 && ci<w.C.length){
-        const c=w.C[ci]; ci++;
-        if(ownerInAnyTeam(teams, c.owner)) continue; /* 检查同波所有队伍 */
-        teams[ti].slots.push({charId:c.id});
-        teams[ti].owners.add(c.owner);
-        teams[ti].cTotal+=c.power;
-        teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
+    if(hasThreshold){
+      /* 多轮分配：第一轮按门槛匹配，第二轮贪心补满 */
+      for(let ti=0;ti<teams.length;ti++){
+        while(teams[ti].slots.length<4 && ci<w.C.length){
+          const c=w.C[ci];
+          /* 尝试找符合当前队伍门槛的C */
+          let found=false;
+          for(let k=ci;k<w.C.length;k++){
+            if(ownerInAnyTeam(teams, w.C[k].owner)) continue;
+            /* 判断此C适合哪个门槛区间 */
+            const cPower=w.C[k].power;
+            let targetColor=null;
+            if(typeof opts.thresholdRed==="number" && cPower>=opts.thresholdRed) targetColor="red";
+            else if(typeof opts.thresholdYellow==="number" && cPower>=opts.thresholdYellow) targetColor="yellow";
+            else if(typeof opts.thresholdGreen==="number" && cPower>=opts.thresholdGreen) targetColor="green";
+            else targetColor="green"; /* 没有对应门槛的放到最低色 */
+            /* ti对应的队伍颜色还未确定（后面sort），先按ti序号匹配 */
+            /* 简化：直接按门槛把高战力C优先放前面队伍 */
+            if(k===ci || targetColor!=="green"){
+              teams[ti].slots.push({charId:w.C[k].id});
+              teams[ti].owners.add(w.C[k].owner);
+              teams[ti].cTotal+=w.C[k].power;
+              teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
+              /* 从w.C中移除已分配的 */
+              w.C.splice(k,1);
+              ci--; /* 补偿索引 */
+              found=true;
+              break;
+            }
+          }
+          if(!found){
+            /* 没有匹配门槛的C，贪心放入当前队伍 */
+            ci++;
+            if(ownerInAnyTeam(teams, c.owner)) continue;
+            teams[ti].slots.push({charId:c.id});
+            teams[ti].owners.add(c.owner);
+            teams[ti].cTotal+=c.power;
+            teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
+          } else {
+            ci++;
+          }
+        }
+      }
+    } else {
+      /* 无门槛：原贪心逻辑 */
+      for(let ti=0;ti<teams.length;ti++){
+        while(teams[ti].slots.length<4 && ci<w.C.length){
+          const c=w.C[ci]; ci++;
+          if(ownerInAnyTeam(teams, c.owner)) continue; /* 检查同波所有队伍 */
+          teams[ti].slots.push({charId:c.id});
+          teams[ti].owners.add(c.owner);
+          teams[ti].cTotal+=c.power;
+          teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
+        }
       }
     }
 
@@ -1365,6 +1435,50 @@ function arrange12(chars){
         allTeams.push({slots:t.slots,raidColor:colors[i]||undefined,group:lastGroup});
       });
       lastGroup++;
+    }
+  }
+
+  /* ---- Phase 5.5: 双奶整合——把剩余奶分配到已有队伍中作为第二奶 ---- */
+  if(dualHealer){
+    const usedAfterLeftover=new Set();
+    allTeams.forEach(t=>t.slots.forEach(s=>s.charId&&usedAfterLeftover.add(s.charId)));
+    const remainingH=H.filter(h=>!usedAfterLeftover.has(h.id));
+    /* 按波分组，将剩余奶添加到其他波中总战力最低的队伍 */
+    for(const h of remainingH){
+      let bestTeam=null, bestTotal=Infinity;
+      for(const t of allTeams){
+        const hCount=t.slots.filter(s=>{
+          const c=charMap[s.charId];
+          return c && c.type==="N";
+        }).length;
+        if(hCount>=2) continue; /* 最多双奶 */
+        if(t.slots.length>=5) continue; /* 队伍位置上限 */
+        /* 检查同波无重复owner */
+        const group=t.group;
+        const groupTeams=allTeams.filter(x=>x.group===group);
+        let dup=false;
+        for(const gt of groupTeams){
+          for(const s of gt.slots){
+            const c=charMap[s.charId];
+            if(c && c.owner===h.owner){ dup=true; break; }
+          }
+          if(dup) break;
+        }
+        if(dup) continue;
+        /* 计算队伍当前总战力 */
+        let total=0, hmax=0;
+        for(const s of t.slots){
+          const c=charMap[s.charId];
+          if(!c) continue;
+          if(c.type==="c") total+=c.power;
+          else hmax=Math.max(hmax,c.power);
+        }
+        total+=hmax;
+        if(total<bestTotal){ bestTotal=total; bestTeam=t; }
+      }
+      if(bestTeam){
+        bestTeam.slots.push({charId:h.id});
+      }
     }
   }
 
@@ -1692,6 +1806,8 @@ function updateModeBtns(){
   });
   const autoBtn=document.getElementById("autoArrange");
   autoBtn.textContent = raidMode===12 ? "一键排表（12人红黄绿）" : "一键均衡排完所有角色";
+  const cfg=document.getElementById("raid12Config");
+  if(cfg) cfg.style.display = raidMode===12 ? "flex" : "none";
 }
 
 function updateStat(){
@@ -1827,8 +1943,9 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     /* 12人团本：标签带波数，如"第1波-红队" */
     const waveNum = isRaid12 ? curGroup : (tIdx+1);
     const teamLabel = rColor ? `第${waveNum}波-${raidLabels[rColor]}` : `第${tIdx+1}波`;
+    const hDisp = hcount>0 ? hmax : 0;
     let html=`<div class="team-title">${rColor?`<span class="raid-tag ${rColor}">第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
-      <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hmax}</b>${hcount>1?` <span style="font-size:0.8em;color:var(--mut)">（C${csum}+奶${hmax}）</span>`:''} ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
+      <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hDisp}</b> <span style="font-size:0.8em;color:var(--mut)">（C总${csum} + 奶${hDisp}${hcount>1?`(${hcount}奶最高)`:''}）</span> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></div><div class="team-grid">`;
     team.slots.forEach((slot,sIdx)=>{
       const slotChar = slot.charId ? charList.find(x=>x.id===slot.charId) : null;
       if(!slotChar){
@@ -1971,8 +2088,18 @@ async function doAutoArrange(){
   if(teamList && teamList.length>0){
     if(!confirm("当前已有排表数据，一键排表将覆盖现有排表。是否继续？")) return;
   }
+  const opts={};
+  if(raidMode===12){
+    const tr=parseInt(document.getElementById("thresholdRed").value);
+    const ty=parseInt(document.getElementById("thresholdYellow").value);
+    const tg=parseInt(document.getElementById("thresholdGreen").value);
+    if(!isNaN(tr)) opts.thresholdRed=tr;
+    if(!isNaN(ty)) opts.thresholdYellow=ty;
+    if(!isNaN(tg)) opts.thresholdGreen=tg;
+    opts.dualHealer=document.getElementById("dualHealer").checked;
+  }
   pushHistory();
-  await SYNC.writeState(st=>{ st.teamList=arrange(st.charList); return st; });
+  await SYNC.writeState(st=>{ st.teamList=arrange(st.charList, raidMode, opts); return st; });
 }
 async function switchMode(m){
   if(m===raidMode) return;
