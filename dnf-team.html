@@ -1079,11 +1079,27 @@ function arrange12(chars, opts){
   const waves=[];
   for(let i=0;i<numWaves;i++) waves.push({H:[],C:[],owners:new Set(),hTotal:0,cTotal:0});
 
-  /* 分配C：按战力降序，分配给cTotal最低且无此owner的波 */
+  /* 分配奶：优先填满前面的波数（3个奶），保持同波无重复玩家 */
+  for(const h of H){
+    let target=-1;
+    for(let wi=0;wi<numWaves;wi++){
+      if(waves[wi].H.length>=3) continue;
+      if(waves[wi].owners.has(h.owner)) continue;
+      target=wi; break;
+    }
+    if(target===-1) continue; /* 严格：找不到无冲突的波就跳过 */
+    waves[target].H.push(h);
+    waves[target].owners.add(h.owner);
+    waves[target].hTotal+=h.power;
+  }
+
+  /* 分配C：按战力降序，分配给cTotal最低且无此owner的波，上限为该波奶数×3 */
   for(const c of C){
     let target=-1, minVal=Infinity;
     for(let wi=0;wi<numWaves;wi++){
-      if(waves[wi].C.length>=9) continue;
+      const cMax=waves[wi].H.length*3;
+      if(cMax===0) continue;
+      if(waves[wi].C.length>=cMax) continue;
       if(waves[wi].owners.has(c.owner)) continue;
       if(waves[wi].cTotal<minVal){ minVal=waves[wi].cTotal; target=wi; }
     }
@@ -1091,20 +1107,6 @@ function arrange12(chars, opts){
     waves[target].C.push(c);
     waves[target].owners.add(c.owner);
     waves[target].cTotal+=c.power;
-  }
-
-  /* 分配奶：按战力降序，分配给hTotal最低且无此owner的波 */
-  for(const h of H){
-    let target=-1, minVal=Infinity;
-    for(let wi=0;wi<numWaves;wi++){
-      if(waves[wi].H.length>=3) continue;
-      if(waves[wi].owners.has(h.owner)) continue;
-      if(waves[wi].hTotal<minVal){ minVal=waves[wi].hTotal; target=wi; }
-    }
-    if(target===-1) continue; /* 严格：找不到无冲突的波就跳过 */
-    waves[target].H.push(h);
-    waves[target].owners.add(h.owner);
-    waves[target].hTotal+=h.power;
   }
 
   /* ---- Phase 2: 每波内部组3支队伍 ---- */
