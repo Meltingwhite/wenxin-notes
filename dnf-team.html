@@ -232,6 +232,13 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 .add-team-inline:hover,.add-wave-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--bg)}
 .wave-add-new{grid-column:1/-1;display:flex;justify-content:center;margin:10px 0 4px}
 .add-wave-btn{border-style:solid;border-color:var(--blue);color:var(--blue);font-weight:bold}
+.team-block[draggable="true"]{cursor:grab;transition:opacity .15s,box-shadow .15s}
+.team-block[draggable="true"]:hover{box-shadow:0 0 0 1px var(--blue)}
+.team-block.dragging{opacity:.4}
+.team-block.drag-over{box-shadow:0 0 0 2px var(--blue);border-radius:8px}
+.wave-label[draggable="true"]{cursor:grab;user-select:none}
+.wave-label.dragging{opacity:.5}
+.wave-label.drag-over .wnum{box-shadow:0 0 0 2px var(--blue)}
 @media(max-width:900px){
   .team-grid-12{grid-template-columns:repeat(2,1fr)}
 }
@@ -2037,6 +2044,94 @@ function renderTeamTable(){
       doAddTeam();
     });
   });
+  // 绑定拖拽：队伍排序（4人模式插入排序，12人模式队伍对调）
+  bindTeamDragHandlers(isRaid12);
+}
+
+function bindTeamDragHandlers(isRaid12){
+  const blocks=document.querySelectorAll("[data-teamDrag]");
+  const waveLabels=document.querySelectorAll("[data-waveDrag]");
+
+  blocks.forEach(block=>{
+    block.addEventListener("dragstart",function(e){
+      e.stopPropagation();
+      e.dataTransfer.setData("text/plain",JSON.stringify({type:"team",idx:Number(this.dataset.teamDrag)}));
+      e.dataTransfer.effectAllowed="move";
+      this.classList.add("dragging");
+    });
+    block.addEventListener("dragend",function(){
+      this.classList.remove("dragging");
+      document.querySelectorAll(".drag-over").forEach(el=>el.classList.remove("drag-over"));
+    });
+    block.addEventListener("dragover",function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect="move";
+      this.classList.add("drag-over");
+    });
+    block.addEventListener("dragleave",function(){
+      this.classList.remove("drag-over");
+    });
+    block.addEventListener("drop",async function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      this.classList.remove("drag-over");
+      const data=JSON.parse(e.dataTransfer.getData("text/plain")||"{}");
+      if(data.type!=="team") return;
+      const fromIdx=data.idx, toIdx=Number(this.dataset.teamDrag);
+      if(fromIdx===toIdx) return;
+      if(isRaid12){
+        await doSwapTeams12(fromIdx,toIdx);
+      } else {
+        await doMoveTeam(fromIdx,toIdx);
+      }
+    });
+  });
+
+  /* 12人模式：波数拖拽（长按拖动整个波数） */
+  if(isRaid12){
+    waveLabels.forEach(wl=>{
+      let pressTimer=null, isLongPress=false;
+      /* 长按检测 */
+      wl.addEventListener("mousedown",function(){
+        isLongPress=false;
+        pressTimer=setTimeout(()=>{ isLongPress=true; },400);
+      });
+      wl.addEventListener("mouseup",function(){ if(pressTimer){clearTimeout(pressTimer);pressTimer=null;} });
+      wl.addEventListener("mouseleave",function(){ if(pressTimer){clearTimeout(pressTimer);pressTimer=null;} });
+
+      wl.addEventListener("dragstart",function(e){
+        if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
+        e.stopPropagation();
+        e.dataTransfer.setData("text/plain",JSON.stringify({type:"wave",wave:Number(this.dataset.waveDrag)}));
+        e.dataTransfer.effectAllowed="move";
+        this.classList.add("dragging");
+      });
+      wl.addEventListener("dragend",function(){
+        this.classList.remove("dragging");
+        document.querySelectorAll(".drag-over").forEach(el=>el.classList.remove("drag-over"));
+      });
+      wl.addEventListener("dragover",function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect="move";
+        this.classList.add("drag-over");
+      });
+      wl.addEventListener("dragleave",function(){
+        this.classList.remove("drag-over");
+      });
+      wl.addEventListener("drop",async function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove("drag-over");
+        const data=JSON.parse(e.dataTransfer.getData("text/plain")||"{}");
+        if(data.type!=="wave") return;
+        const fromWave=data.wave, toWave=Number(this.dataset.waveDrag);
+        if(fromWave===toWave) return;
+        await doMoveWave(fromWave,toWave);
+      });
+    });
+  }
 }
 
 function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, raidLabels, gTeams){
@@ -2068,6 +2163,8 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       }
       const wl=document.createElement("div");
       wl.className="wave-label";
+      wl.draggable=true;
+      wl.dataset.waveDrag=curGroup;
       wl.innerHTML=`<span class="wnum">第 ${curGroup} 波</span><span class="wline"></span>`;
       container.appendChild(wl);
       prevGroup=curGroup;
@@ -2082,6 +2179,8 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     if(isRaid12 && rColor){ curWaveColors.push(rColor); }
     const block=document.createElement("div");
     block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass;
+    block.draggable=true;
+    block.dataset.teamDrag=tIdx;
     const owners=new Set(); let csum=0, hmax=0, hcount=0;
     team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; else { hmax=Math.max(hmax,c.power); hcount++; } } } });
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
@@ -2464,6 +2563,52 @@ async function doRemoveTeam(tIdx){
     if(tIdx>=0 && tIdx<st.teamList.length){
       st.teamList.splice(tIdx,1);
     }
+    return st;
+  });
+}
+
+/* ---------- 拖拽：4人模式队伍插入排序 ---------- */
+async function doMoveTeam(fromIdx,toIdx){
+  pushHistory();
+  await SYNC.writeState(st=>{
+    if(fromIdx<0||fromIdx>=st.teamList.length||toIdx<0||toIdx>=st.teamList.length) return st;
+    const team=st.teamList.splice(fromIdx,1)[0];
+    st.teamList.splice(toIdx,0,team);
+    return st;
+  });
+}
+
+/* ---------- 拖拽：12人模式队伍对调 ---------- */
+async function doSwapTeams12(fromIdx,toIdx){
+  pushHistory();
+  await SYNC.writeState(st=>{
+    if(fromIdx<0||fromIdx>=st.teamList.length||toIdx<0||toIdx>=st.teamList.length) return st;
+    /* 对调两队的位置和波数/颜色信息 */
+    const a=st.teamList[fromIdx], b=st.teamList[toIdx];
+    const aGroup=a.group, aColor=a.raidColor;
+    a.group=b.group; a.raidColor=b.raidColor;
+    b.group=aGroup; b.raidColor=aColor;
+    /* 同时在数组中也交换位置，保持顺序 */
+    st.teamList[fromIdx]=b;
+    st.teamList[toIdx]=a;
+    return st;
+  });
+}
+
+/* ---------- 拖拽：12人模式整个波数插入排序 ---------- */
+async function doMoveWave(fromWave,toWave){
+  if(fromWave===toWave) return;
+  pushHistory();
+  await SYNC.writeState(st=>{
+    /* 收集两个波数的所有队伍 */
+    const fromTeams=st.teamList.filter(t=>t.group===fromWave);
+    const toTeams=st.teamList.filter(t=>t.group===toWave);
+    if(!fromTeams.length||!toTeams.length) return st;
+    /* 交换波数编号：fromWave的队伍变为toWave，toWave的变为fromWave */
+    fromTeams.forEach(t=>t.group=toWave);
+    toTeams.forEach(t=>t.group=fromWave);
+    /* 重新排序teamList，按波数顺序排列 */
+    st.teamList.sort((a,b)=>(a.group||0)-(b.group||0));
     return st;
   });
 }
