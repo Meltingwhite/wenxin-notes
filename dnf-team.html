@@ -1713,6 +1713,7 @@ const SYNC = {
       charList = Array.isArray(data.charList)?data.charList:charList;
       raidMode = data.raidMode||4;
       teamList = Array.isArray(data.teamList)?data.teamList:arrange(charList);
+      if(data.raid12Config) applyRaid12Config(data.raid12Config);
       saveStorage(); renderAll(); updateModeBtns();
       this.start();
       onOk();
@@ -1802,6 +1803,7 @@ const SYNC = {
         charList = Array.isArray(data.charList)?data.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }):charList;
         raidMode = data.raidMode||4;
         teamList = Array.isArray(data.teamList)?data.teamList:arrange(charList);
+        if(data.raid12Config) applyRaid12Config(data.raid12Config);
         saveStorage(); renderAll(); updateModeBtns();
       }
       this.room.presence = data.presence || {};
@@ -2313,15 +2315,24 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
 
 /* ---------- 编辑角色 ---------- */
 function editChar(id){
-  editTargetId=id; const item=charList.find(x=>x.id===id); if(!item) return;
+  const numId=Number(id);
+  editTargetId=numId;
+  const item=charList.find(x=>Number(x.id)===numId);
+  if(!item){
+    alert("未找到该角色，可能数据同步异常，请刷新页面重试");
+    return;
+  }
   document.getElementById("formTitle").textContent="编辑角色";
-  document.getElementById("editId").value=id;
+  document.getElementById("editId").value=numId;
   document.getElementById("editOwner").value=item.owner;
   document.getElementById("editName").value=item.name;
   document.getElementById("editPower").value=item.power;
   document.getElementById("editType").value=item.type;
   document.getElementById("editA").value=item.a||"";
   document.getElementById("editB").value=item.b||"";
+  /* 滚动到编辑表单 */
+  const formBox=document.querySelector(".form-box");
+  if(formBox) formBox.scrollIntoView({behavior:"smooth",block:"start"});
 }
 function clearEdit(){
   editTargetId=null;
@@ -2342,11 +2353,11 @@ async function saveChar(){
   await SYNC.writeState(st=>{
     const draft={owner:o,name:n,power:p,type:tp,a,b};
     if(target){
-      const idx=st.charList.findIndex(x=>x.id===target);
-      if(idx>=0) st.charList[idx]=Object.assign({id:target},draft);
-      else st.charList.push(Object.assign({id:target},draft));
+      const idx=st.charList.findIndex(x=>Number(x.id)===Number(target));
+      if(idx>=0) st.charList[idx]=Object.assign({id:Number(target)},draft);
+      else st.charList.push(Object.assign({id:Number(target)},draft));
     }else{
-      const newId=Math.max(0,...st.charList.map(x=>x.id))+1;
+      const newId=Math.max(0,...st.charList.map(x=>Number(x.id)||0))+1;
       st.charList.push(Object.assign({id:newId},draft));
     }
     st.teamList=arrange(st.charList);
@@ -2356,34 +2367,53 @@ async function saveChar(){
 }
 async function delChar(id){
   if(!confirm("确定删除该角色？队伍内占用会清空并重新排表"))return;
+  const numId=Number(id);
   pushHistory();
-  await SYNC.writeState(st=>{ st.charList=st.charList.filter(x=>x.id!==id); st.teamList=arrange(st.charList); return st; });
+  await SYNC.writeState(st=>{ st.charList=st.charList.filter(x=>Number(x.id)!==numId); st.teamList=arrange(st.charList); return st; });
 }
 
 /* ---------- 顶栏动作 ---------- */
+/* 从DOM读取12人模式配置 */
+function readRaid12Config(){
+  const opts={};
+  const tr=parseInt(document.getElementById("thresholdRed").value);
+  const ty=parseInt(document.getElementById("thresholdYellow").value);
+  const tg=parseInt(document.getElementById("thresholdGreen").value);
+  if(!isNaN(tr)) opts.thresholdRed=tr;
+  if(!isNaN(ty)) opts.thresholdYellow=ty;
+  if(!isNaN(tg)) opts.thresholdGreen=tg;
+  opts.dualHealer=document.getElementById("dualHealer").checked;
+  return opts;
+}
+/* 将12人模式配置写回DOM */
+function applyRaid12Config(cfg){
+  if(!cfg) return;
+  document.getElementById("thresholdRed").value=(cfg.thresholdRed!=null)?cfg.thresholdRed:"";
+  document.getElementById("thresholdYellow").value=(cfg.thresholdYellow!=null)?cfg.thresholdYellow:"";
+  document.getElementById("thresholdGreen").value=(cfg.thresholdGreen!=null)?cfg.thresholdGreen:"";
+  document.getElementById("dualHealer").checked=!!cfg.dualHealer;
+}
 async function doAutoArrange(){
   if(teamList && teamList.length>0){
     if(!confirm("当前已有排表数据，一键排表将覆盖现有排表。是否继续？")) return;
   }
-  const opts={};
-  if(raidMode===12){
-    const tr=parseInt(document.getElementById("thresholdRed").value);
-    const ty=parseInt(document.getElementById("thresholdYellow").value);
-    const tg=parseInt(document.getElementById("thresholdGreen").value);
-    if(!isNaN(tr)) opts.thresholdRed=tr;
-    if(!isNaN(ty)) opts.thresholdYellow=ty;
-    if(!isNaN(tg)) opts.thresholdGreen=tg;
-    opts.dualHealer=document.getElementById("dualHealer").checked;
-  }
+  const opts=readRaid12Config();
   pushHistory();
-  await SYNC.writeState(st=>{ st.teamList=arrange(st.charList, raidMode, opts); return st; });
+  await SYNC.writeState(st=>{
+    st.raid12Config=opts;
+    st.teamList=arrange(st.charList, raidMode, opts);
+    return st;
+  });
 }
 async function switchMode(m){
   if(m===raidMode) return;
   pushHistory();
   const wasEmpty = !teamList || teamList.length===0;
+  /* 切换到12人模式时，保存当前门槛配置到房间 */
+  const cfg = m===12 ? readRaid12Config() : null;
   await SYNC.writeState(st=>{
     st.raidMode=m; raidMode=m;
+    if(cfg) st.raid12Config=cfg;
     /* 排表已清空时切换模式不自动重排，保持空状态由用户手动一键排表 */
     if(!wasEmpty) st.teamList=arrange(st.charList);
     return st;
@@ -3048,6 +3078,19 @@ function init(){
   document.getElementById("resetAll").onclick=doReset;
   document.getElementById("clearTeams").onclick=doClearTeams;
   document.getElementById("addTeam").onclick=doAddTeam;
+
+  /* 12人模式门槛配置持久化：修改即同步到房间 */
+  ["thresholdRed","thresholdYellow","thresholdGreen","dualHealer"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){
+      el.addEventListener("change",async()=>{
+        if(raidMode===12 && SYNC.room){
+          const cfg=readRaid12Config();
+          await SYNC.writeState(st=>{ st.raid12Config=cfg; return st; });
+        }
+      });
+    }
+  });
 
   document.getElementById("importData").onclick=()=>openModal("importModal");
   document.getElementById("closeImport").onclick=()=>closeModal("importModal");
