@@ -166,9 +166,10 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .card h4{margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
 .card .meta{font-size:11px;color:var(--mut);line-height:1.5}
 .card .pwr{color:var(--yellow);font-weight:600}
-.owner-header{width:100%;padding:8px 4px 4px;font-size:14px;font-weight:700;color:var(--blue);border-bottom:1px solid var(--line);margin-top:8px}
+.owner-header{width:100%;padding:8px 4px 4px;font-size:14px;font-weight:700;color:var(--blue);border-bottom:1px solid var(--line);margin-top:8px;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
 .owner-header:first-child{margin-top:0}
 .owner-header .cnt{font-size:11px;color:var(--mut);font-weight:400;margin-left:6px}
+.batch-del-btn{font-size:12px;padding:3px 10px}
 .team-block{background:var(--panel2);padding:12px;border-radius:9px;margin-bottom:12px;border:1px solid var(--line)}
 .team-block.raid-red{border:2px solid #e74c3c;background:#2a1515}
 .team-block.raid-yellow{border:2px solid #f1c40f;background:#2a2a15}
@@ -450,6 +451,24 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
         <button id="copyImg">复制到剪贴板</button>
         <button class="secondary" id="downloadImg">下载图片</button>
         <button class="secondary" id="closeImg">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑角色弹窗 -->
+  <div class="modal" id="editCharModal">
+    <div class="modal-box" style="max-width:480px">
+      <h3 id="editCharTitle">编辑角色</h3>
+      <div class="form-item"><label>归属玩家</label><input id="modalEditOwner" list="ownerList" placeholder="选择或输入玩家"></div>
+      <div class="form-item"><label>角色名称</label><input id="modalEditName" placeholder="如：剑魂(J)、缪斯"></div>
+      <div class="form-item"><label>战力数值</label><input type="number" id="modalEditPower" placeholder="模拟/校正战力"></div>
+      <div class="form-item"><label>类型</label><select id="modalEditType"><option value="c">输出 C</option><option value="N">奶</option></select></div>
+      <div class="form-item"><label>A套套装</label><input id="modalEditA" placeholder="黄金乡/龙战/天命等"></div>
+      <div class="form-item"><label>B套套装</label><input id="modalEditB" placeholder="青丘/群猎/混沌等"></div>
+      <input type="hidden" id="modalEditId">
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="success" id="modalSaveChar">保存修改</button>
+        <button class="secondary" id="closeEditChar">取消</button>
       </div>
     </div>
   </div>
@@ -1936,23 +1955,75 @@ function renderCharList(){
     const used=chars.filter(c=>usedIds.has(c.id)).length;
     const hdr=document.createElement("div");
     hdr.className="owner-header";
-    hdr.innerHTML=`${escapeHtml(owner)} <span class="cnt">${chars.length}个角色 · ${used}已配置 / ${chars.length-used}未配置</span>`;
+    hdr.innerHTML=`<label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+      <input type="checkbox" class="owner-select-all" data-owner="${escapeHtml(owner)}" style="width:16px;height:16px;cursor:pointer">
+      <span>${escapeHtml(owner)}</span>
+    </label>
+    <span class="cnt">${chars.length}个角色 · ${used}已配置 / ${chars.length-used}未配置</span>
+    <button class="sm danger batch-del-btn" data-batch-del="${escapeHtml(owner)}" style="margin-left:auto;display:none">批量删除</button>`;
     wrap.appendChild(hdr);
     chars.forEach(c=>{
       const div=document.createElement("div");
       div.className=`card ${c.type} ${usedIds.has(c.id)?"used":""}`;
       div.innerHTML=`
-        <h4>${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span class="pwr">${c.power}</span></h4>
-        <div class="meta">${c.type==="c"?"输出C":"奶"} ｜ A:${escapeHtml(c.a||"-")} B:${escapeHtml(c.b||"-")}</div>
-        <div style="margin-top:6px;display:flex;gap:6px">
-          <button class="sm" data-edit="${c.id}">编辑</button>
-          <button class="sm danger" data-del="${c.id}">删除</button>
+        <div style="display:flex;align-items:flex-start;gap:8px">
+          <input type="checkbox" class="char-checkbox" data-char-id="${c.id}" data-owner="${escapeHtml(c.owner)}" style="margin-top:4px;width:16px;height:16px;cursor:pointer;flex-shrink:0">
+          <div style="flex:1;min-width:0">
+            <h4>${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span class="pwr">${c.power}</span></h4>
+            <div class="meta">${c.type==="c"?"输出C":"奶"} ｜ A:${escapeHtml(c.a||"-")} B:${escapeHtml(c.b||"-")}</div>
+            <div style="margin-top:6px;display:flex;gap:6px">
+              <button class="sm" data-edit="${c.id}">编辑</button>
+              <button class="sm danger" data-del="${c.id}">删除</button>
+            </div>
+          </div>
         </div>`;
       wrap.appendChild(div);
     });
   });
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editChar(Number(b.dataset.edit)));
   document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delChar(Number(b.dataset.del)));
+
+  /* 全选/取消全选 */
+  document.querySelectorAll(".owner-select-all").forEach(cb=>{
+    cb.onchange=function(){
+      const owner=this.dataset.owner;
+      const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
+      cbs.forEach(c=>c.checked=this.checked);
+      updateBatchDelBtn(owner);
+    };
+  });
+  /* 单个勾选 */
+  document.querySelectorAll(".char-checkbox").forEach(cb=>{
+    cb.onchange=function(){
+      const owner=this.dataset.owner;
+      updateBatchDelBtn(owner);
+      /* 更新全选状态 */
+      const all=document.querySelector(`.owner-select-all[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
+      const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
+      if(all){ all.checked = Array.from(cbs).every(c=>c.checked); }
+    };
+  });
+  /* 批量删除 */
+  document.querySelectorAll("[data-batch-del]").forEach(btn=>{
+    btn.onclick=async function(){
+      const owner=this.dataset.batchDel;
+      const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]:checked`);
+      const ids=Array.from(cbs).map(c=>Number(c.dataset.charId));
+      if(ids.length===0) return;
+      if(!confirm(`确认批量删除 ${owner} 的 ${ids.length} 个角色？`))return;
+      pushHistory();
+      await SYNC.writeState(st=>{
+        st.charList=st.charList.filter(c=>!ids.includes(Number(c.id)));
+        st.teamList=arrange(st.charList);
+        return st;
+      });
+    };
+  });
+}
+function updateBatchDelBtn(owner){
+  const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]:checked`);
+  const btn=document.querySelector(`[data-batch-del="${owner.replace(/"/g,'&quot;')}"]`);
+  if(btn) btn.style.display=cbs.length>0?"inline-block":"none";
 }
 
 function renderTeamTable(){
@@ -2316,23 +2387,42 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
 /* ---------- 编辑角色 ---------- */
 function editChar(id){
   const numId=Number(id);
-  editTargetId=numId;
   const item=charList.find(x=>Number(x.id)===numId);
   if(!item){
     alert("未找到该角色，可能数据同步异常，请刷新页面重试");
     return;
   }
-  document.getElementById("formTitle").textContent="编辑角色";
-  document.getElementById("editId").value=numId;
-  document.getElementById("editOwner").value=item.owner;
-  document.getElementById("editName").value=item.name;
-  document.getElementById("editPower").value=item.power;
-  document.getElementById("editType").value=item.type;
-  document.getElementById("editA").value=item.a||"";
-  document.getElementById("editB").value=item.b||"";
-  /* 滚动到编辑表单 */
-  const formBox=document.querySelector(".form-box");
-  if(formBox) formBox.scrollIntoView({behavior:"smooth",block:"start"});
+  /* 弹窗编辑：填充弹窗表单并打开 */
+  document.getElementById("modalEditId").value=numId;
+  document.getElementById("modalEditOwner").value=item.owner;
+  document.getElementById("modalEditName").value=item.name;
+  document.getElementById("modalEditPower").value=item.power;
+  document.getElementById("modalEditType").value=item.type;
+  document.getElementById("modalEditA").value=item.a||"";
+  document.getElementById("modalEditB").value=item.b||"";
+  document.getElementById("editCharTitle").textContent="编辑角色 · "+item.owner+"·"+item.name;
+  openModal("editCharModal");
+}
+async function saveModalChar(){
+  const o=document.getElementById("modalEditOwner").value.trim();
+  const n=document.getElementById("modalEditName").value.trim();
+  const p=Number(document.getElementById("modalEditPower").value)||0;
+  const tp=document.getElementById("modalEditType").value;
+  const a=document.getElementById("modalEditA").value.trim();
+  const b=document.getElementById("modalEditB").value.trim();
+  const target=Number(document.getElementById("modalEditId").value);
+  if(!o){alert("请填写归属玩家");return;}
+  if(!n){alert("角色名称不能为空");return;}
+  pushHistory();
+  await SYNC.writeState(st=>{
+    const draft={owner:o,name:n,power:p,type:tp,a,b};
+    const idx=st.charList.findIndex(x=>Number(x.id)===target);
+    if(idx>=0) st.charList[idx]=Object.assign({id:target},draft);
+    else st.charList.push(Object.assign({id:target},draft));
+    st.teamList=arrange(st.charList);
+    return st;
+  });
+  closeModal("editCharModal");
 }
 function clearEdit(){
   editTargetId=null;
@@ -3078,6 +3168,10 @@ function init(){
   document.getElementById("resetAll").onclick=doReset;
   document.getElementById("clearTeams").onclick=doClearTeams;
   document.getElementById("addTeam").onclick=doAddTeam;
+
+  /* 编辑角色弹窗 */
+  document.getElementById("modalSaveChar").onclick=saveModalChar;
+  document.getElementById("closeEditChar").onclick=()=>closeModal("editCharModal");
 
   /* 12人模式门槛配置持久化：修改即同步到房间 */
   ["thresholdRed","thresholdYellow","thresholdGreen","dualHealer"].forEach(id=>{
