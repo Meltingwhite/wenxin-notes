@@ -565,6 +565,18 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <div class="changelog-content" style="margin-top:15px">
         <div class="version-entry">
           <div class="version-header">
+            <span class="ver-tag">v1.14.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>加入房间弹窗新增「记住此房间」勾选，密码保存到本地浏览器</li>
+            <li>输入房间号时自动匹配已记住房间并填充密码</li>
+            <li>仅一个记住房间时自动填充房间号和密码</li>
+            <li>最多记住 20 个房间，超出按时间自动清理</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
             <span class="ver-tag">v1.13.0</span>
             <span class="ver-date">2026-08-19</span>
           </div>
@@ -777,6 +789,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
         <div id="joinForm">
           <div class="form-item"><label>房间号</label><input id="joinRoomId" placeholder="输入房间号，如 1"></div>
           <div class="form-item"><label>密码</label><input type="password" id="joinRoomPwd" placeholder="房间密码" onkeydown="if(event.key==='Enter')document.getElementById('doJoin').click()"></div>
+          <div class="form-item" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="rememberRoom" style="width:16px;height:16px;cursor:pointer"><label for="rememberRoom" style="cursor:pointer;font-size:13px;color:var(--mut)">记住此房间（免重复输入密码）</label></div>
           <button id="doJoin" style="width:100%;margin-top:8px">进入房间</button>
         </div>
         <div id="createForm" style="display:none">
@@ -883,6 +896,7 @@ const LS_SYNC = "busha_sync_cfg";
 const LS_BACK = "busha_backup";
 const LS_ACCT = "busha_acct_v1"; /* 注册用户列表 */
 const LS_SESSION = "busha_session_v1"; /* 当前登录会话 */
+const LS_REMEMBER = "busha_remember_rooms"; /* 记住房间 */
 let charList = [];
 let teamList = [];
 let editTargetId = null;
@@ -1156,6 +1170,8 @@ function showRoomStep(){
     document.getElementById("joinRoomId").value=decodeURIComponent(m[1]);
     document.getElementById("loginMsg").textContent="请输入房间 "+m[1]+" 的密码";
   }
+  // 尝试自动填充已记住房间
+  tryAutoFillRememberedRoom();
 }
 
 function showAcctStep(){
@@ -3350,14 +3366,59 @@ function bindLoginTabs(){
 async function doJoinRoom(){
   const rid=document.getElementById("joinRoomId").value.trim();
   const pwd=document.getElementById("joinRoomPwd").value;
+  const remember=document.getElementById("rememberRoom").checked;
   const msg=document.getElementById("loginMsg");
   if(!rid){ msg.textContent="请输入房间号"; return; }
   if(!pwd){ msg.textContent="请输入密码"; return; }
   msg.textContent = "验证中…";
   await SYNC.checkRoom(rid, pwd,
-    ()=>{ closeModal("loginModal"); msg.textContent=""; document.getElementById("joinRoomPwd").value=""; },
+    ()=>{
+      closeModal("loginModal"); msg.textContent=""; document.getElementById("joinRoomPwd").value="";
+      /* 记住房间：勾选则保存到本地 */
+      if(remember) saveRememberedRoom(rid, pwd);
+      else removeRememberedRoom(rid);
+    },
     (err)=>{ msg.textContent = "✗ "+err; }
   );
+}
+/* 记住房间：本地存储 */
+function getRememberedRooms(){ try{ return JSON.parse(localStorage.getItem(LS_REMEMBER))||{}; }catch(e){ return {}; } }
+function saveRememberedRoom(rid, pwd){
+  const rooms=getRememberedRooms();
+  rooms[rid]={pwd, ts:Date.now()};
+  /* 最多记住 20 个房间，超出按时间清理 */
+  const keys=Object.keys(rooms);
+  if(keys.length>20){
+    keys.sort((a,b)=>(rooms[a].ts||0)-(rooms[b].ts||0));
+    for(let i=0;i<keys.length-20;i++) delete rooms[keys[i]];
+  }
+  localStorage.setItem(LS_REMEMBER, JSON.stringify(rooms));
+}
+function removeRememberedRoom(rid){
+  const rooms=getRememberedRooms();
+  delete rooms[rid];
+  localStorage.setItem(LS_REMEMBER, JSON.stringify(rooms));
+}
+/* 自动填充已记住房间，或自动加入 */
+function tryAutoFillRememberedRoom(){
+  const rid=document.getElementById("joinRoomId").value.trim();
+  const rooms=getRememberedRooms();
+  /* 优先匹配已填写的房间号 */
+  if(rid && rooms[rid]){
+    document.getElementById("joinRoomPwd").value=rooms[rid].pwd;
+    document.getElementById("rememberRoom").checked=true;
+    return true;
+  }
+  /* 如果只有一个记住房间，直接填充 */
+  const keys=Object.keys(rooms);
+  if(keys.length===1){
+    const r=keys[0];
+    document.getElementById("joinRoomId").value=r;
+    document.getElementById("joinRoomPwd").value=rooms[r].pwd;
+    document.getElementById("rememberRoom").checked=true;
+    return true;
+  }
+  return false;
 }
 async function doCreateRoom(){
   const rid=document.getElementById("createRoomId").value.trim();
@@ -3799,6 +3860,18 @@ function init(){
   };
   document.getElementById("doJoin").onclick=doJoinRoom;
   document.getElementById("doCreate").onclick=doCreateRoom;
+  /* 房间号输入变化时自动填充密码 */
+  document.getElementById("joinRoomId").addEventListener("input",function(){
+    const rid=this.value.trim();
+    const rooms=getRememberedRooms();
+    if(rid && rooms[rid]){
+      document.getElementById("joinRoomPwd").value=rooms[rid].pwd;
+      document.getElementById("rememberRoom").checked=true;
+    } else {
+      document.getElementById("joinRoomPwd").value="";
+      document.getElementById("rememberRoom").checked=false;
+    }
+  });
 
   // 引导弹窗
   document.getElementById("downloadTemplate").onclick=downloadTemplate;
