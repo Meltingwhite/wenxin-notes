@@ -302,13 +302,13 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 
 /* 一览模式 */
 .team-block.view-ultra{padding:6px;margin-bottom:5px}
-.team-block.view-ultra .team-grid{grid-template-columns:repeat(4,1fr);gap:3px}
-.team-block.view-ultra .slot{padding:3px 5px;min-height:32px;border-radius:4px}
-.team-block.view-ultra .slot .sn{font-size:10px;line-height:1.2}
-.team-block.view-ultra .slot .sp{font-size:9px;color:var(--yellow);margin-top:1px}
+.team-block.view-ultra .team-grid{grid-template-columns:repeat(4,1fr);gap:4px}
+.team-block.view-ultra .slot{padding:6px 8px;min-height:38px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.team-block.view-ultra .slot .sn{font-size:14px;line-height:1.3;text-align:center}
+.team-block.view-ultra .slot .sp{display:none}
 .team-block.view-ultra .slot select{display:none}
-.team-block.view-ultra .team-title{font-size:11px;margin-bottom:3px}
-.team-block.view-ultra .slot-empty{min-height:32px;font-size:10px}
+.team-block.view-ultra .team-title{font-size:12px;margin-bottom:4px}
+.team-block.view-ultra .slot-empty{min-height:38px;font-size:12px}
 .team-grid-ultra{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:5px}
 .team-grid-12.view-ultra,.team-grid-12 .view-ultra{grid-template-columns:repeat(3,1fr)!important}
 @media(max-width:760px){
@@ -678,6 +678,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
           <ul class="changes-list">
             <li>新增手动保存模式：编辑操作即时更新本地，点击「保存到云端」按钮才上传 Gitee</li>
             <li>优化未保存提示：顶部浮动提示条 + 保存按钮显示未保存数量 + Toast 即时提醒</li>
+            <li>一览视图优化：移除角色战力显示，放大角色名字体，整体视觉更清晰</li>
             <li>修复拖拽无反应：dataset 属性名与 querySelectorAll 选择器不匹配</li>
             <li>修复4人模式波数拖拽：使用队伍索引编号波数</li>
             <li>本地未保存时跳过远端轮询，避免覆盖本地编辑</li>
@@ -2855,7 +2856,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       }
       const c=slotChar;
       if(isUltra){
-        html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}"><div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)}</div><div class="sp">${c.power}</div></div>`;
+        html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}"><div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)}</div></div>`;
         return;
       }
       const teamOwners=new Set();
