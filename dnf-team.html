@@ -417,6 +417,11 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       </div>
       <div class="char-pool">
         <h3>全部角色池（橙=C 绿=奶，已排入队伍会置灰）</h3>
+        <div class="batch-toolbar" id="batchToolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px">
+          <button class="sm secondary" id="globalSelectAll">全选</button>
+          <button class="sm danger" id="globalBatchDel" disabled style="opacity:.4">批量删除选中</button>
+          <span class="muted" id="batchSelCnt" style="font-size:12px">已选 0 个</span>
+        </div>
         <div class="flex-row" id="charList"></div>
       </div>
     </div>
@@ -2097,13 +2102,14 @@ function renderCharList(){
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editChar(Number(b.dataset.edit)));
   document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delChar(Number(b.dataset.del)));
 
-  /* 全选/取消全选 */
+  /* 全选/取消全选（按玩家组） */
   document.querySelectorAll(".owner-select-all").forEach(cb=>{
     cb.onchange=function(){
       const owner=this.dataset.owner;
       const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
       cbs.forEach(c=>c.checked=this.checked);
       updateBatchDelBtn(owner);
+      updateGlobalBatchUI();
     };
   });
   /* 单个勾选 */
@@ -2111,13 +2117,14 @@ function renderCharList(){
     cb.onchange=function(){
       const owner=this.dataset.owner;
       updateBatchDelBtn(owner);
-      /* 更新全选状态 */
+      /* 更新该组全选状态 */
       const all=document.querySelector(`.owner-select-all[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
       const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
       if(all){ all.checked = Array.from(cbs).every(c=>c.checked); }
+      updateGlobalBatchUI();
     };
   });
-  /* 批量删除 */
+  /* 批量删除（按玩家组） */
   document.querySelectorAll("[data-batch-del]").forEach(btn=>{
     btn.onclick=async function(){
       const owner=this.dataset.batchDel;
@@ -2133,11 +2140,58 @@ function renderCharList(){
       });
     };
   });
+  /* 全局全选/取消全选 */
+  const gSelAll=document.getElementById("globalSelectAll");
+  if(gSelAll){
+    gSelAll.onclick=function(){
+      const allCbs=document.querySelectorAll(".char-checkbox");
+      const allChecked=allCbs.length>0&&Array.from(allCbs).every(c=>c.checked);
+      allCbs.forEach(c=>c.checked=!allChecked);
+      document.querySelectorAll(".owner-select-all").forEach(cb=>{
+        const owner=cb.dataset.owner;
+        const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
+        cb.checked=cbs.length>0&&Array.from(cbs).every(c=>c.checked);
+        updateBatchDelBtn(owner);
+      });
+      updateGlobalBatchUI();
+    };
+  }
+  /* 全局批量删除 */
+  const gBatchDel=document.getElementById("globalBatchDel");
+  if(gBatchDel){
+    gBatchDel.onclick=async function(){
+      const cbs=document.querySelectorAll(".char-checkbox:checked");
+      const ids=Array.from(cbs).map(c=>Number(c.dataset.charId));
+      if(ids.length===0) return;
+      if(!confirm(`确认批量删除选中的 ${ids.length} 个角色？\n此操作不可恢复！`))return;
+      pushHistory();
+      await SYNC.writeState(st=>{
+        st.charList=st.charList.filter(c=>!ids.includes(Number(c.id)));
+        st.teamList=arrange(st.charList);
+        return st;
+      });
+    };
+  }
+  updateGlobalBatchUI();
 }
 function updateBatchDelBtn(owner){
   const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]:checked`);
   const btn=document.querySelector(`[data-batch-del="${owner.replace(/"/g,'&quot;')}"]`);
   if(btn) btn.style.display=cbs.length>0?"inline-block":"none";
+}
+function updateGlobalBatchUI(){
+  const checked=document.querySelectorAll(".char-checkbox:checked");
+  const cnt=checked.length;
+  const cntEl=document.getElementById("batchSelCnt");
+  const delBtn=document.getElementById("globalBatchDel");
+  const selAllBtn=document.getElementById("globalSelectAll");
+  if(cntEl) cntEl.textContent=`已选 ${cnt} 个`;
+  if(delBtn){ delBtn.disabled=cnt===0; delBtn.style.opacity=cnt===0?".4":"1"; }
+  if(selAllBtn){
+    const allCbs=document.querySelectorAll(".char-checkbox");
+    const allChecked=allCbs.length>0&&Array.from(allCbs).every(c=>c.checked);
+    selAllBtn.textContent=allChecked?"取消全选":"全选";
+  }
 }
 
 function renderTeamTable(){
@@ -3128,7 +3182,7 @@ async function loadAdminRooms(){
     document.getElementById("adminTotalTeams").textContent="0";
     document.getElementById("adminOnline").textContent="0";
     document.getElementById("adminSelectedCount").textContent="0";
-    updateBatchDelBtn();
+    updateAdminBatchDel();
     return;
   }
   let totalChars=0,totalTeams=0,totalOnline=0;
@@ -3193,12 +3247,12 @@ async function loadAdminRooms(){
   });
   // 绑定复选框
   document.querySelectorAll("[data-admin-check]").forEach(cb=>{
-    cb.onchange=updateBatchDelBtn;
+    cb.onchange=updateAdminBatchDel;
   });
-  updateBatchDelBtn();
+  updateAdminBatchDel();
 }
 
-function updateBatchDelBtn(){
+function updateAdminBatchDel(){
   const checked=document.querySelectorAll("[data-admin-check]:checked");
   const btn=document.getElementById("adminBatchDel");
   const cnt=document.getElementById("adminSelectedCount");
@@ -3371,7 +3425,7 @@ function init(){
         if(cb) cb.checked=true;
       }
     });
-    updateBatchDelBtn();
+    updateAdminBatchDel();
   };
   document.getElementById("adminSelectNone").onclick=()=>{
     // 只取消当前可见的房间
@@ -3381,7 +3435,7 @@ function init(){
         if(cb) cb.checked=false;
       }
     });
-    updateBatchDelBtn();
+    updateAdminBatchDel();
   };
   document.getElementById("adminExit").onclick=()=>{
     ADMIN.active=false;
