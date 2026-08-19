@@ -1,0 +1,3616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233b82f6'/%3E%3Cstop offset='1' stop-color='%23f97316'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230f1117'/%3E%3Cpath d='M32 12 L48 18 L48 34 C48 44 40 50 32 54 C24 50 16 44 16 34 L16 18 Z' fill='url(%23g)' opacity='0.9'/%3E%3Cpath d='M32 20 L32 46' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M24 28 L32 24 L40 28' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Ccircle cx='32' cy='36' r='3' fill='%23fff'/%3E%3Cpath d='M28 40 L32 44 L36 40' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+<title>薄纱团本 · 排表协作工具</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>try{var t=localStorage.getItem("busha_theme");if(t&&t!=="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+<style>
+:root{
+  --bg:#0f1117; --panel:#1a1d27; --panel2:#222633; --line:#333a4a;
+  --txt:#e8eaf0; --mut:#9aa3b2; --blue:#3b82f6; --blue2:#60a5fa;
+  --orange:#f97316; --green:#22c55e; --red:#ef4444; --yellow:#eab308;
+  --radius:10px;
+}
+/* B站粉主题 */
+[data-theme="bilibili"]{
+  --bg:#f4f5f7; --panel:#fff; --panel2:#f0f1f3; --line:#e3e5e8;
+  --txt:#18191c; --mut:#9499a0; --blue:#fb7299; --blue2:#fc8bab;
+  --orange:#ff6633; --green:#02b340; --red:#f25d43; --yellow:#ffb027;
+  --radius:8px;
+}
+[data-theme="bilibili"] body{background:#f4f5f7}
+[data-theme="bilibili"] input,[data-theme="bilibili"] select,[data-theme="bilibili"] textarea{background:#f0f1f3;border-color:#e3e5e8}
+[data-theme="bilibili"] .chip{background:#fff0f4;border-color:#fb7299;color:#fb7299}
+[data-theme="bilibili"] .chip.me{background:#e8f8ee;border-color:var(--green);color:var(--green)}
+[data-theme="bilibili"] .raid-tag.red{background:#fee2e2;color:#dc2626}
+[data-theme="bilibili"] .raid-tag.yellow{background:#fef3c7;color:#d97706}
+[data-theme="bilibili"] .raid-tag.green{background:#d1fae5;color:#059669}
+
+/* 极简白主题 */
+[data-theme="light"]{
+  --bg:#f8f9fa; --panel:#fff; --panel2:#f1f3f5; --line:#dee2e6;
+  --txt:#212529; --mut:#6c757d; --blue:#0d6efd; --blue2:#3d8bfd;
+  --orange:#fd7e14; --green:#20c997; --red:#dc3545; --yellow:#ffc107;
+  --radius:8px;
+}
+[data-theme="light"] body{background:#f8f9fa}
+[data-theme="light"] input,[data-theme="light"] select,[data-theme="light"] textarea{background:#fff;border-color:#dee2e6}
+
+/* 深夜紫主题 */
+[data-theme="midnight"]{
+  --bg:#1a0f2e; --panel:#241638; --panel2:#2d1d4a; --line:#3d2860;
+  --txt:#e8d9f5; --mut:#a78bc4; --blue:#8b5cf6; --blue2:#a78bfa;
+  --orange:#f97316; --green:#10b981; --red:#ef4444; --yellow:#eab308;
+  --radius:10px;
+}
+[data-theme="midnight"] body{background:#1a0f2e}
+[data-theme="midnight"] input,[data-theme="midnight"] select,[data-theme="midnight"] textarea{background:#1a0f2e;border-color:#3d2860}
+[data-theme="midnight"] .chip{background:#3d2860;border-color:#5d3893;color:#d4c1f0}
+
+/* === 浅色主题统一修复：B站粉/极简白 === */
+[data-theme="bilibili"] button.secondary,
+[data-theme="light"] button.secondary{background:var(--panel2);color:var(--txt)}
+[data-theme="bilibili"] input,
+[data-theme="bilibili"] select,
+[data-theme="bilibili"] textarea,
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea{background:var(--panel2);color:var(--txt)}
+[data-theme="bilibili"] .badge,
+[data-theme="light"] .badge{background:var(--panel2);color:var(--txt)}
+[data-theme="bilibili"] .chip,
+[data-theme="light"] .chip{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="bilibili"] .chip.me,
+[data-theme="light"] .chip.me{background:#e8f8ee;border-color:var(--green);color:var(--green)}
+[data-theme="bilibili"] .card,
+[data-theme="light"] .card{background:var(--panel);border-color:var(--line)}
+[data-theme="bilibili"] .team-block,
+[data-theme="light"] .team-block{background:var(--panel);border-color:var(--line)}
+[data-theme="bilibili"] .slot,
+[data-theme="light"] .slot{background:var(--panel2);border-color:var(--line)}
+[data-theme="bilibili"] .slot.c,
+[data-theme="light"] .slot.c{background:#fff5f0;border-color:var(--orange)}
+[data-theme="bilibili"] .slot.N,
+[data-theme="light"] .slot.N{background:#f0faf5;border-color:var(--green)}
+[data-theme="bilibili"] .slot-empty,
+[data-theme="light"] .slot-empty{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="bilibili"] .team-block.raid-red,
+[data-theme="light"] .team-block.raid-red{background:#fff5f5;border-color:var(--red)}
+[data-theme="bilibili"] .team-block.raid-yellow,
+[data-theme="light"] .team-block.raid-yellow{background:#fffdf5;border-color:var(--yellow)}
+[data-theme="bilibili"] .team-block.raid-green,
+[data-theme="light"] .team-block.raid-green{background:#f5fff8;border-color:var(--green)}
+[data-theme="bilibili"] .modal,
+[data-theme="light"] .modal{background:rgba(0,0,0,.45)}
+[data-theme="bilibili"] .modal-box,
+[data-theme="light"] .modal-box{background:var(--panel);color:var(--txt)}
+[data-theme="bilibili"] .help code,
+[data-theme="light"] .help code{background:var(--panel2);color:var(--blue)}
+[data-theme="bilibili"] .notice,
+[data-theme="light"] .notice{background:#fffbe6;border-color:var(--yellow);color:#8a6d00}
+[data-theme="bilibili"] .slot.highlight,
+[data-theme="light"] .slot.highlight{background:#fffde6!important;border-color:var(--yellow)!important}
+[data-theme="bilibili"] .slot.click-hl,
+[data-theme="light"] .slot.click-hl{background:#eef5ff!important;border-color:var(--blue)!important}
+[data-theme="bilibili"] .owner-header,
+[data-theme="light"] .owner-header{color:var(--blue)}
+[data-theme="bilibili"] .team-title,
+[data-theme="light"] .team-title{color:var(--blue)}
+[data-theme="bilibili"] .tab.active,
+[data-theme="light"] .tab.active{color:#fff}
+
+/* === 深夜紫主题细化 === */
+[data-theme="midnight"] .card{background:var(--panel2);border-color:var(--line)}
+[data-theme="midnight"] .team-block{background:var(--panel2);border-color:var(--line)}
+[data-theme="midnight"] .slot{background:var(--panel2);border-color:var(--line)}
+[data-theme="midnight"] .slot.c{background:#2a1f3d;border-color:var(--orange)}
+[data-theme="midnight"] .slot.N{background:#1a2a1f;border-color:var(--green)}
+[data-theme="midnight"] .slot-empty{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="midnight"] .team-block.raid-red{background:#2a1530;border-color:var(--red)}
+[data-theme="midnight"] .team-block.raid-yellow{background:#2a2530;border-color:var(--yellow)}
+[data-theme="midnight"] .team-block.raid-green{background:#152a20;border-color:var(--green)}
+[data-theme="midnight"] .badge{background:var(--panel2);color:var(--txt)}
+[data-theme="midnight"] .modal{background:rgba(10,5,20,.8)}
+[data-theme="midnight"] .help code{background:var(--panel2);color:var(--blue2)}
+[data-theme="midnight"] .notice{background:#2a2418;border-color:var(--yellow);color:#fde68a}
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,"Microsoft YaHei",sans-serif}
+body{background:var(--bg);color:var(--txt);padding:12px;min-height:100vh;font-size:14px}
+.container{max-width:1640px;margin:0 auto}
+button{background:var(--blue);color:#fff;border:none;padding:8px 14px;border-radius:7px;cursor:pointer;font-size:13px;transition:.15s}
+button:hover{filter:brightness(1.1)}
+button.secondary{background:var(--panel2);color:var(--txt)}
+button.danger{background:var(--red)}
+button.success{background:var(--green)}
+button.sm{padding:4px 9px;font-size:12px;border-radius:5px}
+input,select,textarea{width:100%;padding:7px 9px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:6px;font-size:13px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
+.muted{color:var(--mut)}
+
+/* 房间协作栏 */
+.room-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px}
+.room-bar .grp{display:flex;align-items:center;gap:6px}
+.room-bar input.nick{width:120px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;font-size:12px;background:var(--panel2);border:1px solid var(--line);color:var(--txt)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.dot.off{background:var(--mut)}
+.dot.err{background:var(--red)}
+.dot.warn{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
+#saveBtn.dirty{background:var(--yellow);color:#000;font-weight:bold;opacity:1!important;animation:pulse 1.5s ease-in-out infinite}
+#saveBtn:not(:disabled){cursor:pointer}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,200,0,.4)}50%{box-shadow:0 0 0 4px rgba(255,200,0,0)}}
+.online-chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:11px;padding:2px 8px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);color:var(--mut)}
+.chip.me{background:#1f3d2a;border-color:var(--green);color:#bff5d0}
+
+/* 顶栏 */
+.top-bar{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.top-bar h2{font-size:18px;letter-spacing:.5px}
+.top-bar .acts{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.stat-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;color:var(--mut);font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.stat-row b{color:var(--txt)}
+.tab-wrap{display:flex;gap:6px;margin-bottom:12px}
+.tab{padding:8px 18px;background:var(--panel);border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:13px}
+.tab.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.panel{display:none;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px}
+.panel.show{display:block}
+.flex-row{display:flex;gap:12px;flex-wrap:wrap}
+.form-box{width:320px;background:var(--panel2);padding:14px;border-radius:9px;border:1px solid var(--line)}
+.form-item{margin:8px 0}
+.char-pool{flex:1;min-width:0}
+.char-pool h3,.form-box h3{margin-bottom:10px;font-size:15px}
+.card{background:var(--panel2);padding:10px;border-radius:8px;width:235px;border:1px solid var(--line);border-left:4px solid var(--orange)}
+.card.N{border-left-color:var(--green)}
+.card.used{opacity:.45}
+.card h4{margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.card .meta{font-size:11px;color:var(--mut);line-height:1.5}
+.card .pwr{color:var(--yellow);font-weight:600}
+.owner-header{width:100%;padding:8px 4px 4px;font-size:14px;font-weight:700;color:var(--blue);border-bottom:1px solid var(--line);margin-top:8px;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+.owner-header:first-child{margin-top:0}
+.owner-header .cnt{font-size:11px;color:var(--mut);font-weight:400;margin-left:6px}
+.batch-del-btn{font-size:12px;padding:3px 10px}
+.team-block{background:var(--panel2);padding:12px;border-radius:9px;margin-bottom:12px;border:1px solid var(--line)}
+.team-block.raid-red{border:2px solid #e74c3c;background:#2a1515}
+.team-block.raid-yellow{border:2px solid #f1c40f;background:#2a2a15}
+.team-block.raid-green{border:2px solid #2ecc71;background:#152a1a}
+.team-title{margin-bottom:9px;color:var(--blue2);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;font-size:14px}
+.team-title .raid-tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-right:6px}
+.raid-tag.red{background:#e74c3c;color:#fff}
+.raid-tag.yellow{background:#f1c40f;color:#222}
+.raid-tag.green{background:#2ecc71;color:#fff}
+.team-title .tsum{font-size:12px;color:var(--mut)}
+.del-team-btn:hover{color:#e74c3c!important;background:rgba(231,76,60,0.1)!important}
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.slot{padding:9px;border-radius:7px;min-height:74px;border:1px solid var(--line);background:var(--panel2)}
+.slot.c{background:#342318;border-color:var(--orange)}
+.slot.N{background:#15301f;border-color:var(--green)}
+.slot-empty{background:var(--panel2);border:1px dashed var(--line);color:var(--mut)}
+.slot .sn{font-weight:600;font-size:13px}
+.slot .sp{font-size:11px;color:var(--mut);margin:2px 0 5px}
+.slot select{font-size:11px;padding:4px}
+.warn{color:var(--yellow);font-size:11px}
+textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);border:1px solid var(--line);padding:8px;border-radius:7px;font-family:Consolas,monospace}
+
+/* 弹窗 */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);padding:30px;z-index:50}
+.modal.show{display:flex;align-items:flex-start;justify-content:center}
+.modal-box{max-width:640px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:20px;max-height:88vh;overflow:auto}
+.modal-box h3{margin-bottom:12px;font-size:16px}
+.modal-box .row{margin:10px 0}
+.help{font-size:12px;color:var(--mut);line-height:1.7}
+.help code{background:var(--panel2);padding:1px 5px;border-radius:4px;color:var(--blue2)}
+.help b{color:var(--txt)}
+.notice{background:#2a2418;border:1px solid var(--yellow);color:#fde68a;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px}
+@media(max-width:760px){
+  .team-grid{grid-template-columns:repeat(2,1fr)}
+  .form-box{width:100%}
+  .card{width:100%}
+}
+
+/* 高亮搜索 */
+.slot.highlight{box-shadow:0 0 0 2px var(--yellow),0 0 8px rgba(234,179,8,.4);border-color:var(--yellow)!important;background:#3a3a15!important}
+.card.highlight{box-shadow:0 0 0 2px var(--yellow),0 0 8px rgba(234,179,8,.4);border-color:var(--yellow)!important}
+.slot.click-hl{box-shadow:0 0 0 2px var(--blue2),0 0 10px rgba(96,165,250,.5);border-color:var(--blue2)!important;background:#1a2a3a!important;cursor:pointer}
+
+/* 版本更新日志 */
+.changelog-content{font-size:14px}
+.version-entry{margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid var(--line)}
+.version-entry:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.version-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.version-header .ver-tag{font-weight:bold;color:#fff;background:var(--blue);padding:2px 10px;border-radius:10px;font-size:13px}
+.version-header .ver-date{color:var(--mut);font-size:13px}
+.changes-list{padding-left:0;margin:0;list-style:none}
+.changes-list li{margin-bottom:6px;padding-left:16px;position:relative;line-height:1.6}
+.changes-list li:before{content:"";position:absolute;left:4px;top:9px;width:4px;height:4px;border-radius:50%;background:var(--blue)}
+.slot{cursor:pointer}
+
+/* 12人团本分组容器 */
+.raid-group{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+.raid-group-title{font-size:15px;font-weight:bold;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.raid-group-title .grp-num{background:var(--blue);color:#fff;padding:2px 10px;border-radius:12px;font-size:13px}
+.raid-group-title .grp-info{color:var(--mut);font-size:12px;font-weight:normal}
+.raid-group-body{display:flex;gap:12px;flex-wrap:wrap}
+.raid-group-body .team-block{flex:1;min-width:200px}
+
+/* 12人团本三队一行网格 */
+.team-grid-12{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.team-grid-12 .team-block{margin-bottom:0}
+.wave-label{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:8px 0 2px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.wave-label .wnum{background:var(--blue);color:#fff;padding:2px 12px;border-radius:12px;font-size:13px;font-weight:bold;white-space:nowrap}
+.wave-label .wline{flex:1;height:1px;background:var(--line)}
+.wave-add-team{grid-column:1/-1;display:flex;justify-content:center;margin:4px 0 6px}
+.add-team-inline,.add-wave-btn{padding:6px 20px;border:1px dashed var(--mut);border-radius:8px;background:var(--panel2);color:var(--mut);cursor:pointer;font-size:13px;transition:all .2s}
+.add-team-inline:hover,.add-wave-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--bg)}
+.wave-add-new{grid-column:1/-1;display:flex;justify-content:center;margin:10px 0 4px}
+.add-wave-btn{border-style:solid;border-color:var(--blue);color:var(--blue);font-weight:bold}
+.team-block[draggable="true"]{cursor:grab;transition:opacity .15s,box-shadow .15s}
+.team-block[draggable="true"]:hover{box-shadow:0 0 0 1px var(--blue)}
+.team-block.dragging{opacity:.4}
+.team-block.drag-over{box-shadow:0 0 0 2px var(--blue);border-radius:8px}
+.wave-label[draggable="true"]{cursor:grab;user-select:none}
+.wave-label.dragging{opacity:.5}
+.wave-label.drag-over .wnum{box-shadow:0 0 0 2px var(--blue)}
+@media(max-width:900px){
+  .team-grid-12{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+  .team-grid-12{grid-template-columns:1fr}
+}
+
+/* 紧凑模式 */
+.team-block.view-compact{padding:8px;margin-bottom:8px}
+.team-block.view-compact .team-grid{grid-template-columns:repeat(4,1fr);gap:4px}
+.team-block.view-compact .slot{padding:5px;min-height:50px}
+.team-block.view-compact .slot .sn{font-size:11px}
+.team-block.view-compact .slot .sp{font-size:10px;margin:1px 0 2px}
+.team-block.view-compact .slot select{font-size:10px;padding:2px}
+.team-block.view-compact .team-title{font-size:12px;margin-bottom:5px}
+
+/* 一览模式 */
+.team-block.view-ultra{padding:6px;margin-bottom:5px}
+.team-block.view-ultra .team-grid{grid-template-columns:repeat(4,1fr);gap:4px}
+.team-block.view-ultra .slot{padding:5px 6px;min-height:42px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.team-block.view-ultra .slot .sn{display:none}
+.team-block.view-ultra .slot .sp{display:none}
+.team-block.view-ultra .slot .su{font-size:12px;font-weight:700;line-height:1.2;color:var(--blue2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.team-block.view-ultra .slot .sc{font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.team-block.view-ultra .slot select{display:none}
+.team-block.view-ultra .team-title{font-size:12px;margin-bottom:4px}
+.team-block.view-ultra .slot-empty{min-height:42px;font-size:12px;display:flex;align-items:center;justify-content:center}
+.team-grid-ultra{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:5px}
+.team-grid-12.view-ultra,.team-grid-12 .view-ultra{grid-template-columns:repeat(3,1fr)!important}
+@media(max-width:760px){
+  .team-block.view-compact .team-grid,.team-block.view-ultra .team-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* 管理员面板 */
+.admin-link{text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--line)}
+.admin-link a{color:var(--mut);font-size:12px;cursor:pointer;text-decoration:none;transition:.15s}
+.admin-link a:hover{color:var(--blue2)}
+.admin-panel{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;overflow:auto;padding:16px}
+.admin-panel.show{display:block}
+.admin-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.admin-header h2{font-size:20px}
+.admin-header .acts{margin-left:auto;display:flex;gap:8px}
+.admin-stats{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;color:var(--mut);font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+.admin-stats b{color:var(--txt)}
+.room-card{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:14px;margin-bottom:10px;transition:.15s}
+.room-card:hover{border-color:var(--blue)}
+.room-card-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.room-card-head .rid{font-size:16px;font-weight:bold;color:var(--blue2)}
+.room-card-head .rinfo{font-size:12px;color:var(--mut)}
+.room-card-body{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--mut)}
+.room-card-body b{color:var(--txt)}
+.room-card-actions{display:flex;gap:6px;margin-top:10px}
+.admin-loading{text-align:center;padding:40px;color:var(--mut);font-size:14px}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 协作房间栏 -->
+  <div class="room-bar">
+    <div class="grp">
+      <span class="muted" style="font-size:12px">昵称</span>
+      <input class="nick" id="nickInput" placeholder="你的名字" maxlength="12">
+    </div>
+    <div class="grp">
+      <span class="dot off" id="syncDot" title="同步状态"></span>
+      <span class="badge" id="syncBadge">未加入房间</span>
+      <span class="badge"><span id="onlineCount">0</span> 在线</span>
+      <span class="online-chips" id="onlineChips"></span>
+      <button class="sm" id="copyLink">🔗 分享链接</button>
+    </div>
+    <div class="grp" style="margin-left:auto">
+      <span class="badge" id="syncStatus">未登录</span>
+      <button class="sm" id="saveBtn" disabled style="opacity:.5">✓ 已保存</button>
+      <button class="sm secondary" id="openShengyan" style="background:var(--panel2);border:1px solid rgba(201,162,39,0.4);color:var(--yellow)">⚔️ 米歇尔练习</button>
+      <button class="sm danger" id="exitRoom">退出房间</button>
+      <button class="sm secondary" id="openChangelog">📋 版本日志</button>
+      <button class="sm secondary" id="openHelp">❓</button>
+      <select id="themeSelect" class="sm" style="width:auto;padding:4px 8px;font-size:12px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);cursor:pointer">
+        <option value="dark">🌙 暗色</option>
+        <option value="bilibili">🌸 B站粉</option>
+        <option value="light">☀️ 极简白</option>
+        <option value="midnight">🌌 深夜紫</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 顶栏 -->
+  <div class="top-bar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#60a5fa);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:#fff;letter-spacing:-1px;flex-shrink:0">温</div>
+      <h2>薄纱团本 · 排表协作工具</h2>
+      <span style="font-size:11px;color:var(--mut);background:var(--panel2);padding:2px 8px;border-radius:10px;border:1px solid var(--line)">by 温白</span>
+    </div>
+    <div style="display:flex;gap:4px;align-items:center;background:var(--panel2);border-radius:6px;padding:3px;border:1px solid var(--line)">
+      <button class="mode-btn active" id="mode4" data-mode="4" style="padding:5px 12px;border-radius:4px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-size:13px">4人团本</button>
+      <button class="mode-btn" id="mode12" data-mode="12" style="padding:5px 12px;border-radius:4px;border:none;background:transparent;color:var(--mut);cursor:pointer;font-size:13px">12人团本</button>
+    </div>
+    <div class="acts">
+      <button class="sm secondary" id="undoBtn" disabled style="opacity:.4">↩ 撤销</button>
+      <button class="sm secondary" id="redoBtn" disabled style="opacity:.4">↪ 重做</button>
+      <button id="autoArrange">一键均衡排完所有角色</button>
+      <button class="secondary" id="addTeam">+ 新建队伍</button>
+      <button class="secondary" id="clearTeams">清空排表</button>
+      <button class="secondary" id="exportData">导出Excel</button>
+      <button class="secondary" id="exportImg">导出图片</button>
+      <button class="secondary" id="importData">导入Excel</button>
+      <button class="danger" id="resetAll">重置为导入状态</button>
+    </div>
+  </div>
+
+  <!-- 12人团本专属配置 -->
+  <div id="raid12Config" style="display:none;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:10px;flex-direction:column;gap:10px">
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px">
+      <span style="font-size:13px;font-weight:bold;color:var(--text);white-space:nowrap">战力门槛：</span>
+      <label style="font-size:12px;color:var(--mut);white-space:nowrap;display:flex;align-items:center;gap:4px">
+        红队≥<input type="number" id="thresholdRed" placeholder="留空=不限" style="width:90px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
+      </label>
+      <label style="font-size:12px;color:var(--mut);white-space:nowrap;display:flex;align-items:center;gap:4px">
+        黄队≥<input type="number" id="thresholdYellow" placeholder="留空=不限" style="width:90px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
+      </label>
+      <label style="font-size:12px;color:var(--mut);white-space:nowrap;display:flex;align-items:center;gap:4px">
+        绿队≥<input type="number" id="thresholdGreen" placeholder="留空=不限" style="width:90px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
+      </label>
+      <span style="font-size:11px;color:var(--mut);white-space:nowrap">填写后，C总战力低于门槛的队伍不生成</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <label style="font-size:13px;font-weight:bold;color:var(--text);cursor:pointer;white-space:nowrap" title="开启后，战力较低且没有C编队的奶会整合到其他队伍中，支持单队伍两个奶">
+        <input type="checkbox" id="dualHealer" style="vertical-align:middle"> 允许双奶（2C2N配置）
+      </label>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    总角色 <b id="totalAll">0</b> ｜ C位 <b id="totalC">0</b> ｜ 奶位 <b id="totalHealer">0</b> ｜ 已生成队伍 <b id="teamCount">0</b> ｜ 未入队 <b id="leftCount">0</b>
+  </div>
+
+  <div class="tab-wrap">
+    <div class="tab active" data-tab="charManage">角色管理</div>
+    <div class="tab" data-tab="teamTable">队伍排表</div>
+  </div>
+
+  <!-- 角色管理 -->
+  <div class="panel show" id="charManage">
+    <div class="flex-row" style="align-items:flex-start">
+      <div class="form-box">
+        <h3 id="formTitle">新增角色</h3>
+        <div class="form-item">
+          <label>归属玩家</label>
+          <input id="editOwner" list="ownerList" placeholder="选择或输入玩家">
+          <datalist id="ownerList">
+            <option value="鸟"><option value="热"><option value="白"><option value="摸鱼"><option value="批天">
+          </datalist>
+        </div>
+        <div class="form-item"><label>角色名称</label><input id="editName" placeholder="如：剑魂(J)、缪斯"></div>
+        <div class="form-item"><label>战力数值</label><input type="number" id="editPower" placeholder="模拟/校正战力"></div>
+        <div class="form-item">
+          <label>类型</label>
+          <select id="editType"><option value="c">输出 C</option><option value="N">奶</option></select>
+        </div>
+        <div class="form-item"><label>A套套装</label><input id="editA" placeholder="黄金乡/龙战/天命等"></div>
+        <div class="form-item"><label>B套套装</label><input id="editB" placeholder="青丘/群猎/混沌等"></div>
+        <input type="hidden" id="editId">
+        <div style="display:flex;gap:6px;margin-top:12px">
+          <button class="success" id="saveChar">保存角色</button>
+          <button class="secondary" id="cancelEdit">清空编辑</button>
+        </div>
+      </div>
+      <div class="char-pool">
+        <h3>全部角色池（橙=C 绿=奶，已排入队伍会置灰）</h3>
+        <div class="batch-toolbar" id="batchToolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px">
+          <button class="sm secondary" id="globalSelectAll">全选</button>
+          <button class="sm danger" id="globalBatchDel" disabled style="opacity:.4">批量删除选中</button>
+          <span class="muted" id="batchSelCnt" style="font-size:12px">已选 0 个</span>
+        </div>
+        <div class="flex-row" id="charList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 队伍排表 -->
+  <div class="panel" id="teamTable">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <span class="muted" style="font-size:12px">显示模式</span>
+      <div style="display:flex;gap:4px;background:var(--panel2);border-radius:6px;padding:3px;border:1px solid var(--line)">
+        <button class="view-btn active" data-view="normal" style="padding:4px 10px;border-radius:4px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-size:12px">标准</button>
+        <button class="view-btn" data-view="compact" style="padding:4px 10px;border-radius:4px;border:none;background:transparent;color:var(--mut);cursor:pointer;font-size:12px">紧凑</button>
+        <button class="view-btn" data-view="ultra" style="padding:4px 10px;border-radius:4px;border:none;background:transparent;color:var(--mut);cursor:pointer;font-size:12px">一览</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;margin-left:8px">
+        <span class="muted" style="font-size:12px">高亮</span>
+        <input id="highlightName" placeholder="输入玩家名高亮" style="width:140px;padding:4px 8px;font-size:12px" oninput="renderTeamTable()">
+      </div>
+    </div>
+    <div id="teamWrap"></div>
+  </div>
+
+  <!-- 导入弹窗 -->
+  <div class="modal" id="importModal">
+    <div class="modal-box">
+      <h3>导入角色 Excel</h3>
+      <p class="help" style="margin-bottom:8px">选择 .xlsx / .xls 文件，将<strong>覆盖</strong>当前全部角色并自动重新排表。</p>
+      <p class="help" style="margin-bottom:8px">表格需包含列：<code>归属玩家</code> <code>角色名称</code> <code>战力数值</code> <code>类型</code>(c/N) <code>A套</code> <code>B套</code></p>
+      <input type="file" id="importFile" accept=".xlsx,.xls" style="width:100%;margin-bottom:10px;padding:6px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--txt)">
+      <div style="display:flex;gap:8px">
+        <button id="doImport">确认导入</button>
+        <button class="secondary" id="closeImport">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 图片预览弹窗 -->
+  <div class="modal" id="imgModal">
+    <div class="modal-box" style="max-width:900px">
+      <h3>排表截图预览</h3>
+      <p class="help" style="margin-bottom:8px">长按图片可保存，或点击下方按钮复制/下载。</p>
+      <div id="imgPreview" style="text-align:center;margin-bottom:12px;max-height:60vh;overflow:auto"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="copyImg">复制到剪贴板</button>
+        <button class="secondary" id="downloadImg">下载图片</button>
+        <button class="secondary" id="closeImg">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑角色弹窗 -->
+  <div class="modal" id="editCharModal">
+    <div class="modal-box" style="max-width:480px">
+      <h3 id="editCharTitle">编辑角色</h3>
+      <div class="form-item"><label>归属玩家</label><input id="modalEditOwner" list="ownerList" placeholder="选择或输入玩家"></div>
+      <div class="form-item"><label>角色名称</label><input id="modalEditName" placeholder="如：剑魂(J)、缪斯"></div>
+      <div class="form-item"><label>战力数值</label><input type="number" id="modalEditPower" placeholder="模拟/校正战力"></div>
+      <div class="form-item"><label>类型</label><select id="modalEditType"><option value="c">输出 C</option><option value="N">奶</option></select></div>
+      <div class="form-item"><label>A套套装</label><input id="modalEditA" placeholder="黄金乡/龙战/天命等"></div>
+      <div class="form-item"><label>B套套装</label><input id="modalEditB" placeholder="青丘/群猎/混沌等"></div>
+      <input type="hidden" id="modalEditId">
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="success" id="modalSaveChar">保存修改</button>
+        <button class="secondary" id="closeEditChar">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 同步设置弹窗 -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-box">
+      <h3>多人协作同步设置（Gitee 仓库）</h3>
+      <div class="notice">⚠ 令牌等于仓库写权限。请使用<strong>专用数据仓库</strong> + <strong>私人令牌</strong>，切勿用主账号令牌。详见右上角 ❓ 帮助。</div>
+      <div class="row"><label>Gitee 用户名 / 个人空间地址</label><input id="cfgOwner" placeholder="如 meltingwhite1"></div>
+      <div class="row"><label>数据仓库名</label><input id="cfgRepo" placeholder="如 dnf-team-sync"></div>
+      <div class="row"><label>分支</label><input id="cfgBranch" placeholder="master"></div>
+      <div class="row"><label>私人令牌（Gitee → 设置 → 私人令牌）</label><input type="password" id="cfgToken" placeholder="粘贴你的 Gitee 私人令牌"></div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button id="saveCfg">保存并连接</button>
+        <button class="secondary" id="testCfg">测试连接</button>
+        <button class="danger" id="clearCfg">清除配置（转为本地模式）</button>
+        <button class="secondary" id="closeSettings">关闭</button>
+      </div>
+      <p class="muted" id="cfgMsg" style="margin-top:10px;font-size:12px"></p>
+    </div>
+  </div>
+
+  <!-- 帮助弹窗 -->
+  <div class="modal" id="helpModal">
+    <div class="modal-box">
+      <h3>使用说明</h3>
+      <div class="help">
+        <p><b>排表规则</b></p>
+        <p>· 每队固定 4 个不同玩家，同队不会出现同一人的多个角色。</p>
+        <p>· 自动排表优先消耗全部奶，标准 1 奶 3 C，贪心均衡：高奶配低 C、低奶配高 C，每队总战力趋近一致。</p>
+        <p>· 新增 / 编辑 / 删除角色后会自动重新生成全部队伍；队内下拉更换角色为手动微调，不会触发重排。</p>
+        <p>· 队内「更换角色」下拉已自动过滤本队已有玩家，无法重复选择。</p>
+        <p>· 保留本地存储、导入 / 导出 Excel、重置为导入状态。</p>
+        <p style="margin-top:10px"><b>房间与登录</b></p>
+        <p>· 打开页面需先输入房间号和密码登录，或新建房间（自定义房间号+密码）。</p>
+        <p>· 默认房间号 <code>1</code>，密码 <code>123</code>，已预置全部角色数据。</p>
+        <p>· 新建房间后为空数据，系统会引导下载 Excel 模板、填写后导入。</p>
+        <p>· 登录后把页面链接（含 <code>#room=xxxx</code>）发给队友，对方仍需输入密码进入。</p>
+        <p>· 点「退出房间」可返回登录界面，切换其他房间。</p>
+        <p style="margin-top:10px"><b>多人协作</b></p>
+        <p>· 数据通过 Gitee 仓库实时同步，所有人改动自动推送，7秒轮询拉取最新。</p>
+        <p>· 多人同时编辑采用「后写覆盖 + 冲突自动重试」，不会丢角色。</p>
+        <p style="margin-top:10px"><b>数据安全</b>：房间密码存储在同步数据中，仅限本工具验证用途。</p>
+      </div>
+      <div style="margin-top:12px"><button class="secondary" id="closeHelp">关闭</button></div>
+    </div>
+  </div>
+
+  <!-- 版本更新日志弹窗 -->
+  <div class="modal" id="changelogModal">
+    <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
+      <h3>📋 版本更新日志</h3>
+      <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.7.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>一览视图排版优化：玩家名第一行、角色名第二行，移除战力显示，字体放大更清晰</li>
+            <li>新增手动保存模式：编辑操作即时更新本地，点击「保存到云端」按钮才上传 Gitee</li>
+            <li>修复拖拽无反应：dataset 属性名与 querySelectorAll 选择器不匹配</li>
+            <li>修复4人模式波数拖拽：使用队伍索引编号波数</li>
+            <li>本地未保存时跳过远端轮询，避免覆盖本地编辑</li>
+            <li>Gitee token 源码加密（XOR+Base64），明文不出现在源码中</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.6.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>新增版本更新日志入口，支持查看历史版本功能变更记录</li>
+            <li>角色编辑改为弹窗模式，左侧表单仅用于新增角色</li>
+            <li>每个玩家角色支持批量勾选删除</li>
+            <li>12人模式红黄绿门槛数值持久化保存到房间配置</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.5.0</span>
+            <span class="ver-date">2026-08-17</span>
+          </div>
+          <ul class="changes-list">
+            <li>4人模式支持拖拽队伍进行插入排序</li>
+            <li>12人模式支持拖拽队伍对调排序</li>
+            <li>12人模式支持长按波数标题拖拽整波排序</li>
+            <li>更换角色支持选择空位</li>
+            <li>优化拖拽视觉反馈效果</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.4.0</span>
+            <span class="ver-date">2026-08-16</span>
+          </div>
+          <ul class="changes-list">
+            <li>12人模式新增波内补队+号按钮（红→黄→绿）</li>
+            <li>新增波数+号按钮，支持用户手动创建新波数</li>
+            <li>支持用户新建和删除队伍（4人/12人模式）</li>
+            <li>修复同波数出现相同玩家的问题</li>
+            <li>优化C战力和奶战力独立均衡算法</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.3.0</span>
+            <span class="ver-date">2026-08-14</span>
+          </div>
+          <ul class="changes-list">
+            <li>新增排表图片导出功能，支持复制/下载分享</li>
+            <li>新增一键清空排表按钮</li>
+            <li>「重置原始数据」更名为「重置为导入状态」</li>
+            <li>支持双奶配置（2C2N）</li>
+            <li>12人模式更换角色显示当前波数和红黄绿队伍信息</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.2.0</span>
+            <span class="ver-date">2026-08-12</span>
+          </div>
+          <ul class="changes-list">
+            <li>新增4种UI主题：暗色、B站粉、极简白、深夜紫</li>
+            <li>优化各主题文字对比度</li>
+            <li>链接展示框改为分享按钮，点击复制链接</li>
+            <li>合并重复的房间ID显示</li>
+            <li>新增浏览器favicon图标</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.1.0</span>
+            <span class="ver-date">2026-08-10</span>
+          </div>
+          <ul class="changes-list">
+            <li>新增账号注册登录系统，支持云端同步用户信息</li>
+            <li>管理员界面新增房间ID、编辑者、团本模式搜索筛选</li>
+            <li>支持全选/取消全选批量操作</li>
+            <li>普通用户可进入管理员界面管理自己创建的房间</li>
+            <li>非本人房间显示只读标识</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.0.0</span>
+            <span class="ver-date">2026-08-08</span>
+          </div>
+          <ul class="changes-list">
+            <li>薄纱团本排表协作工具首次发布</li>
+            <li>支持4人团本和12人团本两种模式</li>
+            <li>Excel导入导出角色数据</li>
+            <li>Gitee多人协作实时同步</li>
+            <li>一键均衡排表算法</li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;justify-content:flex-end">
+        <button class="secondary" id="closeChangelog">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 登录弹窗 -->
+  <div class="modal show" id="loginModal">
+    <div class="modal-box" style="max-width:420px">
+      <h3 style="text-align:center">薄纱团本 · 排表协作工具</h3>
+
+      <!-- 第一步：账号注册/登录 -->
+      <div id="acctStep">
+        <div class="tab-wrap" style="margin-bottom:14px">
+          <div class="tab active" data-atab="login">登录</div>
+          <div class="tab" data-atab="register">注册</div>
+        </div>
+        <div id="acctLoginForm">
+          <div class="form-item"><label>账号</label><input id="acctLoginUser" placeholder="输入账号" onkeydown="if(event.key==='Enter')document.getElementById('acctLoginPwd').focus()"></div>
+          <div class="form-item"><label>密码</label><input type="password" id="acctLoginPwd" placeholder="输入密码" onkeydown="if(event.key==='Enter')document.getElementById('doAcctLogin').click()"></div>
+          <button id="doAcctLogin" style="width:100%;margin-top:8px">登录</button>
+        </div>
+        <div id="acctRegisterForm" style="display:none">
+          <div class="form-item"><label>账号</label><input id="acctRegUser" placeholder="设置账号（2-20位字母/数字/中文）"></div>
+          <div class="form-item"><label>密码</label><input type="password" id="acctRegPwd" placeholder="设置密码（至少4位）" onkeydown="if(event.key==='Enter')document.getElementById('acctRegPwd2').focus()"></div>
+          <div class="form-item"><label>确认密码</label><input type="password" id="acctRegPwd2" placeholder="再次输入密码" onkeydown="if(event.key==='Enter')document.getElementById('doAcctRegister').click()"></div>
+          <button id="doAcctRegister" style="width:100%;margin-top:8px">注册</button>
+        </div>
+        <p class="muted" id="acctMsg" style="margin-top:10px;font-size:12px;text-align:center"></p>
+        <div class="admin-link"><a id="openAdminLogin">管理面板入口</a></div>
+      </div>
+
+      <!-- 第二步：房间加入/创建 -->
+      <div id="roomStep" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px 12px;background:var(--panel2);border-radius:8px;border:1px solid var(--line)">
+          <span class="dot on" style="background:var(--green)"></span>
+          <span style="font-size:13px">已登录：<b id="acctDisplayName"></b></span>
+          <button class="sm secondary" id="acctLogout" style="margin-left:auto">切换账号</button>
+          <button class="sm" id="myRoomsBtn">我的房间</button>
+        </div>
+        <div class="tab-wrap" style="margin-bottom:14px">
+          <div class="tab active" data-ltab="join">加入房间</div>
+          <div class="tab" data-ltab="create">新建房间</div>
+        </div>
+        <div id="joinForm">
+          <div class="form-item"><label>房间号</label><input id="joinRoomId" placeholder="输入房间号，如 1"></div>
+          <div class="form-item"><label>密码</label><input type="password" id="joinRoomPwd" placeholder="房间密码" onkeydown="if(event.key==='Enter')document.getElementById('doJoin').click()"></div>
+          <button id="doJoin" style="width:100%;margin-top:8px">进入房间</button>
+        </div>
+        <div id="createForm" style="display:none">
+          <div class="form-item"><label>房间号</label><input id="createRoomId" placeholder="自定义房间号，如 myteam"></div>
+          <div class="form-item"><label>密码</label><input type="password" id="createRoomPwd" placeholder="设置房间密码"></div>
+          <button id="doCreate" style="width:100%;margin-top:8px">创建房间</button>
+        </div>
+        <p class="muted" id="loginMsg" style="margin-top:10px;font-size:12px;text-align:center"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 管理员/用户登录弹窗 -->
+  <div class="modal" id="adminLoginModal">
+    <div class="modal-box" style="max-width:380px">
+      <h3 style="text-align:center">管理面板登录</h3>
+      <div class="form-item"><label>账号</label><input id="adminUser" placeholder="输入账号" onkeydown="if(event.key==='Enter')document.getElementById('adminPwd').focus()"></div>
+      <div class="form-item"><label>密码</label><input type="password" id="adminPwd" placeholder="输入密码" onkeydown="if(event.key==='Enter')document.getElementById('doAdminLogin').click()"></div>
+      <button id="doAdminLogin" style="width:100%;margin-top:8px">登录</button>
+      <button class="secondary" id="closeAdminLogin" style="width:100%;margin-top:6px">返回</button>
+      <p class="muted" id="adminLoginMsg" style="margin-top:10px;font-size:12px;text-align:center">管理员可管理所有房间，普通用户仅可管理自己创建的房间</p>
+    </div>
+  </div>
+
+  <!-- 新房间引导弹窗 -->
+  <div class="modal" id="guideModal">
+    <div class="modal-box">
+      <h3>🎉 房间 <span id="guideRoomId"></span> 创建成功！</h3>
+      <div class="notice">房间当前为空，请按以下步骤导入角色数据。</div>
+      <div class="help">
+        <p><b>第1步：下载 Excel 模板</b></p>
+        <p>点击下方「下载 Excel 模板」按钮，模板已包含列标题和一行示例数据，方便参照填写。</p>
+        <p style="margin-top:10px"><b>第2步：在 Excel 中填写角色数据</b></p>
+        <p>删除示例行，按以下格式填写每位玩家的角色：</p>
+        <div style="background:#13161f;border:1px solid var(--line);border-radius:7px;padding:10px;margin:6px 0;font-size:12px;line-height:1.8">
+          <b>归属玩家</b>：玩家昵称，如 鸟、热、白<br>
+          <b>角色名称</b>：角色职业名，如 剑魂、缪斯<br>
+          <b>战力数值</b>：纯数字，如 15226<br>
+          <b>类型</b>：输出填 <code>c</code>，奶填 <code>N</code><br>
+          <b>A套</b>：A套套装名，如 黄金乡（可留空）<br>
+          <b>B套</b>：B套套装名，如 青丘（可留空）<br>
+          <br>
+          <span style="color:var(--mut)">示例行：鸟 | 剑魂 | 15226 | c | 黄金乡 | 黄金乡</span><br>
+          <span style="color:var(--mut)">示例行：鸟 | 缪斯 | 40328 | N | 黄金乡 |</span>
+        </div>
+        <p style="margin-top:10px"><b>第3步：导入填好的 Excel</b></p>
+        <p>保存 Excel 文件后，点击页面顶部的「导入Excel」按钮上传即可。系统会自动排表并同步到房间。</p>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button id="downloadTemplate">下载 Excel 模板</button>
+        <button class="secondary" id="closeGuide">进入房间</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 管理员面板 -->
+  <div class="admin-panel" id="adminPanel">
+    <div class="admin-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#e74c3c,#f97316);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:#fff;flex-shrink:0">管</div>
+        <h2 id="adminPanelTitle">管理员控制台</h2>
+        <span id="adminPanelTag" style="font-size:11px;color:var(--mut);background:var(--panel2);padding:2px 8px;border-radius:10px;border:1px solid var(--line)">Wenby</span>
+      </div>
+      <div class="acts">
+        <button id="adminRefresh">刷新房间列表</button>
+        <button class="danger" id="adminBatchDel" disabled style="opacity:.4">批量删除选中</button>
+        <button class="secondary" id="adminExit">退出管理</button>
+      </div>
+    </div>
+    <div class="admin-stats">
+      房间总数 <b id="adminRoomCount">0</b> ｜ 总角色数 <b id="adminTotalChars">0</b> ｜ 总队伍数 <b id="adminTotalTeams">0</b> ｜ 在线人数 <b id="adminOnline">0</b> ｜ 已选中 <b id="adminSelectedCount">0</b>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+      <input id="adminSearchRoom" placeholder="搜索房间号…" style="flex:1;min-width:140px" oninput="filterAdminRooms()">
+      <input id="adminSearchEditor" placeholder="搜索编辑者…" style="flex:1;min-width:140px" oninput="filterAdminRooms()">
+      <select id="adminFilterMode" onchange="filterAdminRooms()" style="min-width:120px">
+        <option value="">全部模式</option>
+        <option value="4">4人团本</option>
+        <option value="12">12人团本</option>
+      </select>
+      <button class="sm secondary" id="adminSelectAll">全选当前结果</button>
+      <button class="sm secondary" id="adminSelectNone">取消全选</button>
+    </div>
+    <div id="adminRoomList"></div>
+  </div>
+
+  <div style="text-align:center;padding:10px 0 6px;color:var(--mut);font-size:11px;border-top:1px solid var(--line);margin-top:14px">本平台由原神群温白开发，未经允许，禁止转发。</div>
+</div>
+
+<script>
+/* ================= 可嵌入配置（一键分享用，留空则用设置面板/本地模式） ================= */
+const EMBED_SYNC = { owner:"meltingwhite1", repo:"dnf-team-sync", branch:"master", _e:"VU0QXFkHCFAGVhNKUFVRCANQU0FECVRQVVQFBxEVDAM=" };
+/* _e 为 XOR 加密后的 Gitee token，运行时用密码 busha2026 解密，明文不出现在源码中 */
+function _d(e,p){ try{ const r=atob(e); let s=""; for(let i=0;i<r.length;i++) s+=String.fromCharCode(r.charCodeAt(i)^p.charCodeAt(i%p.length)); return s; }catch(x){ return ""; } }
+/* 同步 URL/Token 构造器 */
+function syncUrl(cfg,path){ if(!cfg) return null; return `https://gitee.com/api/v5/repos/${cfg.owner}/${cfg.repo}/contents/${path}`; }
+function syncTok(cfg){ if(!cfg) return ""; return encodeURIComponent(cfg._e?_d(cfg._e,"busha2026"):(cfg.token||"")); }
+function hasSync(cfg){ return !!(cfg&&(cfg._e||cfg.token)); }
+/* ===================================================================================== */
+
+const LS_CHAR = "busha末世录团表_v2";
+const LS_NICK = "busha_nick";
+const LS_SYNC = "busha_sync_cfg";
+const LS_BACK = "busha_backup";
+const LS_ACCT = "busha_acct_v1"; /* 注册用户列表 */
+const LS_SESSION = "busha_session_v1"; /* 当前登录会话 */
+let charList = [];
+let teamList = [];
+let editTargetId = null;
+let raidMode = 4; /* 4=四人次本, 12=十二人团本(3队红黄绿) */
+let viewMode = "normal"; /* normal=标准, compact=紧凑, ultra=一览 */
+let clickHL = ""; /* 点击高亮的玩家名，空=无 */
+
+/* ---------- 撤销/重做 ---------- */
+const HISTORY_SIZE = 50;
+let undoStack = [];
+let redoStack = [];
+function snapshot(){ return {charList:clone(charList), teamList:clone(teamList), raidMode}; }
+function pushHistory(){ undoStack.push(snapshot()); if(undoStack.length>HISTORY_SIZE) undoStack.shift(); redoStack=[]; updateUndoRedoBtns(); }
+function updateUndoRedoBtns(){
+  const ub=document.getElementById("undoBtn"), rb=document.getElementById("redoBtn");
+  if(!ub||!rb) return;
+  ub.disabled = undoStack.length===0;
+  rb.disabled = redoStack.length===0;
+  ub.style.opacity = ub.disabled ? "0.4" : "1";
+  rb.style.opacity = rb.disabled ? "0.4" : "1";
+}
+async function doUndo(){
+  if(!undoStack.length) return;
+  redoStack.push(snapshot());
+  const prev = undoStack.pop();
+  charList = prev.charList; teamList = prev.teamList; raidMode = prev.raidMode;
+  saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
+  SYNC.writeStateLocal(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
+}
+async function doRedo(){
+  if(!redoStack.length) return;
+  undoStack.push(snapshot());
+  const next = redoStack.pop();
+  charList = next.charList; teamList = next.teamList; raidMode = next.raidMode;
+  saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
+  SYNC.writeStateLocal(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
+}
+
+/* ---------- 账号系统 ---------- */
+const ACCT = {
+  _remoteSha: null,
+  _loading: false,
+  getUsers(){ try{ return JSON.parse(localStorage.getItem(LS_ACCT))||{}; }catch(e){ return {}; } },
+  saveUsers(u){ localStorage.setItem(LS_ACCT, JSON.stringify(u)); },
+  getSession(){ try{ return JSON.parse(localStorage.getItem(LS_SESSION)); }catch(e){ return null; } },
+  saveSession(user){ localStorage.setItem(LS_SESSION, JSON.stringify({user, ts:Date.now()})); },
+  clearSession(){ localStorage.removeItem(LS_SESSION); },
+  /* 获取 Gitee 同步配置 */
+  syncCfg(){
+    if(EMBED_SYNC && (EMBED_SYNC._e||EMBED_SYNC.token)) return Object.assign({branch:"master"}, EMBED_SYNC);
+    return null;
+  },
+  /* 从远端拉取 accounts.json */
+  async fetchRemoteUsers(){
+    const cfg=this.syncCfg();
+    if(!cfg) return {users:null, sha:null};
+    try{
+      const r=await fetch(syncUrl(cfg,"accounts.json")+"?access_token="+syncTok(cfg)+"&ref="+encodeURIComponent(cfg.branch||"master"));
+      if(r.status===404) return {users:{}, sha:null};
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      const j=await r.json();
+      if(!j||!j.content) return {users:{}, sha:null};
+      this._remoteSha=j.sha;
+      const data=JSON.parse(b64dec(j.content));
+      return {users:data, sha:j.sha};
+    }catch(e){ return {users:null, sha:null, error:e.message}; }
+  },
+  /* 推送 accounts.json 到远端 */
+  async pushRemoteUsers(users, sha){
+    const cfg=this.syncCfg();
+    if(!cfg) return false;
+    const body={ access_token:(cfg._e?_d(cfg._e,"busha2026"):cfg.token), message:"update accounts", content:b64enc(JSON.stringify(users)), branch:cfg.branch||"master" };
+    if(sha) body.sha=sha;
+    const method=sha?"PUT":"POST";
+    const r=await fetch(syncUrl(cfg,"accounts.json")+"?access_token="+syncTok(cfg), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+    if(!r.ok){
+      const e=await r.json().catch(()=>({}));
+      if(r.status===409||r.status===422) return "conflict";
+      throw new Error("HTTP "+r.status+" "+(e.message||""));
+    }
+    const j=await r.json();
+    this._remoteSha=(j.content&&j.content.sha)||j.sha;
+    return true;
+  },
+  async register(user, pwd){
+    if(!user || user.length<2 || user.length>20) return "账号需2-20位字符";
+    if(!pwd || pwd.length<4) return "密码至少4位";
+    /* 先拉取远端用户列表 */
+    const remote=await this.fetchRemoteUsers();
+    let users=remote.users;
+    if(users===null){
+      /* 远端不可用，使用本地缓存 */
+      users=this.getUsers();
+    }
+    if(users[user]) return "账号已存在，请直接登录";
+    users[user]={pwd, ts:Date.now()};
+    /* 尝试推送到远端 */
+    if(this.syncCfg()){
+      try{
+        const result=await this.pushRemoteUsers(users, remote.sha);
+        if(result==="conflict"){
+          /* 冲突重试：重新拉取再合并 */
+          for(let i=0;i<3;i++){
+            const retry=await this.fetchRemoteUsers();
+            if(retry.users===null) break;
+            if(retry.users[user]) return "账号已存在，请直接登录";
+            retry.users[user]={pwd, ts:Date.now()};
+            const r2=await this.pushRemoteUsers(retry.users, retry.sha);
+            if(r2===true) break;
+            if(r2!=="conflict") throw new Error("push failed");
+          }
+        }
+      }catch(e){
+        /* 远端推送失败，仅保存本地 */
+      }
+    }
+    this.saveUsers(users);
+    return null;
+  },
+  async login(user, pwd){
+    if(!user || !pwd) return "请输入账号和密码";
+    /* 先检查本地缓存 */
+    let users=this.getUsers();
+    if(users[user]){
+      if(users[user].pwd!==pwd) return "密码错误";
+      this.saveSession(user);
+      /* 后台同步远端用户列表 */
+      this.bgSync();
+      return null;
+    }
+    /* 本地没有，从远端拉取 */
+    const remote=await this.fetchRemoteUsers();
+    if(remote.users===null){
+      return "账号不存在，请先注册";
+    }
+    /* 合并远端数据到本地缓存 */
+    this.saveUsers(remote.users);
+    if(!remote.users[user]) return "账号不存在，请先注册";
+    if(remote.users[user].pwd!==pwd) return "密码错误";
+    this.saveSession(user);
+    return null;
+  },
+  /* 后台同步用户列表，不影响登录流程 */
+  async bgSync(){
+    try{
+      const remote=await this.fetchRemoteUsers();
+      if(remote.users){
+        const local=this.getUsers();
+        let changed=false;
+        for(const k in remote.users){ if(!local[k]){ local[k]=remote.users[k]; changed=true; } }
+        if(changed) this.saveUsers(local);
+      }
+    }catch(e){}
+  },
+  /* 更新昵称到云端 */
+  _nickTimer:null,
+  async updateNick(nick){
+    const user=this.currentUser();
+    if(!user) return;
+    /* 先更新本地缓存 */
+    const local=this.getUsers();
+    if(local[user]) local[user].nick=nick;
+    this.saveUsers(local);
+    /* 同步到远端 */
+    const cfg=this.syncCfg();
+    if(!cfg) return;
+    try{
+      const remote=await this.fetchRemoteUsers();
+      if(!remote.users) return;
+      if(!remote.users[user]) return;
+      remote.users[user].nick=nick;
+      remote.users[user].ts=Date.now();
+      await this.pushRemoteUsers(remote.users, remote.sha);
+    }catch(e){}
+  },
+  updateNickDebounced(nick){
+    clearTimeout(this._nickTimer);
+    this._nickTimer=setTimeout(()=>this.updateNick(nick), 1500);
+  },
+  /* 从云端获取当前用户的昵称 */
+  async fetchNick(){
+    const user=this.currentUser();
+    if(!user) return null;
+    const remote=await this.fetchRemoteUsers();
+    if(!remote.users || !remote.users[user]) return null;
+    return remote.users[user].nick || null;
+  },
+  isLoggedIn(){
+    const s=this.getSession();
+    return s && s.user;
+  },
+  currentUser(){
+    const s=this.getSession();
+    return s ? s.user : null;
+  }
+};
+
+function bindAcctTabs(){
+  document.querySelectorAll("[data-atab]").forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll("[data-atab]").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      const isLogin = t.dataset.atab==="login";
+      document.getElementById("acctLoginForm").style.display = isLogin?"block":"none";
+      document.getElementById("acctRegisterForm").style.display = isLogin?"none":"block";
+      document.getElementById("acctMsg").textContent="";
+    };
+  });
+}
+
+async function doAcctRegister(){
+  const u=document.getElementById("acctRegUser").value.trim();
+  const p=document.getElementById("acctRegPwd").value;
+  const p2=document.getElementById("acctRegPwd2").value;
+  const msg=document.getElementById("acctMsg");
+  if(p!==p2){ msg.textContent="✗ 两次密码不一致"; return; }
+  msg.textContent="注册中…";
+  const err=await ACCT.register(u,p);
+  if(err){ msg.textContent="✗ "+err; return; }
+  msg.style.color="var(--green)";
+  msg.textContent="✓ 注册成功，请登录";
+  // 自动填充登录框
+  document.getElementById("acctLoginUser").value=u;
+  document.getElementById("acctLoginPwd").focus();
+  // 切换到登录tab
+  document.querySelectorAll("[data-atab]").forEach(x=>x.classList.remove("active"));
+  document.querySelector('[data-atab="login"]').classList.add("active");
+  document.getElementById("acctLoginForm").style.display="block";
+  document.getElementById("acctRegisterForm").style.display="none";
+  // 清空注册框
+  document.getElementById("acctRegUser").value="";
+  document.getElementById("acctRegPwd").value="";
+  document.getElementById("acctRegPwd2").value="";
+  setTimeout(()=>{ msg.textContent=""; msg.style.color=""; }, 3000);
+}
+
+async function doAcctLogin(){
+  const u=document.getElementById("acctLoginUser").value.trim();
+  const p=document.getElementById("acctLoginPwd").value;
+  const msg=document.getElementById("acctMsg");
+  msg.textContent="登录中…";
+  const err=await ACCT.login(u,p);
+  if(err){ msg.textContent="✗ "+err; return; }
+  // 登录成功，进入房间步骤
+  msg.textContent="";
+  document.getElementById("acctLoginPwd").value="";
+  showRoomStep();
+}
+
+function showRoomStep(){
+  const user=ACCT.currentUser();
+  if(!user) return;
+  document.getElementById("acctDisplayName").textContent=user;
+  document.getElementById("acctStep").style.display="none";
+  document.getElementById("roomStep").style.display="block";
+  // 从云端拉取已保存的昵称
+  const nickInput=document.getElementById("nickInput");
+  ACCT.fetchNick().then(savedNick=>{
+    if(savedNick){
+      nickInput.value=savedNick;
+      localStorage.setItem(LS_NICK, savedNick);
+      if(SYNC.room) SYNC.renderPresence();
+    } else if(!nickInput.value.trim()){
+      nickInput.value=user;
+      localStorage.setItem(LS_NICK, user);
+    }
+  });
+  // 如果URL有房间号，预填
+  const m=location.hash.match(/room=([^&]+)/);
+  if(m){
+    document.getElementById("joinRoomId").value=decodeURIComponent(m[1]);
+    document.getElementById("loginMsg").textContent="请输入房间 "+m[1]+" 的密码";
+  }
+}
+
+function showAcctStep(){
+  document.getElementById("roomStep").style.display="none";
+  document.getElementById("acctStep").style.display="block";
+  document.getElementById("loginMsg").textContent="";
+  // 清空房间输入
+  document.getElementById("joinRoomId").value="";
+  document.getElementById("joinRoomPwd").value="";
+  document.getElementById("createRoomId").value="";
+  document.getElementById("createRoomPwd").value="";
+  // 聚焦登录
+  document.getElementById("acctLoginUser").focus();
+}
+
+/* ---------- 原始数据 ---------- */
+function getInitData(){
+  return [
+    {id:1,owner:"鸟",name:"剑魂",power:15226,type:"c",a:"黄金",b:"黄金"},
+    {id:2,owner:"鸟",name:"红狗",power:9889,type:"c",a:"黄金",b:"青丘"},
+    {id:3,owner:"鸟",name:"剑帝",power:6050,type:"c",a:"黄金",b:"黄金"},
+    {id:4,owner:"鸟",name:"花花",power:1685,type:"c",a:"龙战",b:"精灵"},
+    {id:5,owner:"鸟",name:"帕拉丁",power:1272,type:"c",a:"黄金",b:"群猎"},
+    {id:6,owner:"鸟",name:"念皇",power:1052,type:"c",a:"潜影",b:"龙战"},
+    {id:7,owner:"鸟",name:"鬼泣",power:2663,type:"c",a:"龙战",b:"龙战"},
+    {id:8,owner:"鸟",name:"剑影",power:3138,type:"c",a:"黄金",b:"群猎"},
+    {id:9,owner:"鸟",name:"漫游",power:1709,type:"c",a:"黄金乡",b:"群猎"},
+    {id:10,owner:"鸟",name:"小剑魂",power:1630,type:"c",a:"天命",b:"能量"},
+    {id:11,owner:"鸟",name:"瞎子",power:1139,type:"c",a:"潜影",b:"自然"},
+    {id:12,owner:"鸟",name:"乌鸡",power:1127,type:"c",a:"潜影",b:"自然"},
+    {id:13,owner:"鸟",name:"魔皇",power:1118,type:"c",a:"龙战",b:"黄金"},
+    {id:14,owner:"鸟",name:"刃影",power:2300,type:"c",a:"龙战",b:"自然"},
+    {id:15,owner:"鸟",name:"旅人",power:1037,type:"c",a:"龙战",b:"黄金"},
+    {id:16,owner:"鸟",name:"妖护使",power:1614,type:"c",a:"龙战",b:"龙战"},
+    {id:17,owner:"鸟",name:"光枪",power:1322,type:"c",a:"龙战",b:"天命"},
+    {id:23,owner:"鸟",name:"剑魂(J)",power:20194,type:"c",a:"黄金",b:"黄金"},
+    {id:24,owner:"鸟",name:"红狗(J)",power:5052,type:"c",a:"龙战",b:"潜影"},
+    {id:25,owner:"鸟",name:"街霸(J)",power:4233,type:"c",a:"能量",b:"能量"},
+    {id:26,owner:"鸟",name:"瞎子(J)",power:5122,type:"c",a:"龙战",b:"天命"},
+    {id:70,owner:"鸟",name:"小奶妈",power:36445,type:"N",a:"",b:""},
+    {id:71,owner:"鸟",name:"奶爸",power:40194,type:"N",a:"",b:""},
+    {id:72,owner:"鸟",name:"缪斯",power:40328,type:"N",a:"黄金乡",b:""},
+    {id:73,owner:"鸟",name:"奶妈",power:39322,type:"N",a:"",b:""},
+    {id:74,owner:"鸟",name:"奶萝",power:40750,type:"N",a:"",b:""},
+
+    {id:101,owner:"热",name:"乌鸡",power:10000,type:"c",a:"黄金乡",b:"青丘"},
+    {id:102,owner:"热",name:"剑帝",power:2000,type:"c",a:"黄金乡",b:"群猎"},
+    {id:103,owner:"热",name:"剑魂",power:13220,type:"c",a:"黄金乡",b:"自然"},
+    {id:104,owner:"热",name:"男气功",power:1400,type:"c",a:"黄金乡",b:"能量"},
+    {id:105,owner:"热",name:"斗罗",power:1530,type:"c",a:"黄金乡",b:"龙战"},
+    {id:106,owner:"热",name:"阿修罗",power:1860,type:"c",a:"黄金乡",b:"黄金乡"},
+    {id:107,owner:"热",name:"女气功",power:850,type:"c",a:"黄金乡",b:"群猎"},
+    {id:108,owner:"热",name:"帕拉丁",power:1100,type:"c",a:"黄金乡",b:"女武神"},
+    {id:109,owner:"热",name:"剑影",power:720,type:"c",a:"黄金乡",b:"群猎"},
+    {id:110,owner:"热",name:"红狗",power:750,type:"c",a:"黄金乡",b:"青丘"},
+    {id:111,owner:"热",name:"漫游",power:1120,type:"c",a:"黄金乡",b:"能量"},
+    {id:112,owner:"热",name:"剑宗",power:640,type:"c",a:"黄金乡",b:"潜影"},
+    {id:113,owner:"热",name:"旅人",power:1110,type:"c",a:"黄金乡",b:"精灵"},
+    {id:114,owner:"热",name:"妖护使",power:820,type:"c",a:"黄金乡",b:"女武神"},
+    {id:115,owner:"热",name:"女弹药",power:480,type:"c",a:"黄金乡",b:"净化"},
+    {id:116,owner:"热",name:"鬼泣",power:420,type:"c",a:"龙战",b:"能量"},
+    {id:117,owner:"热",name:"女散打",power:350,type:"c",a:"黄金乡",b:"领域"},
+    {id:170,owner:"热",name:"缪斯",power:41470,type:"N",a:"",b:""},
+    {id:171,owner:"热",name:"奶妈",power:38496,type:"N",a:"",b:""},
+    {id:172,owner:"热",name:"奶萝",power:40895,type:"N",a:"",b:""},
+    {id:173,owner:"热",name:"奶爸",power:42312,type:"N",a:"",b:""},
+    {id:174,owner:"热",name:"奶枪",power:42352,type:"N",a:"",b:""},
+
+    {id:201,owner:"白",name:"刃影",power:6200,type:"c",a:"黄金乡",b:"黄金乡"},
+    {id:202,owner:"白",name:"天帝",power:3870,type:"c",a:"黄金乡",b:"黄金乡"},
+    {id:203,owner:"白",name:"剑影",power:3111,type:"c",a:"黄金乡",b:"群猎"},
+    {id:204,owner:"白",name:"妖护使",power:1524,type:"c",a:"龙战",b:"自然"},
+    {id:205,owner:"白",name:"剑神",power:1358,type:"c",a:"龙战",b:"天命"},
+    {id:206,owner:"白",name:"猎人",power:1440,type:"c",a:"黄金乡",b:"龙战"},
+    {id:207,owner:"白",name:"红狗",power:1946,type:"c",a:"龙战",b:"潜影"},
+    {id:208,owner:"白",name:"剑帝",power:1612,type:"c",a:"龙战",b:"净化"},
+    {id:209,owner:"白",name:"合金（混）",power:206,type:"c",a:"",b:""},
+    {id:210,owner:"白",name:"剑宗（混）",power:175,type:"c",a:"",b:""},
+    {id:211,owner:"白",name:"帕帕（混）",power:158,type:"c",a:"",b:""},
+    {id:212,owner:"白",name:"花花（混）",power:0,type:"c",a:"群猎",b:""},
+    {id:213,owner:"白",name:"大枪（混）",power:0,type:"c",a:"群猎",b:""},
+    {id:214,owner:"白",name:"破浪",power:2200,type:"c",a:"群猎",b:""},
+    {id:270,owner:"白",name:"缪斯",power:41807,type:"N",a:"",b:""},
+    {id:271,owner:"白",name:"奶枪",power:40740,type:"N",a:"",b:""},
+    {id:272,owner:"白",name:"奶妈",power:36283,type:"N",a:"",b:""},
+    {id:273,owner:"白",name:"奶萝",power:33625,type:"N",a:"",b:""},
+    {id:274,owner:"白",name:"小缪斯",power:32071,type:"N",a:"",b:""},
+    {id:275,owner:"白",name:"小奶爸",power:30986,type:"N",a:"",b:""},
+    {id:276,owner:"白",name:"小奶枪",power:31773,type:"N",a:"",b:""},
+
+    {id:301,owner:"摸鱼",name:"剑宗",power:7767,type:"c",a:"龙战",b:"黄金乡"},
+    {id:302,owner:"摸鱼",name:"鳗鱼",power:1724,type:"c",a:"黄金乡",b:"混沌"},
+    {id:303,owner:"摸鱼",name:"战法",power:1447,type:"c",a:"黄金乡",b:"领域"},
+    {id:304,owner:"摸鱼",name:"刃影",power:763,type:"c",a:"龙战",b:"混沌"},
+    {id:305,owner:"摸鱼",name:"龙骑",power:573,type:"c",a:"领域",b:"龙战"},
+    {id:306,owner:"摸鱼",name:"旅人",power:515,type:"c",a:"潜影",b:"女武神"},
+    {id:307,owner:"摸鱼",name:"毒王",power:597,type:"c",a:"龙战",b:"群猎"},
+    {id:370,owner:"摸鱼",name:"奶妈",power:42687,type:"N",a:"黄金乡",b:"群猎"},
+    {id:371,owner:"摸鱼",name:"缪斯",power:39315,type:"N",a:"黄金乡",b:"自然"},
+    {id:372,owner:"摸鱼",name:"奶枪",power:34743,type:"N",a:"龙战",b:"女武神"},
+
+    {id:401,owner:"批天",name:"剑帝",power:4575,type:"c",a:"黄金乡",b:"黄金乡"},
+    {id:402,owner:"批天",name:"帕拉丁",power:2272,type:"c",a:"黄金乡",b:"能量"},
+    {id:403,owner:"批天",name:"战法",power:1200,type:"c",a:"黄金乡",b:"黄金乡"},
+    {id:404,owner:"批天",name:"刃影",power:961,type:"c",a:"黄金乡",b:"群猎"},
+    {id:405,owner:"批天",name:"花花",power:860,type:"c",a:"黄金乡",b:"天命"},
+    {id:406,owner:"批天",name:"精灵",power:528,type:"c",a:"黄金乡",b:"黄金乡"},
+    {id:470,owner:"批天",name:"缪斯",power:45838,type:"N",a:"黄金乡",b:""},
+    {id:471,owner:"批天",name:"奶萝",power:35786,type:"N",a:"黄金乡",b:""},
+    {id:472,owner:"批天",name:"奶妈",power:35077,type:"N",a:"黄金乡",b:""},
+    {id:473,owner:"批天",name:"小缪斯",power:35421,type:"N",a:"黄金乡",b:""},
+    {id:474,owner:"批天",name:"奶枪",power:0,type:"N",a:"",b:""},
+    {id:475,owner:"批天",name:"奶爸",power:47362,type:"N",a:"",b:""},
+  ];
+}
+
+/* ---------- 工具 ---------- */
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function b64enc(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64dec(b64){ return decodeURIComponent(escape(atob(String(b64).replace(/\s/g,"")))); }
+function randId(){ return Math.random().toString(36).slice(2,10); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+/* ---------- 本地存储 ---------- */
+function saveStorage(){ try{ localStorage.setItem(LS_CHAR, JSON.stringify({charList,teamList,raidMode})); }catch(e){} }
+function loadStorage(){
+  try{
+    const s = JSON.parse(localStorage.getItem(LS_CHAR));
+    if(s && Array.isArray(s.charList)){ charList = s.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }); raidMode = s.raidMode||4; teamList = s.teamList && s.teamList.length ? s.teamList : arrange(charList); return true; }
+  }catch(e){}
+  return false;
+}
+
+/* ---------- 排表（纯函数） ---------- */
+function arrange(chars, mode, opts){
+  const m = mode || raidMode || 4;
+  if(m===12) return arrange12(chars, opts||{});
+  return arrange4(chars);
+}
+
+/* 12人团本：多组3队×4人，红>黄>绿战力梯度，保证全部入队
+   核心逻辑：
+   1. 同一波数不得出现同一玩家（跨队伍也禁止，含剩余角色池）—— 绝对优先
+   2. C战力独立均衡：各波同色队伍C总战力接近
+   3. 奶战力独立均衡：波内红奶>黄奶>绿奶，跨波各波三奶合计接近
+   4. 全局梯度：任何红队C总>任何黄队C总>任何绿队C总
+   5. 填充优先级：红>黄>绿，不足时留空
+   6. 最终输出前强制验证：扫描所有波，移除任何同波重复玩家
+   7. 可选门槛：opts.thresholdRed/Yellow/Green 按用户填写值分配各色C
+   8. 可选双奶：opts.dualHealer 开启后，剩余奶可整合到队伍中作为第二奶
+*/
+function arrange12(chars, opts){
+  opts = opts || {};
+  const dualHealer = !!opts.dualHealer;
+  const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
+  const H = chars.filter(c=>c.type==="N").slice().sort((a,b)=>b.power-a.power);
+  if(H.length<3 || C.length<3) return [];
+
+  const charMap={};
+  chars.forEach(c=>charMap[c.id]=c);
+
+  /* 计算每个owner的角色数量，用于确定足够的波数 */
+  const ownerCount={};
+  chars.forEach(c=>{ ownerCount[c.owner]=(ownerCount[c.owner]||0)+1; });
+  const maxOwnerChars=Math.max(...Object.values(ownerCount));
+
+  const numWaves = Math.min(Math.floor(H.length/3), Math.floor(C.length/3), maxOwnerChars);
+  if(numWaves<1) return [];
+
+  /* ---- Phase 1: 贪心分配角色到各波，严格同波无重复玩家 ---- */
+  const waves=[];
+  for(let i=0;i<numWaves;i++) waves.push({H:[],C:[],owners:new Set(),hTotal:0,cTotal:0});
+
+  /* 分配奶：优先填满前面的波数（3个奶），保持同波无重复玩家 */
+  for(const h of H){
+    let target=-1;
+    for(let wi=0;wi<numWaves;wi++){
+      if(waves[wi].H.length>=3) continue;
+      if(waves[wi].owners.has(h.owner)) continue;
+      target=wi; break;
+    }
+    if(target===-1) continue; /* 严格：找不到无冲突的波就跳过 */
+    waves[target].H.push(h);
+    waves[target].owners.add(h.owner);
+    waves[target].hTotal+=h.power;
+  }
+
+  /* 分配C：按战力降序，分配给cTotal最低且无此owner的波，上限为该波奶数×3 */
+  for(const c of C){
+    let target=-1, minVal=Infinity;
+    for(let wi=0;wi<numWaves;wi++){
+      const cMax=waves[wi].H.length*3;
+      if(cMax===0) continue;
+      if(waves[wi].C.length>=cMax) continue;
+      if(waves[wi].owners.has(c.owner)) continue;
+      if(waves[wi].cTotal<minVal){ minVal=waves[wi].cTotal; target=wi; }
+    }
+    if(target===-1) continue; /* 严格：找不到无冲突的波就跳过，绝不放宽 */
+    waves[target].C.push(c);
+    waves[target].owners.add(c.owner);
+    waves[target].cTotal+=c.power;
+  }
+
+  /* ---- Phase 2: 每波内部组3支队伍 ---- */
+  /* 辅助函数：检查owner是否已在同波任何队伍中 */
+  function ownerInAnyTeam(teams, owner){
+    for(const t of teams){
+      if(t.owners.has(owner)) return true;
+    }
+    return false;
+  }
+
+  const waveTeams=[];
+  for(let wi=0;wi<numWaves;wi++){
+    const w=waves[wi];
+    if(w.H.length<1){ waveTeams.push(null); continue; }
+
+    w.H.sort((a,b)=>b.power-a.power);
+    w.C.sort((a,b)=>b.power-a.power);
+
+    /* 只为有奶的队伍创建对象——没奶不生成队伍 */
+    const numH=Math.min(w.H.length,3);
+    const teams=[];
+    for(let i=0;i<numH;i++) teams.push({slots:[],owners:new Set(),cTotal:0,hMax:0,hChar:null,total:0});
+
+    /* 分配奶：按战力降序，每队一个 */
+    for(let i=0;i<numH;i++){
+      teams[i].slots.push({charId:w.H[i].id});
+      teams[i].owners.add(w.H[i].owner);
+      teams[i].hMax=w.H[i].power;
+      teams[i].hChar=w.H[i].id;
+      teams[i].total=teams[i].cTotal+teams[i].hMax;
+    }
+
+    /* 分配C：只分配给有奶的队伍，凑不到奶的C不生成队伍，留未配置 */
+    /* 门槛校验在输出阶段按颜色强制执行 */
+    let ci=0;
+    for(let ti=0;ti<teams.length;ti++){
+      while(teams[ti].slots.length<4 && ci<w.C.length){
+        const c=w.C[ci]; ci++;
+        if(ownerInAnyTeam(teams, c.owner)) continue; /* 检查同波所有队伍 */
+        teams[ti].slots.push({charId:c.id});
+        teams[ti].owners.add(c.owner);
+        teams[ti].cTotal+=c.power;
+        teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
+      }
+    }
+
+    /* 按total降序排：红>黄>绿 */
+    teams.sort((a,b)=>b.total-a.total);
+    waveTeams.push(teams);
+  }
+
+  /* ---- Phase 3: 跨波C战力均衡（全局梯度约束） ---- */
+  function ownerInWave(waveIdx, owner){
+    for(const team of waveTeams[waveIdx]){
+      if(!team) continue;
+      for(const s of team.slots){
+        const c=charMap[s.charId];
+        if(c && c.owner===owner) return true;
+      }
+    }
+    return false;
+  }
+  function maxColorCTotal(ci){ let m=-Infinity; for(let wi=0;wi<numWaves;wi++){ if(waveTeams[wi]&&waveTeams[wi][ci]) m=Math.max(m,waveTeams[wi][ci].cTotal); } return m; }
+  function minColorCTotal(ci){ let m=Infinity; for(let wi=0;wi<numWaves;wi++){ if(waveTeams[wi]&&waveTeams[wi][ci]) m=Math.min(m,waveTeams[wi][ci].cTotal); } return m; }
+
+  for(let pass=0;pass<50;pass++){
+    let improved=false;
+    for(let ci=0;ci<3;ci++){
+      const ct=[];
+      for(let wi=0;wi<numWaves;wi++){
+        if(waveTeams[wi]&&waveTeams[wi][ci]) ct.push({wave:wi,team:waveTeams[wi][ci]});
+      }
+      if(ct.length<2) continue;
+      ct.sort((a,b)=>b.team.cTotal-a.team.cTotal);
+
+      const maxCT=ct[0], minCT=ct[ct.length-1];
+      const gap=maxCT.team.cTotal-minCT.team.cTotal;
+      if(gap<5) continue;
+
+      let bestSwap=null, bestGap=gap;
+      for(const s1 of maxCT.team.slots){
+        const c1=charMap[s1.charId];
+        if(!c1||c1.type!=="c") continue;
+        if(ownerInWave(minCT.wave, c1.owner)) continue;
+        for(const s2 of minCT.team.slots){
+          const c2=charMap[s2.charId];
+          if(!c2||c2.type!=="c") continue;
+          if(ownerInWave(maxCT.wave, c2.owner)) continue;
+          if(c1.owner===c2.owner) continue; /* 禁止同owner交换 */
+          if(c1.power<=c2.power) continue;
+
+          const newMax=maxCT.team.cTotal-c1.power+c2.power;
+          const newMin=minCT.team.cTotal-c2.power+c1.power;
+          const newGap=Math.abs(newMax-newMin);
+          if(newGap>=bestGap) continue;
+
+          let valid=true;
+          if(ci===0){ if(newMax<=maxColorCTotal(1)) valid=false; }
+          else if(ci===1){ if(newMax<=maxColorCTotal(2)) valid=false; if(newMin>=minColorCTotal(0)) valid=false; }
+          else if(ci===2){ if(newMin>=minColorCTotal(1)) valid=false; }
+          if(!valid) continue;
+
+          bestGap=newGap;
+          bestSwap={s1,s2,c1,c2};
+        }
+      }
+
+      if(bestSwap){
+        const mx=maxCT.team, mn=minCT.team;
+        mx.slots=mx.slots.filter(s=>s!==bestSwap.s1);
+        mx.owners.delete(bestSwap.c1.owner);
+        mx.cTotal-=bestSwap.c1.power;
+        mx.slots.push({charId:bestSwap.c2.id});
+        mx.owners.add(bestSwap.c2.owner);
+        mx.cTotal+=bestSwap.c2.power;
+        mx.total=mx.cTotal+mx.hMax;
+
+        mn.slots=mn.slots.filter(s=>s!==bestSwap.s2);
+        mn.owners.delete(bestSwap.c2.owner);
+        mn.cTotal-=bestSwap.c2.power;
+        mn.slots.push({charId:bestSwap.c1.id});
+        mn.owners.add(bestSwap.c1.owner);
+        mn.cTotal+=bestSwap.c1.power;
+        mn.total=mn.cTotal+mn.hMax;
+
+        improved=true;
+      }
+    }
+    if(!improved) break;
+  }
+
+  /* ---- Phase 4: 跨波奶战力均衡 ---- */
+  function waveHSum(wi){
+    let s=0; for(const t of waveTeams[wi]){ if(t&&t.hMax) s+=t.hMax; } return s;
+  }
+
+  for(let pass=0;pass<50;pass++){
+    let improved=false;
+    let maxWi=-1, minWi=-1, maxVal=-Infinity, minVal=Infinity;
+    for(let wi=0;wi<numWaves;wi++){
+      if(!waveTeams[wi]) continue;
+      const s=waveHSum(wi);
+      if(s>maxVal){ maxVal=s; maxWi=wi; }
+      if(s<minVal){ minVal=s; minWi=wi; }
+    }
+    if(maxWi===-1||minWi===-1||maxWi===minWi) break;
+    if(maxVal-minVal<5) break;
+
+    let bestSwap=null, bestGap=maxVal-minVal;
+    const maxTeams=waveTeams[maxWi]?waveTeams[maxWi].length:0;
+    const minTeams=waveTeams[minWi]?waveTeams[minWi].length:0;
+    for(let ci=0;ci<Math.min(maxTeams,minTeams);ci++){
+      const t1=waveTeams[maxWi][ci], t2=waveTeams[minWi][ci];
+      if(!t1||!t2||!t1.hChar||!t2.hChar) continue;
+      const h1=charMap[t1.hChar], h2=charMap[t2.hChar];
+      if(!h1||!h2) continue;
+      if(h1.owner===h2.owner) continue; /* 禁止同owner交换 */
+      if(ownerInWave(minWi, h1.owner)) continue;
+      if(ownerInWave(maxWi, h2.owner)) continue;
+
+      const newMax=maxVal-h1.power+h2.power;
+      const newMin=minVal-h2.power+h1.power;
+      const newGap=Math.abs(newMax-newMin);
+      if(newGap>=bestGap) continue;
+
+      /* 构建交换后各波奶战力，检查波内梯度（红>黄>绿）——支持不足3队 */
+      const w1=waveTeams[maxWi], w2=waveTeams[minWi];
+      const hArr1=[], hArr2=[];
+      for(let k=0;k<w1.length;k++) hArr1.push(k===ci?h2.power:w1[k].hMax);
+      for(let k=0;k<w2.length;k++) hArr2.push(k===ci?h1.power:w2[k].hMax);
+      let gradOk=true;
+      for(let k=1;k<hArr1.length;k++) if(hArr1[k]>=hArr1[k-1]) gradOk=false;
+      for(let k=1;k<hArr2.length;k++) if(hArr2[k]>=hArr2[k-1]) gradOk=false;
+      if(!gradOk) continue;
+
+      bestGap=newGap;
+      bestSwap={ci,h1,h2,t1,t2};
+    }
+
+    if(bestSwap){
+      const {ci,h1,h2,t1,t2}=bestSwap;
+      t1.slots=t1.slots.filter(s=>s.charId!==h1.id);
+      t1.owners.delete(h1.owner);
+      t1.slots.push({charId:h2.id});
+      t1.owners.add(h2.owner);
+      t1.hMax=h2.power;
+      t1.hChar=h2.id;
+      t1.total=t1.cTotal+t1.hMax;
+      t2.slots=t2.slots.filter(s=>s.charId!==h2.id);
+      t2.owners.delete(h2.owner);
+      t2.slots.push({charId:h1.id});
+      t2.owners.add(h1.owner);
+      t2.hMax=h1.power;
+      t2.hChar=h1.id;
+      t2.total=t2.cTotal+t2.hMax;
+      improved=true;
+    }
+    if(!improved) break;
+  }
+
+  /* ---- 输出 ---- */
+  const colors=["red","yellow","green"];
+  const hasThreshold = (typeof opts.thresholdRed==="number")||(typeof opts.thresholdYellow==="number")||(typeof opts.thresholdGreen==="number");
+  const allTeams=[];
+  const globalUsed=new Set();
+  for(let wi=0;wi<numWaves;wi++){
+    const teams=waveTeams[wi];
+    if(!teams) continue;
+    teams.sort((a,b)=>b.total-a.total);
+    teams.forEach((t,i)=>{
+      if(!t.hChar) return; /* 安全过滤：没奶的队伍不输出 */
+      /* 门槛强制校验：排序后按颜色检查C总战力是否达标 */
+      if(hasThreshold){
+        const thr=[opts.thresholdRed, opts.thresholdYellow, opts.thresholdGreen];
+        if(typeof thr[i]==="number" && t.cTotal<thr[i]) return; /* C总不达标，不输出此队伍 */
+      }
+      t.slots.forEach(s=>globalUsed.add(s.charId));
+      allTeams.push({slots:t.slots,raidColor:colors[i],group:wi+1});
+    });
+  }
+
+  /* ---- Phase 4b: 跨波同色奶均衡（在颜色分配后执行） ---- */
+  /* 目标：各波红奶接近、各波黄奶接近、各波绿奶接近，同时保持波内红>黄>绿 */
+  function teamHMax(team){
+    let hmax=0;
+    for(const s of team.slots){
+      const c=charMap[s.charId];
+      if(c && c.type==="N") hmax=Math.max(hmax,c.power);
+    }
+    return hmax;
+  }
+  function teamHChar(team){
+    let best=null,bestP=0;
+    for(const s of team.slots){
+      const c=charMap[s.charId];
+      if(c && c.type==="N" && c.power>bestP){ best=c; bestP=c.power; }
+    }
+    return best;
+  }
+  function teamCTotal(team){
+    let sum=0;
+    for(const s of team.slots){
+      const c=charMap[s.charId];
+      if(c && c.type==="c") sum+=c.power;
+    }
+    return sum;
+  }
+  function ownerInGroup(group, owner){
+    for(const t of allTeams){
+      if(t.group!==group) continue;
+      for(const s of t.slots){
+        const c=charMap[s.charId];
+        if(c && c.owner===owner) return true;
+      }
+    }
+    return false;
+  }
+  function waveHByColor(group, color){
+    for(const t of allTeams){
+      if(t.group===group && t.raidColor===color) return teamHMax(t);
+    }
+    return null;
+  }
+
+  for(let pass=0;pass<100;pass++){
+    let improved=false;
+    /* 对每种颜色，找跨波最大和最小差距，尝试交换 */
+    for(const color of colors){
+      const teamsOfColor=allTeams.filter(t=>t.raidColor===color);
+      if(teamsOfColor.length<2) continue;
+      /* 按奶战力降序 */
+      teamsOfColor.sort((a,b)=>teamHMax(b)-teamHMax(a));
+      const maxTeam=teamsOfColor[0], minTeam=teamsOfColor[teamsOfColor.length-1];
+      const maxH=teamHMax(maxTeam), minH=teamHMax(minTeam);
+      if(maxH-minH<5) continue;
+      /* 找maxTeam的奶和minTeam的奶，尝试交换 */
+      const h1=teamHChar(maxTeam), h2=teamHChar(minTeam);
+      if(!h1||!h2) continue;
+      if(h1.owner===h2.owner) continue;
+      /* 检查owner不在对方波 */
+      if(ownerInGroup(minTeam.group, h1.owner)) continue;
+      if(ownerInGroup(maxTeam.group, h2.owner)) continue;
+      /* 交换后新的奶战力 */
+      const newMaxH=h2.power, newMinH=h1.power;
+      if(Math.abs(newMaxH-newMinH)>=Math.abs(maxH-minH)) continue;
+      /* 检查波内梯度：交换后该波的奶仍需红>黄>绿 */
+      /* maxTeam的波：替换color位置的奶 */
+      const maxWaveRed=waveHByColor(maxTeam.group,"red");
+      const maxWaveYellow=waveHByColor(maxTeam.group,"yellow");
+      const maxWaveGreen=waveHByColor(maxTeam.group,"green");
+      const minWaveRed=waveHByColor(minTeam.group,"red");
+      const minWaveYellow=waveHByColor(minTeam.group,"yellow");
+      const minWaveGreen=waveHByColor(minTeam.group,"green");
+      const maxNew=color==="red"?newMaxH:(color==="yellow"?maxWaveYellow:maxWaveGreen);
+      const maxNewY=color==="yellow"?newMaxH:maxWaveYellow;
+      const maxNewG=color==="green"?newMaxH:maxWaveGreen;
+      const maxNewR=color==="red"?newMaxH:maxWaveRed;
+      const minNew=color==="red"?newMinH:(color==="yellow"?minWaveYellow:minWaveGreen);
+      const minNewY=color==="yellow"?newMinH:minWaveYellow;
+      const minNewG=color==="green"?newMinH:minWaveGreen;
+      const minNewR=color==="red"?newMinH:minWaveRed;
+      let gradOk=true;
+      if(maxNewR&&maxNewY&&maxNewR<=maxNewY) gradOk=false;
+      if(maxNewY&&maxNewG&&maxNewY<=maxNewG) gradOk=false;
+      if(minNewR&&minNewY&&minNewR<=minNewY) gradOk=false;
+      if(minNewY&&minNewG&&minNewY<=minNewG) gradOk=false;
+      if(!gradOk) continue;
+      /* 执行交换 */
+      maxTeam.slots=maxTeam.slots.filter(s=>s.charId!==h1.id);
+      maxTeam.slots.push({charId:h2.id});
+      minTeam.slots=minTeam.slots.filter(s=>s.charId!==h2.id);
+      minTeam.slots.push({charId:h1.id});
+      improved=true;
+      break; /* 重新开始外层循环 */
+    }
+    if(!improved) break;
+  }
+
+  /* ---- Phase 5: 剩余角色按波分组补排（严格同波无重复） ---- */
+  /* 计算剩余角色中每个owner的数量，确保波数足够 */
+  const leftoverC=C.filter(c=>!globalUsed.has(c.id));
+  const leftoverH=H.filter(c=>!globalUsed.has(c.id));
+
+  if(leftoverH.length>0 || leftoverC.length>0){
+    /* 统计剩余角色中每个owner的数量 */
+    const leftOwnerCount={};
+    [...leftoverH, ...leftoverC].forEach(c=>{
+      leftOwnerCount[c.owner]=(leftOwnerCount[c.owner]||0)+1;
+    });
+    const maxLeftOwnerChars=Math.max(...Object.values(leftOwnerCount));
+    /* 波数 = max(按奶数算, 按owner最大角色数算) */
+    const numLeftWaves=Math.max(Math.ceil(leftoverH.length/3), maxLeftOwnerChars, 1);
+    let lastGroup=numWaves+1;
+    const leftWaves=[];
+    for(let i=0;i<numLeftWaves;i++) leftWaves.push({H:[],C:[],owners:new Set()});
+
+    /* 分配奶到剩余波：严格无重复owner，找不到则跳过 */
+    for(const h of leftoverH){
+      let target=-1;
+      for(let wi=0;wi<numLeftWaves;wi++){
+        if(leftWaves[wi].H.length>=3) continue;
+        if(leftWaves[wi].owners.has(h.owner)) continue;
+        target=wi; break;
+      }
+      if(target===-1) continue; /* 严格：绝不放宽约束 */
+      leftWaves[target].H.push(h);
+      leftWaves[target].owners.add(h.owner);
+    }
+
+    /* 分配C到剩余波：严格无重复owner */
+    for(const c of leftoverC){
+      let target=-1, minC=Infinity;
+      for(let wi=0;wi<numLeftWaves;wi++){
+        if(leftWaves[wi].owners.has(c.owner)) continue;
+        const cnt=leftWaves[wi].C.length;
+        if(cnt<minC){ minC=cnt; target=wi; }
+      }
+      if(target===-1) continue; /* 严格：绝不放宽约束 */
+      leftWaves[target].C.push(c);
+      leftWaves[target].owners.add(c.owner);
+    }
+
+    /* 组队：只为有奶的波生成队伍，没奶的C不生成队伍，留未配置 */
+    for(let wi=0;wi<numLeftWaves;wi++){
+      const w=leftWaves[wi];
+      if(w.H.length<1) continue; /* 没奶不生成队伍 */
+      w.H.sort((a,b)=>b.power-a.power);
+      w.C.sort((a,b)=>b.power-a.power);
+      const numH=Math.min(w.H.length,3);
+      const teams=[];
+      for(let i=0;i<numH;i++) teams.push({slots:[],owners:new Set(),cTotal:0,hMax:0,hChar:null,total:0});
+      for(let i=0;i<numH;i++){
+        teams[i].slots.push({charId:w.H[i].id});
+        teams[i].owners.add(w.H[i].owner);
+        teams[i].hMax=w.H[i].power;
+        teams[i].hChar=w.H[i].id;
+        teams[i].total=teams[i].cTotal+teams[i].hMax;
+      }
+      let ci=0;
+      for(let ti=0;ti<teams.length;ti++){
+        while(teams[ti].slots.length<4 && ci<w.C.length){
+          const c=w.C[ci]; ci++;
+          if(ownerInAnyTeam(teams, c.owner)) continue; /* 检查同波所有队伍 */
+          teams[ti].slots.push({charId:c.id});
+          teams[ti].owners.add(c.owner);
+          teams[ti].cTotal+=c.power;
+          teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
+        }
+      }
+      teams.sort((a,b)=>b.total-a.total);
+      teams.forEach((t,i)=>{
+        if(t.slots.length===0) return;
+        t.slots.forEach(s=>globalUsed.add(s.charId));
+        allTeams.push({slots:t.slots,raidColor:colors[i]||undefined,group:lastGroup});
+      });
+      lastGroup++;
+    }
+  }
+
+  /* ---- Phase 5.5: 双奶整合——先解散只有奶没C的队伍，再把奶整合到其他队伍 ---- */
+  if(dualHealer){
+    /* Step 1: 找出只有奶没有C的队伍，解散它们，收集奶 */
+    const dissolvedHealers=[];
+    const teamsToKeep=[];
+    for(const t of allTeams){
+      const hasC=t.slots.some(s=>{
+        const c=charMap[s.charId];
+        return c && c.type==="c";
+      });
+      const healers=t.slots.filter(s=>{
+        const c=charMap[s.charId];
+        return c && c.type==="N";
+      });
+      if(!hasC && healers.length>0){
+        /* 只有奶没C，解散，收集奶 */
+        healers.forEach(s=>dissolvedHealers.push(charMap[s.charId]));
+      } else {
+        teamsToKeep.push(t);
+      }
+    }
+    /* 替换allTeams为保留的队伍 */
+    allTeams.length=0;
+    teamsToKeep.forEach(t=>allTeams.push(t));
+
+    /* Step 2: 收集所有未分配的奶（包括解散的 + 完全没入队的） */
+    const usedAfterDissolve=new Set();
+    allTeams.forEach(t=>t.slots.forEach(s=>s.charId&&usedAfterDissolve.add(s.charId)));
+    const remainingH=H.filter(h=>!usedAfterDissolve.has(h.id));
+    const allExtraH=[...remainingH, ...dissolvedHealers.filter(h=>!usedAfterDissolve.has(h.id))];
+
+    /* Step 3: 将所有额外奶分配到其他队伍中作为第二奶 */
+    for(const h of allExtraH){
+      let bestTeam=null, bestTotal=Infinity;
+      for(const t of allTeams){
+        const hCount=t.slots.filter(s=>{
+          const c=charMap[s.charId];
+          return c && c.type==="N";
+        }).length;
+        if(hCount>=2) continue; /* 最多双奶 */
+        if(t.slots.length>=4) continue; /* 队伍上限4人（支持2C2N） */
+        /* 检查同波无重复owner */
+        const group=t.group;
+        const groupTeams=allTeams.filter(x=>x.group===group);
+        let dup=false;
+        for(const gt of groupTeams){
+          for(const s of gt.slots){
+            const c=charMap[s.charId];
+            if(c && c.owner===h.owner){ dup=true; break; }
+          }
+          if(dup) break;
+        }
+        if(dup) continue;
+        /* 计算队伍当前总战力 */
+        let total=0, hmax=0;
+        for(const s of t.slots){
+          const c=charMap[s.charId];
+          if(!c) continue;
+          if(c.type==="c") total+=c.power;
+          else hmax=Math.max(hmax,c.power);
+        }
+        total+=hmax;
+        if(total<bestTotal){ bestTotal=total; bestTeam=t; }
+      }
+      if(bestTeam){
+        bestTeam.slots.push({charId:h.id});
+      }
+    }
+  }
+
+  /* ---- Phase 6: 最终验证——强制移除任何同波重复玩家 ---- */
+  /* 按 group 分组，同 group 内同一 owner 只保留第一次出现的角色 */
+  const groupMap={};
+  allTeams.forEach(t=>{
+    const g=t.group||0;
+    if(!groupMap[g]) groupMap[g]={seenOwners:new Set(),teams:[]};
+    groupMap[g].teams.push(t);
+  });
+
+  const cleanedTeams=[];
+  for(const g in groupMap){
+    const gd=groupMap[g];
+    for(const team of gd.teams){
+      const newSlots=[];
+      for(const s of team.slots){
+        if(s.charId){
+          const c=charMap[s.charId];
+          if(c && gd.seenOwners.has(c.owner)) continue; /* 同波重复，移除 */
+          if(c) gd.seenOwners.add(c.owner);
+        }
+        newSlots.push(s);
+      }
+      if(newSlots.length>0){
+        cleanedTeams.push({slots:newSlots,raidColor:team.raidColor,group:parseInt(g)});
+      }
+    }
+  }
+
+  /* ---- Phase 7: 最终过滤——去重后没奶的队伍也不输出 ---- */
+  /* 去重可能移除了奶导致队伍无奶，这些队伍的角色全部放未配置 */
+  const finalTeams=cleanedTeams.filter(t=>{
+    return t.slots.some(s=>{
+      const c=charMap[s.charId];
+      return c && c.type==="N";
+    });
+  });
+
+  return finalTeams;
+}
+
+/* 4人团本：全部角色均衡排表 */
+function arrange4(chars){
+  const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
+  const H = chars.filter(c=>c.type==="N").slice().sort((a,b)=>b.power-a.power);
+  const used = new Set();
+  if(H.length===0) return [];
+  const n = H.length;
+  const teams = [];
+  for(let i=0;i<n;i++){
+    used.add(H[i].id);
+    teams.push({slots:[{charId:H[i].id}], owners:new Set([H[i].owner]), total:H[i].power});
+  }
+  function pickAssign(ti, preferHigh){
+    for(let k=preferHigh?0:C.length-1; preferHigh?k<C.length:k>=0; k+=preferHigh?1:-1){
+      const c=C[k];
+      if(!used.has(c.id) && !teams[ti].owners.has(c.owner)){
+        teams[ti].slots.push({charId:c.id}); teams[ti].owners.add(c.owner);
+        teams[ti].total+=c.power; used.add(c.id); return true;
+      }
+    }
+    return false;
+  }
+  for(let round=0;round<2;round++){
+    for(let ti=n-1;ti>=0;ti--){
+      if(teams[ti].slots.length>=3) continue;
+      pickAssign(ti,true);
+    }
+  }
+  for(const c of C){
+    if(used.has(c.id)) continue;
+    let best=-1,bp=Infinity;
+    for(let ti=0;ti<n;ti++){
+      if(teams[ti].slots.length>=4) continue;
+      if(teams[ti].owners.has(c.owner)) continue;
+      if(teams[ti].total<bp){bp=teams[ti].total;best=ti;}
+    }
+    if(best===-1){
+      for(let ti=0;ti<n;ti++){
+        if(teams[ti].slots.length>=4) continue;
+        if(teams[ti].total<bp){bp=teams[ti].total;best=ti;}
+      }
+    }
+    if(best===-1) continue;
+    teams[best].slots.push({charId:c.id}); teams[best].owners.add(c.owner);
+    teams[best].total+=c.power; used.add(c.id);
+  }
+  return teams.map(t=>({slots:t.slots}));
+}
+
+/* ---------- 同步模块（Gitee Contents API） ---------- */
+const SYNC = {
+  cfg:null, room:null, pollT:null, presenceT:null, writing:0, dirty:false,
+  init(){
+    this.cfg = this.loadCfg();
+    // 检查账号登录状态
+    if(ACCT.isLoggedIn()){
+      // 已登录，直接进入房间步骤
+      showRoomStep();
+    }else{
+      // 未登录，显示账号注册/登录步骤
+      document.getElementById("acctStep").style.display="block";
+      document.getElementById("roomStep").style.display="none";
+    }
+  },
+  // 验证并加入房间
+  async checkRoom(roomId, password, onOk, onErr){
+    if(!hasSync(this.cfg)){
+      // 无同步配置：本地模式直接进入
+      this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password };
+      history.replaceState(null,"","#room="+roomId);
+      this.setStatus("本地模式","off");
+      onOk();
+      return;
+    }
+    try{
+      const r = await fetch(this.url("rooms/"+roomId+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+      if(r.status===404){ onErr("房间不存在"); return; }
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      const j = await r.json();
+      if(!j || Array.isArray(j) || !j.content){ onErr("房间不存在"); return; }
+      const data = JSON.parse(b64dec(j.content));
+      if(data.password && data.password !== password){ onErr("密码错误"); return; }
+      // 验证通过
+      this.room = { id:roomId, sha:j.sha, dataVersion:data.dataVersion||0, presence:data.presence||{}, password };
+      history.replaceState(null,"","#room="+roomId);
+      // 应用远端数据
+      charList = Array.isArray(data.charList)?data.charList:charList;
+      raidMode = data.raidMode||4;
+      teamList = Array.isArray(data.teamList)?data.teamList:arrange(charList);
+      if(data.raid12Config) applyRaid12Config(data.raid12Config);
+      saveStorage(); renderAll(); updateModeBtns();
+      this.start();
+      onOk();
+    }catch(e){ onErr("连接失败："+e.message); }
+  },
+  // 创建新房间
+  async createRoom(roomId, password, onOk, onErr){
+    if(!hasSync(this.cfg)){
+      this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password };
+      history.replaceState(null,"","#room="+roomId);
+      charList = []; teamList = []; saveStorage();
+      this.setStatus("本地模式（新房间）","off");
+      renderAll();
+      onOk();
+      return;
+    }
+    try{
+      // 先检查房间是否已存在
+      const r = await fetch(this.url("rooms/"+roomId+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+      if(r.status!==404){
+        const j = await r.json();
+        if(j && !Array.isArray(j) && j.content){ onErr("房间号已存在，请换一个"); return; }
+      }
+      // 创建空房间
+      const initData = {
+        charList: [], teamList: [], raidMode: 4,
+        password: password, dataVersion: 1,
+        editor: this.nick(), room: roomId, presence: {},
+        createdBy: ACCT.currentUser() || this.nick()
+      };
+      const body = {
+        access_token: (this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token),
+        message: "create room "+roomId,
+        content: b64enc(JSON.stringify(initData)),
+        branch: this.cfg.branch||"master"
+      };
+      const pr = await fetch(this.url("rooms/"+roomId+".json")+"?access_token="+this.tok(), {
+        method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)
+      });
+      if(!pr.ok){
+        const e=await pr.json().catch(()=>({})); const msg=e.message||"";
+        if(pr.status===409 || /exist|already|已存在|sha/i.test(msg)){ onErr("房间号已存在，请换一个"); return; }
+        throw new Error("HTTP "+pr.status+" "+msg);
+      }
+      const pj = await pr.json();
+      this.room = { id:roomId, sha:(pj.content&&pj.content.sha)||pj.sha, dataVersion:1, presence:{}, password };
+      history.replaceState(null,"","#room="+roomId);
+      charList = []; teamList = []; raidMode = 4;
+      saveStorage(); renderAll(); updateModeBtns();
+      this.start();
+      onOk();
+    }catch(e){ onErr("创建失败："+e.message); }
+  },
+  loadCfg(){
+    if(EMBED_SYNC && (EMBED_SYNC._e||EMBED_SYNC.token)) return Object.assign({branch:"master"}, EMBED_SYNC);
+    try{ const s=JSON.parse(localStorage.getItem(LS_SYNC)); if(s&&(s._e||s.token)) return s; }catch(e){}
+    return null;
+  },
+  start(){
+    this.setStatus("连接中…","off");
+    this.fetchState(true);
+    clearInterval(this.pollT); clearInterval(this.presenceT);
+    this.pollT = setInterval(()=>this.fetchState(false), 7000);
+    this.presenceT = setInterval(()=>this.sendPresence(), 28000);
+    this.sendPresence();
+  },
+  stop(){ clearInterval(this.pollT); clearInterval(this.presenceT); },
+  url(path){ return syncUrl(this.cfg, path); },
+  tok(){ return syncTok(this.cfg); },
+  br(){ return encodeURIComponent(this.cfg.branch||"master"); },
+  async fetchState(initial){
+    if(!hasSync(this.cfg)) return;
+    if(!this.room) return;
+    /* 本地有未保存修改时，跳过远端拉取，避免覆盖本地编辑 */
+    if(this.dirty && !initial) return;
+    try{
+      const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+      if(r.status===404){ this.setStatus(initial?"房间未同步，编辑后自动创建":"房间未同步","off"); this.renderPresence(); return; }
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      const j = await r.json();
+      if(!j || Array.isArray(j) || !j.content){ this.setStatus(initial?"房间未同步，编辑后自动创建":"房间未同步","off"); this.renderPresence(); return; }
+      this.room.sha = j.sha;
+      const data = JSON.parse(b64dec(j.content));
+      const dv = data.dataVersion||0;
+      if(dv > this.room.dataVersion){
+        this.room.dataVersion = dv;
+        // 备份本地后应用远端
+        try{ localStorage.setItem(LS_BACK, JSON.stringify({charList,teamList,raidMode})); }catch(e){}
+        charList = Array.isArray(data.charList)?data.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }):charList;
+        raidMode = data.raidMode||4;
+        teamList = Array.isArray(data.teamList)?data.teamList:arrange(charList);
+        if(data.raid12Config) applyRaid12Config(data.raid12Config);
+        saveStorage(); renderAll(); updateModeBtns();
+      }
+      this.room.presence = data.presence || {};
+      this.renderPresence();
+      this.setStatus(this.dirty?"未保存":"已同步", this.dirty?"warn":"on");
+    }catch(e){ this.setStatus("同步失败："+e.message,"err"); }
+  },
+  /* 本地编辑：仅更新本地状态，标记 dirty，不上传远端 */
+  writeStateLocal(intent){
+    const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
+    const next = intent(st) || st;
+    charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+    if(this.room) this.room.presence = next.presence||{};
+    this.dirty = true;
+    saveStorage(); renderAll(); updateModeBtns();
+    this.updateSaveBtn();
+    this.setStatus("未保存","warn");
+  },
+  /* 更新保存按钮 UI */
+  updateSaveBtn(){
+    const btn=document.getElementById("saveBtn");
+    if(!btn) return;
+    if(this.dirty){
+      btn.classList.add("dirty");
+      btn.textContent="💾 保存到云端";
+      btn.disabled=false;
+    }else{
+      btn.classList.remove("dirty");
+      btn.textContent="✓ 已保存";
+      btn.disabled=true;
+    }
+  },
+  /* 手动保存：将本地状态推送到 Gitee */
+  async flushToRemote(){
+    if(!this.room || !hasSync(this.cfg)){ this.dirty=false; this.updateSaveBtn(); return; }
+    if(!this.dirty) return;
+    this.writing++;
+    this.setStatus("保存中…","off");
+    try{
+      for(let attempt=0; attempt<5; attempt++){
+        let base, sha;
+        const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+        if(r.status===404){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; }
+        else if(!r.ok) throw new Error("GET HTTP "+r.status);
+        else { const j=await r.json(); if(!j || Array.isArray(j) || !j.content){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; } else { sha=j.sha; base=JSON.parse(b64dec(j.content)); if(Array.isArray(base.charList)) base.charList=base.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }); } }
+        /* 合并：以本地编辑为准，但保留远端的 presence 和其他用户上线状态 */
+        const next = {
+          charList: charList,
+          teamList: teamList,
+          raidMode: raidMode,
+          presence: Object.assign({}, base.presence||{}, this.room.presence||{}, {[this.nick()]:Date.now()}),
+          dataVersion: (base.dataVersion||0)+1,
+          editor: this.nick(),
+          room: this.room.id,
+          password: this.room.password || base.password || "",
+          createdBy: base.createdBy || ACCT.currentUser() || this.nick()
+        };
+        if(base.raid12Config) next.raid12Config = base.raid12Config;
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"save "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        if(sha) body.sha = sha;
+        const method = sha ? "PUT" : "POST";
+        const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+        if(!pr.ok){
+          const e=await pr.json().catch(()=>({})); const msg=e.message||"";
+          if(pr.status===409 || pr.status===422 || (method==="POST" && /exist|already|已存在|sha/i.test(msg))){ await sleep(350); continue; }
+          throw new Error(method+" HTTP "+pr.status+" "+msg);
+        }
+        const pj = await pr.json();
+        this.room.sha = (pj.content && pj.content.sha) || pj.sha;
+        this.room.dataVersion = next.dataVersion;
+        this.room.presence = next.presence;
+        this.dirty = false;
+        saveStorage();
+        this.setStatus("已保存","on");
+        this.updateSaveBtn();
+        return;
+      }
+    }catch(e){
+      this.setStatus("保存失败："+e.message,"err");
+    }
+    finally{ this.writing--; }
+  },
+  // intent(state)=>state；对最新远端状态应用意图后写回，冲突自动重试（仅用于后台同步如 presence）
+  async writeState(intent, opts){
+    opts = opts||{};
+    if(!this.room){
+      // 无房间：纯本地操作，不走同步
+      const st = {charList, teamList, raidMode, presence:{}};
+      const next = intent(st) || st;
+      charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+      saveStorage(); renderAll(); updateModeBtns();
+      return;
+    }
+    if(!hasSync(this.cfg)){
+      // 本地模式：直接对本地状态应用
+      const st = {charList, teamList, raidMode, presence:this.room.presence||{}};
+      const next = intent(st) || st;
+      charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; this.room.presence = next.presence||{};
+      saveStorage(); renderAll(); updateModeBtns();
+      return;
+    }
+    this.writing++;
+    this.setStatus("同步中…","off");
+    try{
+      for(let attempt=0; attempt<5; attempt++){
+        let base, sha;
+        const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+        if(r.status===404){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; }
+        else if(!r.ok) throw new Error("GET HTTP "+r.status);
+        else { const j=await r.json(); if(!j || Array.isArray(j) || !j.content){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; } else { sha=j.sha; base=JSON.parse(b64dec(j.content)); if(Array.isArray(base.charList)) base.charList=base.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }); } }
+        const next = intent(clone(base)) || base;
+        next.dataVersion = (base.dataVersion||0)+1;
+        next.editor = this.nick();
+        next.room = this.room.id;
+        next.presence = Object.assign({}, base.presence||{}, next.presence||{}, {[this.nick()]:Date.now()});
+        next.password = this.room.password || base.password || "";
+        if(!next.createdBy) next.createdBy = base.createdBy || ACCT.currentUser() || this.nick();
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"sync "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        if(sha) body.sha = sha;
+        const method = sha ? "PUT" : "POST";
+        const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+        if(!pr.ok){
+          const e=await pr.json().catch(()=>({})); const msg=e.message||"";
+          if(pr.status===409 || pr.status===422 || (method==="POST" && /exist|already|已存在|sha/i.test(msg))){ await sleep(350); continue; }
+          throw new Error(method+" HTTP "+pr.status+" "+msg);
+        }
+        const pj = await pr.json();
+        this.room.sha = (pj.content && pj.content.sha) || pj.sha;
+        this.room.dataVersion = next.dataVersion;
+        charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; this.room.presence = next.presence;
+        saveStorage(); renderAll(); updateModeBtns();
+        this.setStatus("已同步","on");
+        return;
+      }
+    }catch(e){
+      this.setStatus("写入失败："+e.message,"err");
+      /* 本地回退：Gitee 失败时仍更新本地状态，确保拖拽等操作即时生效 */
+      try{
+        const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
+        const next = intent(st) || st;
+        charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+        if(this.room) this.room.presence = next.presence||{};
+        saveStorage(); renderAll(); updateModeBtns();
+      }catch(e2){ console.error("local fallback failed:", e2); }
+    }
+    finally{ this.writing--; }
+  },
+  async sendPresence(){
+    if(!hasSync(this.cfg)) return;
+    if(!this.room) return;
+    if(this.writing>0) return;
+    /* 本地有未保存修改时，仅更新本地 presence，不触发远端写入 */
+    if(this.dirty){
+      if(!this.room.presence) this.room.presence={};
+      this.room.presence[this.nick()]=Date.now();
+      this.renderPresence();
+      return;
+    }
+    await this.writeState(s=>{ s.presence = s.presence||{}; s.presence[this.nick()]=Date.now(); return s; });
+  },
+  nick(){ return (document.getElementById("nickInput").value||"").trim() || "玩家"+randId().slice(0,3); },
+  setStatus(txt, kind){
+    const el=document.getElementById("syncStatus"), dot=document.getElementById("syncDot");
+    el.textContent = txt;
+    dot.className = "dot "+(kind||"off");
+  },
+  renderPresence(){
+    if(!this.room){ document.getElementById("onlineCount").textContent="0"; document.getElementById("onlineChips").innerHTML=""; return; }
+    const now=Date.now(), me=this.nick();
+    let online=[]; const all=[];
+    for(const k in this.room.presence){
+      const t=this.room.presence[k];
+      if(now-t < 60000) online.push(k);
+      all.push([k,t]);
+    }
+    document.getElementById("onlineCount").textContent = online.length;
+    const chips=document.getElementById("onlineChips");
+    chips.innerHTML = online.map(n=>`<span class="chip ${n===me?'me':''}">${escapeHtml(n)}</span>`).join("");
+  }
+};
+
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ---------- 渲染 ---------- */
+function renderAll(){ renderCharList(); renderTeamTable(); updateStat(); SYNC.renderPresence(); 
+  const badge=document.getElementById("syncBadge");
+  if(SYNC.room){ if(badge) badge.textContent="房间 "+SYNC.room.id; }
+  else { if(badge) badge.textContent="未加入房间"; }
+}
+
+function updateModeBtns(){
+  document.querySelectorAll(".mode-btn").forEach(b=>{
+    const m=Number(b.dataset.mode);
+    if(m===raidMode){ b.classList.add("active"); b.style.background="var(--blue)"; b.style.color="#fff"; }
+    else{ b.classList.remove("active"); b.style.background="transparent"; b.style.color="var(--mut)"; }
+  });
+  const autoBtn=document.getElementById("autoArrange");
+  autoBtn.textContent = raidMode===12 ? "一键排表（12人红黄绿）" : "一键均衡排完所有角色";
+  const cfg=document.getElementById("raid12Config");
+  if(cfg) cfg.style.display = raidMode===12 ? "flex" : "none";
+}
+
+function updateStat(){
+  const all=charList.length, c=charList.filter(x=>x.type==="c").length, h=charList.filter(x=>x.type==="N").length;
+  const used=new Set(); teamList.forEach(t=>t.slots.forEach(s=>s.charId&&used.add(s.charId)));
+  document.getElementById("totalAll").textContent=all;
+  document.getElementById("totalC").textContent=c;
+  document.getElementById("totalHealer").textContent=h;
+  document.getElementById("teamCount").textContent=teamList.length;
+  document.getElementById("leftCount").textContent=all-used.size;
+}
+
+function renderCharList(){
+  const wrap=document.getElementById("charList"); wrap.innerHTML="";
+  const usedIds=new Set(); teamList.forEach(t=>t.slots.forEach(s=>s.charId&&usedIds.add(s.charId)));
+  // 按玩家分组
+  const groups={};
+  charList.forEach(c=>{ const k=c.owner||"未知"; if(!groups[k]) groups[k]=[]; groups[k].push(c); });
+  const sortedOwners=Object.keys(groups).sort((a,b)=>a.localeCompare(b,"zh"));
+  sortedOwners.forEach(owner=>{
+    const chars=groups[owner].slice().sort((a,b)=>b.power-a.power);
+    const used=chars.filter(c=>usedIds.has(c.id)).length;
+    const hdr=document.createElement("div");
+    hdr.className="owner-header";
+    hdr.innerHTML=`<label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+      <input type="checkbox" class="owner-select-all" data-owner="${escapeHtml(owner)}" style="width:16px;height:16px;cursor:pointer">
+      <span>${escapeHtml(owner)}</span>
+    </label>
+    <span class="cnt">${chars.length}个角色 · ${used}已配置 / ${chars.length-used}未配置</span>
+    <button class="sm danger batch-del-btn" data-batch-del="${escapeHtml(owner)}" style="margin-left:auto;display:none">批量删除</button>`;
+    wrap.appendChild(hdr);
+    chars.forEach(c=>{
+      const div=document.createElement("div");
+      div.className=`card ${c.type} ${usedIds.has(c.id)?"used":""}`;
+      div.innerHTML=`
+        <div style="display:flex;align-items:flex-start;gap:8px">
+          <input type="checkbox" class="char-checkbox" data-char-id="${c.id}" data-owner="${escapeHtml(c.owner)}" style="margin-top:4px;width:16px;height:16px;cursor:pointer;flex-shrink:0">
+          <div style="flex:1;min-width:0">
+            <h4>${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span class="pwr">${c.power}</span></h4>
+            <div class="meta">${c.type==="c"?"输出C":"奶"} ｜ A:${escapeHtml(c.a||"-")} B:${escapeHtml(c.b||"-")}</div>
+            <div style="margin-top:6px;display:flex;gap:6px">
+              <button class="sm" data-edit="${c.id}">编辑</button>
+              <button class="sm danger" data-del="${c.id}">删除</button>
+            </div>
+          </div>
+        </div>`;
+      wrap.appendChild(div);
+    });
+  });
+  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editChar(Number(b.dataset.edit)));
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delChar(Number(b.dataset.del)));
+
+  /* 全选/取消全选（按玩家组） */
+  document.querySelectorAll(".owner-select-all").forEach(cb=>{
+    cb.onchange=function(){
+      const owner=this.dataset.owner;
+      const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
+      cbs.forEach(c=>c.checked=this.checked);
+      updateBatchDelBtn(owner);
+      updateGlobalBatchUI();
+    };
+  });
+  /* 单个勾选 */
+  document.querySelectorAll(".char-checkbox").forEach(cb=>{
+    cb.onchange=function(){
+      const owner=this.dataset.owner;
+      updateBatchDelBtn(owner);
+      /* 更新该组全选状态 */
+      const all=document.querySelector(`.owner-select-all[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
+      const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
+      if(all){ all.checked = Array.from(cbs).every(c=>c.checked); }
+      updateGlobalBatchUI();
+    };
+  });
+  /* 批量删除（按玩家组） */
+  document.querySelectorAll("[data-batch-del]").forEach(btn=>{
+    btn.onclick=async function(){
+      const owner=this.dataset.batchDel;
+      const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]:checked`);
+      const ids=Array.from(cbs).map(c=>Number(c.dataset.charId));
+      if(ids.length===0) return;
+      if(!confirm(`确认批量删除 ${owner} 的 ${ids.length} 个角色？`))return;
+      pushHistory();
+      SYNC.writeStateLocal(st=>{
+        st.charList=st.charList.filter(c=>!ids.includes(Number(c.id)));
+        st.teamList=arrange(st.charList);
+        return st;
+      });
+    };
+  });
+  /* 全局全选/取消全选 */
+  const gSelAll=document.getElementById("globalSelectAll");
+  if(gSelAll){
+    gSelAll.onclick=function(){
+      const allCbs=document.querySelectorAll(".char-checkbox");
+      const allChecked=allCbs.length>0&&Array.from(allCbs).every(c=>c.checked);
+      allCbs.forEach(c=>c.checked=!allChecked);
+      document.querySelectorAll(".owner-select-all").forEach(cb=>{
+        const owner=cb.dataset.owner;
+        const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
+        cb.checked=cbs.length>0&&Array.from(cbs).every(c=>c.checked);
+        updateBatchDelBtn(owner);
+      });
+      updateGlobalBatchUI();
+    };
+  }
+  /* 全局批量删除 */
+  const gBatchDel=document.getElementById("globalBatchDel");
+  if(gBatchDel){
+    gBatchDel.onclick=async function(){
+      const cbs=document.querySelectorAll(".char-checkbox:checked");
+      const ids=Array.from(cbs).map(c=>Number(c.dataset.charId));
+      if(ids.length===0) return;
+      if(!confirm(`确认批量删除选中的 ${ids.length} 个角色？\n此操作不可恢复！`))return;
+      pushHistory();
+      SYNC.writeStateLocal(st=>{
+        st.charList=st.charList.filter(c=>!ids.includes(Number(c.id)));
+        st.teamList=arrange(st.charList);
+        return st;
+      });
+    };
+  }
+  updateGlobalBatchUI();
+}
+function updateBatchDelBtn(owner){
+  const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]:checked`);
+  const btn=document.querySelector(`[data-batch-del="${owner.replace(/"/g,'&quot;')}"]`);
+  if(btn) btn.style.display=cbs.length>0?"inline-block":"none";
+}
+function updateGlobalBatchUI(){
+  const checked=document.querySelectorAll(".char-checkbox:checked");
+  const cnt=checked.length;
+  const cntEl=document.getElementById("batchSelCnt");
+  const delBtn=document.getElementById("globalBatchDel");
+  const selAllBtn=document.getElementById("globalSelectAll");
+  if(cntEl) cntEl.textContent=`已选 ${cnt} 个`;
+  if(delBtn){ delBtn.disabled=cnt===0; delBtn.style.opacity=cnt===0?".4":"1"; }
+  if(selAllBtn){
+    const allCbs=document.querySelectorAll(".char-checkbox");
+    const allChecked=allCbs.length>0&&Array.from(allCbs).every(c=>c.checked);
+    selAllBtn.textContent=allChecked?"取消全选":"全选";
+  }
+}
+
+function renderTeamTable(){
+  const wrap=document.getElementById("teamWrap"); wrap.innerHTML="";
+  if(!teamList.length){ wrap.innerHTML='<p class="muted">暂无队伍，点击「一键均衡排完所有角色」生成。</p>'; return; }
+  const globalUsed=new Set(); teamList.forEach(t=>t.slots.forEach(s=>s.charId&&globalUsed.add(s.charId)));
+  const isRaid12 = raidMode===12;
+  const raidLabels = {red:"红队",yellow:"黄队",green:"绿队"};
+  const viewClass = viewMode==="compact" ? " view-compact" : viewMode==="ultra" ? " view-ultra" : "";
+  const isUltra = viewMode==="ultra";
+
+  /* 12人团本：三队一行网格；4人团本：原逻辑 */
+  let gridContainer;
+  if(isRaid12){
+    gridContainer=document.createElement("div");
+    gridContainer.className="team-grid-12";
+    wrap.appendChild(gridContainer);
+  } else if(isUltra){
+    gridContainer=document.createElement("div");
+    gridContainer.className="team-grid-ultra";
+    wrap.appendChild(gridContainer);
+  } else {
+    gridContainer=wrap;
+  }
+  renderTeamsInto(gridContainer, viewClass, isUltra, globalUsed, isRaid12, raidLabels, null);
+  // 绑定更换角色下拉
+  if(!isUltra){
+    document.querySelectorAll("[data-t]").forEach(sel=>{
+      sel.onchange=async function(){
+        const t=Number(this.dataset.t), s=Number(this.dataset.s);
+        const val=this.value;
+        /* "clear"=清空为空位；""=未选择不做操作；其他=角色ID */
+        const newCid=(val==="clear"||!val)?null:Number(val);
+        if(val==="") return; /* 未选择任何项 */
+        pushHistory();
+        SYNC.writeStateLocal(st=>{
+          if(newCid){
+            /* 选中了角色：先从其他位置移除该角色 */
+            for(let ti=0;ti<st.teamList.length;ti++){
+              for(let si=0;si<st.teamList[ti].slots.length;si++){
+                if(st.teamList[ti].slots[si].charId===newCid && !(ti===t && si===s)){
+                  st.teamList[ti].slots[si].charId=null;
+                }
+              }
+            }
+          }
+          if(st.teamList[t]){
+            /* 如果s超出现有slots长度（空位补齐），扩展slots */
+            while(st.teamList[t].slots.length<=s){
+              st.teamList[t].slots.push({charId:null});
+            }
+            st.teamList[t].slots[s].charId=newCid;
+          }
+          return st;
+        });
+      };
+    });
+  }
+  // 绑定点击高亮：点击角色卡片，高亮该玩家所有角色；再次点击取消
+  document.querySelectorAll(".slot[data-owner]").forEach(el=>{
+    el.addEventListener("click",function(e){
+      if(e.target.tagName==="SELECT"||e.target.tagName==="OPTION") return;
+      if(window._dragging) return; /* 拖拽进行中，忽略点击 */
+      const owner=this.dataset.owner;
+      if(clickHL && clickHL===owner){ clickHL=""; }
+      else { clickHL=owner; }
+      renderTeamTable();
+    });
+  });
+  // 绑定删除队伍按钮
+  document.querySelectorAll(".del-team-btn").forEach(btn=>{
+    btn.addEventListener("click",function(e){
+      e.stopPropagation();
+      const tIdx=Number(this.dataset.t);
+      doRemoveTeam(tIdx);
+    });
+  });
+  // 绑定波内添加队伍按钮（12人模式）
+  document.querySelectorAll(".add-team-inline[data-wave]").forEach(btn=>{
+    btn.addEventListener("click",function(e){
+      e.stopPropagation();
+      const wave=Number(this.dataset.wave);
+      doAddTeamToWave(wave);
+    });
+  });
+  // 绑定新建波数按钮（12人模式）
+  document.querySelectorAll(".add-wave-btn").forEach(btn=>{
+    btn.addEventListener("click",function(e){
+      e.stopPropagation();
+      doAddNewWave();
+    });
+  });
+  // 绑定4人模式新建队伍按钮
+  document.querySelectorAll(".add-team-inline[data-newteam]").forEach(btn=>{
+    btn.addEventListener("click",function(e){
+      e.stopPropagation();
+      doAddTeam();
+    });
+  });
+  // 绑定拖拽：队伍排序（4人模式插入排序，12人模式队伍对调）
+  bindTeamDragHandlers(isRaid12);
+}
+
+function bindTeamDragHandlers(isRaid12){
+  const blocks=document.querySelectorAll("[data-team-drag]");
+  const waveLabels=document.querySelectorAll("[data-wave-drag]");
+
+  blocks.forEach(block=>{
+    block.addEventListener("dragstart",function(e){
+      e.stopPropagation();
+      window._dragging=true;
+      e.dataTransfer.setData("text/plain",JSON.stringify({type:"team",idx:Number(this.dataset.teamDrag)}));
+      e.dataTransfer.effectAllowed="move";
+      this.classList.add("dragging");
+    });
+    block.addEventListener("dragend",function(){
+      window._dragging=false;
+      this.classList.remove("dragging");
+      document.querySelectorAll(".drag-over").forEach(el=>el.classList.remove("drag-over"));
+    });
+    block.addEventListener("dragover",function(e){
+      e.preventDefault();
+      e.dataTransfer.dropEffect="move";
+      this.classList.add("drag-over");
+    });
+    block.addEventListener("dragleave",function(){
+      this.classList.remove("drag-over");
+    });
+    block.addEventListener("drop",async function(e){
+      e.preventDefault();
+      this.classList.remove("drag-over");
+      const raw=e.dataTransfer.getData("text/plain");
+      if(!raw){ return; }
+      let data;
+      try{ data=JSON.parse(raw); }catch(_){ return; }
+      if(!data||data.type!=="team") return;
+      const fromIdx=data.idx, toIdx=Number(this.dataset.teamDrag);
+      if(fromIdx===toIdx) return;
+      if(isRaid12){
+        await doSwapTeams12(fromIdx,toIdx);
+      } else {
+        await doMoveTeam(fromIdx,toIdx);
+      }
+    });
+  });
+
+  /* 波数拖拽：12人模式 + 4人模式均支持插入排序 */
+  waveLabels.forEach(wl=>{
+    wl.addEventListener("dragstart",function(e){
+      e.stopPropagation();
+      window._dragging=true;
+      e.dataTransfer.setData("text/plain",JSON.stringify({type:"wave",wave:Number(this.dataset.waveDrag)}));
+      e.dataTransfer.effectAllowed="move";
+      this.classList.add("dragging");
+    });
+    wl.addEventListener("dragend",function(){
+      window._dragging=false;
+      this.classList.remove("dragging");
+      document.querySelectorAll(".drag-over").forEach(el=>el.classList.remove("drag-over"));
+    });
+    wl.addEventListener("dragover",function(e){
+      e.preventDefault();
+      e.dataTransfer.dropEffect="move";
+      this.classList.add("drag-over");
+    });
+    wl.addEventListener("dragleave",function(){
+      this.classList.remove("drag-over");
+    });
+    wl.addEventListener("drop",async function(e){
+      e.preventDefault();
+      this.classList.remove("drag-over");
+      const raw=e.dataTransfer.getData("text/plain");
+      if(!raw){ return; }
+      let data;
+      try{ data=JSON.parse(raw); }catch(_){ return; }
+      if(!data||data.type!=="wave") return;
+      const fromWave=data.wave, toWave=Number(this.dataset.waveDrag);
+      if(fromWave===toWave) return;
+      await doMoveWave(fromWave,toWave);
+    });
+  });
+}
+
+function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, raidLabels, gTeams){
+  const hl = (document.getElementById("highlightName").value||"").trim().toLowerCase();
+  const hlClass = (owner)=>{
+    let cls="";
+    const ol=owner.toLowerCase();
+    if(hl && ol.includes(hl)) cls+=" highlight";
+    if(clickHL && ol===clickHL.toLowerCase()) cls+=" click-hl";
+    return cls;
+  };
+  const teamsToRender = gTeams || teamList.map((t,i)=>({team:t,tIdx:i}));
+  let prevGroup=null;
+  let curWaveColors=[];
+  const raidColors=["red","yellow","green"];
+  const raidColorLabels={red:"红队",yellow:"黄队",green:"绿队"};
+  teamsToRender.forEach(({team,tIdx})=>{
+    /* 12人团本：按group（波数）变化加波数标签；4人非一览：每队加波数标签 */
+    const curGroup = isRaid12 ? (team.group||Math.floor(tIdx/3)+1) : (tIdx+1);
+    if(isRaid12 && curGroup!==prevGroup){
+      /* 前一波结束，如未满3色则添加+号按钮 */
+      if(prevGroup!==null && curWaveColors.length<3){
+        const used=new Set(curWaveColors);
+        const nextColor=raidColors.find(c=>!used.has(c));
+        const addBtn=document.createElement("div");
+        addBtn.className="wave-add-team";
+        addBtn.innerHTML=`<button class="add-team-inline" data-wave="${prevGroup}">+ 添加${raidColorLabels[nextColor]}</button>`;
+        container.appendChild(addBtn);
+      }
+      const wl=document.createElement("div");
+      wl.className="wave-label";
+      wl.draggable=true;
+      wl.dataset.waveDrag=curGroup;
+      wl.innerHTML=`<span class="wnum">第 ${curGroup} 波</span><span class="wline"></span>`;
+      container.appendChild(wl);
+      prevGroup=curGroup;
+      curWaveColors=[];
+    } else if(!isRaid12 && !isUltra){
+      const wl=document.createElement("div");
+      wl.className="wave-label";
+      wl.draggable=true;
+      wl.dataset.waveDrag=tIdx+1;
+      wl.innerHTML=`<span class="wnum">第 ${tIdx+1} 波</span><span class="wline"></span>`;
+      container.appendChild(wl);
+    }
+    const rColor = team.raidColor || (isRaid12 ? raidColors[tIdx%3] : null);
+    if(isRaid12 && rColor){ curWaveColors.push(rColor); }
+    const block=document.createElement("div");
+    block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass;
+    block.draggable=true;
+    block.dataset.teamDrag=tIdx;
+    const owners=new Set(); let csum=0, hmax=0, hcount=0;
+    team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; else { hmax=Math.max(hmax,c.power); hcount++; } } } });
+    const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
+    /* 12人团本：标签带波数，如"第1波-红队" */
+    const waveNum = isRaid12 ? curGroup : (tIdx+1);
+    const teamLabel = rColor ? `第${waveNum}波-${raidLabels[rColor]}` : `第${tIdx+1}波`;
+    const hDisp = hcount>0 ? hmax : 0;
+    let html=`<div class="team-title"><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${rColor?`<span class="raid-tag ${rColor}">第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）
+      <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hDisp}</b> <span style="font-size:0.8em;color:var(--mut)">（C总${csum} + 奶${hDisp}${hcount>1?`(${hcount}奶最高)`:''}）</span> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></span>${isUltra?'':`<button class="del-team-btn" draggable="false" data-t="${tIdx}" title="删除此队伍" style="background:none;border:none;color:var(--mut);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;line-height:1;margin-left:auto">✕</button>`}</div><div class="team-grid">`;
+    /* 补齐空位到4人，支持用户手动分配角色 */
+    const slotsForRender = team.slots.slice();
+    while(slotsForRender.length<4 && !isUltra){
+      slotsForRender.push({charId:null});
+    }
+    slotsForRender.forEach((slot,sIdx)=>{
+      const slotChar = slot.charId ? charList.find(x=>x.id===slot.charId) : null;
+      if(!slotChar){
+        /* 空位也支持选择角色分配 */
+        if(isUltra){ html+=`<div class="slot slot-empty">空位</div>`; return; }
+        const teamOwners=new Set();
+        team.slots.forEach((ss,si)=>{ if(ss.charId && si!==sIdx){ const cc=charList.find(x=>x.id===ss.charId); if(cc) teamOwners.add(cc.owner); } });
+        const available=charList.filter(x=>{
+          return !globalUsed.has(x.id) && !teamOwners.has(x.owner);
+        }).slice().sort((a,b)=>b.power-a.power);
+        let optsHtml=`<option value="">+ 分配角色…</option>`;
+        if(available.length){
+          const byOwner={};
+          available.forEach(x=>{ if(!byOwner[x.owner]) byOwner[x.owner]=[]; byOwner[x.owner].push(x); });
+          Object.keys(byOwner).sort().forEach(owner=>{
+            optsHtml+=`<optgroup label="【${escapeHtml(owner)}】">`;
+            byOwner[owner].forEach(x=>{
+              optsHtml+=`<option value="${x.id}">${escapeHtml(x.name)}(${x.power}) ${x.type==="c"?"C":"奶"}</option>`;
+            });
+            optsHtml+=`</optgroup>`;
+          });
+        } else {
+          optsHtml=`<option value="">无可用角色</option>`;
+        }
+        html+=`<div class="slot slot-empty" draggable="false"><div class="sn" style="color:#555">空位</div><select draggable="false" data-t="${tIdx}" data-s="${sIdx}">${optsHtml}</select></div>`;
+        return;
+      }
+      const c=slotChar;
+      if(isUltra){
+        html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}"><div class="su">${escapeHtml(c.owner)}</div><div class="sc">${escapeHtml(c.name)}</div></div>`;
+        return;
+      }
+      const teamOwners=new Set();
+      team.slots.forEach((ss,si)=>{ if(ss.charId && si!==sIdx){ const cc=charList.find(x=>x.id===ss.charId); if(cc) teamOwners.add(cc.owner); } });
+      const findTeamOf=(cid)=>{
+        for(let ti=0;ti<teamList.length;ti++){
+          if(teamList[ti].slots.some(s=>s.charId===cid)){
+            const isRaid12 = raidMode===12;
+            if(isRaid12){
+              const waveNum = teamList[ti].group || Math.floor(ti/3)+1;
+              const colorMap = {"red":"红队","yellow":"黄队","green":"绿队"};
+              const colorLabel = colorMap[teamList[ti].raidColor] || ("第"+(ti%3+1)+"队");
+              return {label: "第"+waveNum+"波-"+colorLabel, wave: waveNum, color: teamList[ti].raidColor};
+            }
+            return {label: "第"+(ti+1)+"队", wave: 0, color: ""};
+          }
+        }
+        return null;
+      };
+      const samePlayer=charList.filter(x=>x.owner===c.owner && x.id!==slot.charId)
+        .slice().sort((a,b)=>{
+          const aT=findTeamOf(a.id), bT=findTeamOf(b.id);
+          if(aT && !bT) return 1;
+          if(!aT && bT) return -1;
+          return b.power-a.power;
+        });
+      const others=charList.filter(x=>{
+        if(x.owner===c.owner) return false;
+        const usedElse=globalUsed.has(x.id) && x.id!==slot.charId;
+        const sameOwner=teamOwners.has(x.owner);
+        return !usedElse && !sameOwner;
+      }).slice().sort((a,b)=>b.power-a.power);
+      let optsHtml=`<option value="">更换角色…</option>`;
+      /* 已有角色时，添加清空选项 */
+      if(slot.charId){
+        optsHtml+=`<option value="clear">⛔ 清空为空位</option>`;
+      }
+      if(samePlayer.length){
+        optsHtml+=`<optgroup label="【${escapeHtml(c.owner)}】的角色">`;
+        samePlayer.forEach(x=>{
+          const tn=findTeamOf(x.id);
+          optsHtml+=`<option value="${x.id}">${escapeHtml(x.name)}(${x.power}) ${x.type==="c"?"C":"奶"}${tn?" → 当前在"+tn.label:" (未配置)"}</option>`;
+        });
+        optsHtml+=`</optgroup>`;
+      }
+      if(others.length){
+        optsHtml+=`<optgroup label="其他可用角色">`;
+        others.forEach(x=>{
+          optsHtml+=`<option value="${x.id}">${escapeHtml(x.owner)}·${escapeHtml(x.name)}(${x.power}) ${x.type==="c"?"C":"奶"}</option>`;
+        });
+        optsHtml+=`</optgroup>`;
+      }
+      html+=`<div class="slot ${c.type}${hlClass(c.owner)}" draggable="false" data-owner="${escapeHtml(c.owner)}">
+        <div class="sn">${escapeHtml(c.owner)}·${escapeHtml(c.name)}</div>
+        <div class="sp">战力 ${c.power} ${c.type==="c"?"C":"奶"}</div>
+        <select draggable="false" data-t="${tIdx}" data-s="${sIdx}">${optsHtml}</select></div>`;
+    });
+    html+=`</div>`;
+    block.innerHTML=html; container.appendChild(block);
+  });
+  /* 循环结束后：12人模式添加最后一波的+号（如未满3色）+ 底部新建波数按钮 */
+  if(isRaid12){
+    if(prevGroup!==null && curWaveColors.length<3){
+      const used=new Set(curWaveColors);
+      const nextColor=raidColors.find(c=>!used.has(c));
+      const addBtn=document.createElement("div");
+      addBtn.className="wave-add-team";
+      addBtn.innerHTML=`<button class="add-team-inline" data-wave="${prevGroup}">+ 添加${raidColorLabels[nextColor]}</button>`;
+      container.appendChild(addBtn);
+    }
+    /* 底部新建波数+号 */
+    const newWaveBtn=document.createElement("div");
+    newWaveBtn.className="wave-add-new";
+    newWaveBtn.innerHTML=`<button class="add-wave-btn">+ 新增波数</button>`;
+    container.appendChild(newWaveBtn);
+  } else if(!isUltra){
+    /* 4人模式底部+号新建队伍 */
+    const addBtn=document.createElement("div");
+    addBtn.className="wave-add-team";
+    addBtn.innerHTML=`<button class="add-team-inline" data-newteam="1">+ 新建队伍</button>`;
+    container.appendChild(addBtn);
+  }
+}
+
+/* ---------- 编辑角色 ---------- */
+function editChar(id){
+  const numId=Number(id);
+  const item=charList.find(x=>Number(x.id)===numId);
+  if(!item){
+    alert("未找到该角色，可能数据同步异常，请刷新页面重试");
+    return;
+  }
+  /* 弹窗编辑：填充弹窗表单并打开 */
+  document.getElementById("modalEditId").value=numId;
+  document.getElementById("modalEditOwner").value=item.owner;
+  document.getElementById("modalEditName").value=item.name;
+  document.getElementById("modalEditPower").value=item.power;
+  document.getElementById("modalEditType").value=item.type;
+  document.getElementById("modalEditA").value=item.a||"";
+  document.getElementById("modalEditB").value=item.b||"";
+  document.getElementById("editCharTitle").textContent="编辑角色 · "+item.owner+"·"+item.name;
+  openModal("editCharModal");
+}
+async function saveModalChar(){
+  const o=document.getElementById("modalEditOwner").value.trim();
+  const n=document.getElementById("modalEditName").value.trim();
+  const p=Number(document.getElementById("modalEditPower").value)||0;
+  const tp=document.getElementById("modalEditType").value;
+  const a=document.getElementById("modalEditA").value.trim();
+  const b=document.getElementById("modalEditB").value.trim();
+  const target=Number(document.getElementById("modalEditId").value);
+  if(!o){alert("请填写归属玩家");return;}
+  if(!n){alert("角色名称不能为空");return;}
+  pushHistory();
+  SYNC.writeStateLocal(st=>{
+    const draft={owner:o,name:n,power:p,type:tp,a,b};
+    const idx=st.charList.findIndex(x=>Number(x.id)===target);
+    if(idx>=0) st.charList[idx]=Object.assign({id:target},draft);
+    else st.charList.push(Object.assign({id:target},draft));
+    st.teamList=arrange(st.charList);
+    return st;
+  });
+  closeModal("editCharModal");
+}
+function clearEdit(){
+  editTargetId=null;
+  document.getElementById("formTitle").textContent="新增角色";
+  ["editId","editName","editPower","editA","editB"].forEach(i=>document.getElementById(i).value="");
+}
+async function saveChar(){
+  const o=document.getElementById("editOwner").value.trim();
+  const n=document.getElementById("editName").value.trim();
+  const p=Number(document.getElementById("editPower").value)||0;
+  const tp=document.getElementById("editType").value;
+  const a=document.getElementById("editA").value.trim();
+  const b=document.getElementById("editB").value.trim();
+  if(!o){alert("请填写归属玩家");return;}
+  if(!n){alert("角色名称不能为空");return;}
+  const target=editTargetId;
+  pushHistory();
+  SYNC.writeStateLocal(st=>{
+    const draft={owner:o,name:n,power:p,type:tp,a,b};
+    if(target){
+      const idx=st.charList.findIndex(x=>Number(x.id)===Number(target));
+      if(idx>=0) st.charList[idx]=Object.assign({id:Number(target)},draft);
+      else st.charList.push(Object.assign({id:Number(target)},draft));
+    }else{
+      const newId=Math.max(0,...st.charList.map(x=>Number(x.id)||0))+1;
+      st.charList.push(Object.assign({id:newId},draft));
+    }
+    st.teamList=arrange(st.charList);
+    return st;
+  });
+  clearEdit();
+}
+async function delChar(id){
+  if(!confirm("确定删除该角色？队伍内占用会清空并重新排表"))return;
+  const numId=Number(id);
+  pushHistory();
+  SYNC.writeStateLocal(st=>{ st.charList=st.charList.filter(x=>Number(x.id)!==numId); st.teamList=arrange(st.charList); return st; });
+}
+
+/* ---------- 顶栏动作 ---------- */
+/* 从DOM读取12人模式配置 */
+function readRaid12Config(){
+  const opts={};
+  const tr=parseInt(document.getElementById("thresholdRed").value);
+  const ty=parseInt(document.getElementById("thresholdYellow").value);
+  const tg=parseInt(document.getElementById("thresholdGreen").value);
+  if(!isNaN(tr)) opts.thresholdRed=tr;
+  if(!isNaN(ty)) opts.thresholdYellow=ty;
+  if(!isNaN(tg)) opts.thresholdGreen=tg;
+  opts.dualHealer=document.getElementById("dualHealer").checked;
+  return opts;
+}
+/* 将12人模式配置写回DOM */
+function applyRaid12Config(cfg){
+  if(!cfg) return;
+  document.getElementById("thresholdRed").value=(cfg.thresholdRed!=null)?cfg.thresholdRed:"";
+  document.getElementById("thresholdYellow").value=(cfg.thresholdYellow!=null)?cfg.thresholdYellow:"";
+  document.getElementById("thresholdGreen").value=(cfg.thresholdGreen!=null)?cfg.thresholdGreen:"";
+  document.getElementById("dualHealer").checked=!!cfg.dualHealer;
+}
+async function doAutoArrange(){
+  if(teamList && teamList.length>0){
+    if(!confirm("当前已有排表数据，一键排表将覆盖现有排表。是否继续？")) return;
+  }
+  const opts=readRaid12Config();
+  pushHistory();
+  SYNC.writeStateLocal(st=>{
+    st.raid12Config=opts;
+    st.teamList=arrange(st.charList, raidMode, opts);
+    return st;
+  });
+}
+async function switchMode(m){
+  if(m===raidMode) return;
+  pushHistory();
+  const wasEmpty = !teamList || teamList.length===0;
+  /* 切换到12人模式时，保存当前门槛配置到房间 */
+  const cfg = m===12 ? readRaid12Config() : null;
+  SYNC.writeStateLocal(st=>{
+    st.raidMode=m; raidMode=m;
+    if(cfg) st.raid12Config=cfg;
+    /* 排表已清空时切换模式不自动重排，保持空状态由用户手动一键排表 */
+    if(!wasEmpty) st.teamList=arrange(st.charList);
+    return st;
+  });
+  updateModeBtns();
+}
+function exportData(){
+  if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
+  const rows=charList.map(c=>({
+    "归属玩家":c.owner, "角色名称":c.name, "战力数值":c.power,
+    "类型":c.type==="c"?"C":c.type, "A套":c.a||"", "B套":c.b||""
+  }));
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"角色数据");
+  XLSX.writeFile(wb,"薄纱团本角色数据.xlsx");
+}
+
+/* 导出排表为图片 */
+let _lastImgBlob=null;
+async function exportImg(){
+  if(typeof html2canvas==="undefined"){ alert("截图库未加载，请刷新页面重试"); return; }
+  const target=document.getElementById("teamWrap");
+  if(!target || !target.children.length){ alert("当前没有排表数据，请先排表"); return; }
+
+  /* 临时移除下拉框等交互元素，避免截图异常 */
+  const selects=target.querySelectorAll("select");
+  const origDisplay=[];
+  selects.forEach(s=>{ origDisplay.push(s.style.display); s.style.display="none"; });
+
+  try{
+    const canvas=await html2canvas(target,{
+      backgroundColor:getComputedStyle(document.documentElement).getPropertyValue("--bg").trim()||"#0f1117",
+      scale:2,
+      useCORS:true,
+      logging:false
+    });
+    const blob=await new Promise(res=>canvas.toBlob(res,"image/png"));
+    _lastImgBlob=blob;
+    const url=URL.createObjectURL(blob);
+    const preview=document.getElementById("imgPreview");
+    preview.innerHTML=`<img src="${url}" style="max-width:100%;border-radius:8px;border:1px solid var(--line)" />`;
+    openModal("imgModal");
+  }catch(e){
+    alert("截图失败："+e.message);
+  }finally{
+    selects.forEach((s,i)=>{ s.style.display=origDisplay[i]||""; });
+  }
+}
+
+async function copyImgToClipboard(){
+  if(!_lastImgBlob){ alert("图片未生成"); return; }
+  try{
+    await navigator.clipboard.write([new ClipboardItem({"image/png":_lastImgBlob})]);
+    alert("已复制到剪贴板，可直接粘贴发送");
+  }catch(e){
+    alert("复制失败，请改用下载按钮："+e.message);
+  }
+}
+
+function downloadImg(){
+  if(!_lastImgBlob){ alert("图片未生成"); return; }
+  const url=URL.createObjectURL(_lastImgBlob);
+  const a=document.createElement("a");
+  a.href=url; a.download="薄纱团本排表_"+new Date().toISOString().slice(0,10)+".png";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+async function doImport(){
+  if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
+  const fileInput=document.getElementById("importFile");
+  const file=fileInput.files[0];
+  if(!file){ alert("请先选择Excel文件"); return; }
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:"array"});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:""});
+    if(!rows.length){ alert("Excel中没有数据"); return; }
+    const arr=rows.map(r=>{
+      const owner=(r["归属玩家"]||r["owner"]||"").toString().trim();
+      const name=(r["角色名称"]||r["name"]||"").toString().trim();
+      const power=Number(r["战力数值"]||r["power"]||0)||0;
+      let type=(r["类型"]||r["type"]||"C").toString().trim().toLowerCase();
+      if(type==="healer"||type==="n") type="N"; if(type!=="c"&&type!=="N") type="c";
+      const a=(r["A套"]||r["a"]||"").toString().trim();
+      const b=(r["B套"]||r["b"]||"").toString().trim();
+      return {owner,name,power,type,a,b};
+    }).filter(c=>c.owner&&c.name);
+    if(!arr.length){ alert("未找到有效数据，请检查列名是否包含：归属玩家、角色名称"); return; }
+    // 分配ID
+    let maxId=0; arr.forEach((c,i)=>{ c.id=i+1; });
+    pushHistory();
+    SYNC.writeStateLocal(st=>{ st.charList=arr; st.teamList=arrange(st.charList); return st; });
+    closeModal("importModal"); fileInput.value=""; alert("导入成功，共"+arr.length+"个角色");
+  }catch(e){ alert("Excel解析失败："+e.message); }
+}
+async function doReset(){
+  if(!confirm("确认重置为导入状态？所有修改将被覆盖并同步到房间。"))return;
+  pushHistory();
+  SYNC.writeStateLocal(st=>{ st.charList=getInitData(); st.teamList=arrange(st.charList); return st; });
+  clearEdit();
+}
+async function doClearTeams(){
+  if(!confirm("确认清空当前排表？角色数据保留，清空后可重新「一键均衡排完所有角色」。"))return;
+  pushHistory();
+  SYNC.writeStateLocal(st=>{ st.teamList=[]; return st; });
+  clearEdit();
+}
+
+/* ---------- 新建队伍 ---------- */
+async function doAddTeam(){
+  pushHistory();
+  SYNC.writeStateLocal(st=>{
+    if(raidMode===12){
+      /* 12人模式：新建队伍需要确定波数和颜色 */
+      const maxGroup = st.teamList.reduce((mx,t)=>Math.max(mx,t.group||0),0);
+      /* 找当前最大波数中缺少的颜色 */
+      const colors=["red","yellow","green"];
+      const lastWaveTeams = st.teamList.filter(t=>t.group===maxGroup);
+      const usedColors = new Set(lastWaveTeams.map(t=>t.raidColor));
+      const availColors = colors.filter(c=>!usedColors.has(c));
+      let newGroup, newColor;
+      if(availColors.length>0){
+        /* 当前波还有空缺颜色，填补 */
+        newGroup = maxGroup || 1;
+        newColor = availColors[0];
+      } else {
+        /* 当前波已满，新开一波 */
+        newGroup = maxGroup + 1;
+        newColor = "red";
+      }
+      st.teamList.push({slots:[{charId:null},{charId:null},{charId:null},{charId:null}],raidColor:newColor,group:newGroup});
+    } else {
+      /* 4人模式：直接添加空队伍 */
+      st.teamList.push({slots:[{charId:null},{charId:null},{charId:null},{charId:null}]});
+    }
+    return st;
+  });
+}
+
+/* ---------- 波内添加队伍（12人模式） ---------- */
+async function doAddTeamToWave(groupNum){
+  pushHistory();
+  SYNC.writeStateLocal(st=>{
+    const colors=["red","yellow","green"];
+    const waveTeams = st.teamList.filter(t=>t.group===groupNum);
+    const usedColors = new Set(waveTeams.map(t=>t.raidColor));
+    const availColors = colors.filter(c=>!usedColors.has(c));
+    if(availColors.length===0) return st;
+    const newColor = availColors[0];
+    /* 找当前波数最后一个队伍的索引，插入到其后方，而非追加到数组末尾 */
+    let lastIdx=-1;
+    for(let i=st.teamList.length-1;i>=0;i--){
+      if(st.teamList[i].group===groupNum){ lastIdx=i; break; }
+    }
+    const newTeam={slots:[{charId:null},{charId:null},{charId:null},{charId:null}],raidColor:newColor,group:groupNum};
+    if(lastIdx>=0){
+      st.teamList.splice(lastIdx+1,0,newTeam);
+    } else {
+      st.teamList.push(newTeam);
+    }
+    return st;
+  });
+}
+
+/* ---------- 新增波数（12人模式） ---------- */
+async function doAddNewWave(){
+  pushHistory();
+  SYNC.writeStateLocal(st=>{
+    const maxGroup = st.teamList.reduce((mx,t)=>Math.max(mx,t.group||0),0);
+    const newGroup = maxGroup + 1;
+    st.teamList.push({slots:[{charId:null},{charId:null},{charId:null},{charId:null}],raidColor:"red",group:newGroup});
+    return st;
+  });
+}
+
+/* ---------- 删除队伍 ---------- */
+async function doRemoveTeam(tIdx){
+  if(!confirm("确认删除此队伍？队伍中的角色将回到未配置。"))return;
+  pushHistory();
+  SYNC.writeStateLocal(st=>{
+    if(tIdx>=0 && tIdx<st.teamList.length){
+      st.teamList.splice(tIdx,1);
+    }
+    return st;
+  });
+}
+
+/* ---------- 拖拽：4人模式队伍插入排序 ---------- */
+async function doMoveTeam(fromIdx,toIdx){
+  pushHistory();
+  SYNC.writeStateLocal(st=>{
+    if(fromIdx<0||fromIdx>=st.teamList.length||toIdx<0||toIdx>=st.teamList.length) return st;
+    const team=st.teamList.splice(fromIdx,1)[0];
+    st.teamList.splice(toIdx,0,team);
+    return st;
+  });
+}
+
+/* ---------- 拖拽：12人模式队伍对调 ---------- */
+async function doSwapTeams12(fromIdx,toIdx){
+  pushHistory();
+  SYNC.writeStateLocal(st=>{
+    if(fromIdx<0||fromIdx>=st.teamList.length||toIdx<0||toIdx>=st.teamList.length) return st;
+    /* 对调两队的位置和波数/颜色信息 */
+    const a=st.teamList[fromIdx], b=st.teamList[toIdx];
+    const aGroup=a.group, aColor=a.raidColor;
+    a.group=b.group; a.raidColor=b.raidColor;
+    b.group=aGroup; b.raidColor=aColor;
+    /* 同时在数组中也交换位置，保持顺序 */
+    st.teamList[fromIdx]=b;
+    st.teamList[toIdx]=a;
+    return st;
+  });
+}
+
+/* ---------- 拖拽：波数插入排序（12人模式 + 4人模式均支持） ---------- */
+async function doMoveWave(fromWave,toWave){
+  if(fromWave===toWave) return;
+  pushHistory();
+  SYNC.writeStateLocal(st=>{
+    const is12 = (st.raidMode||4)===12;
+    /* 按波数分组，保留出现顺序。4人模式每队单独一波，用 tIdx+1 作 group */
+    const waves={};
+    const waveOrder=[];
+    st.teamList.forEach((t,i)=>{
+      const g = is12 ? (t.group||(Math.floor(i/3)+1)) : (i+1);
+      if(!waves[g]){ waves[g]=[]; waveOrder.push(g); }
+      waves[g].push(t);
+    });
+    /* 源波数不存在则跳过 */
+    if(!waves[fromWave]) return st;
+    /* 从顺序中移除源波数 */
+    const fi=waveOrder.indexOf(fromWave);
+    if(fi===-1) return st;
+    waveOrder.splice(fi,1);
+    /* 插入到目标波数之前 */
+    const ti=waveOrder.indexOf(toWave);
+    if(ti===-1){
+      waveOrder.push(fromWave);
+    } else {
+      waveOrder.splice(ti,0,fromWave);
+    }
+    /* 按新顺序重编号并展平 */
+    const newTeamList=[];
+    waveOrder.forEach((oldG,newGIdx)=>{
+      const newGroup=newGIdx+1;
+      for(const t of waves[oldG]){
+        if(is12) t.group=newGroup;
+        newTeamList.push(t);
+      }
+    });
+    st.teamList=newTeamList;
+    return st;
+  });
+}
+
+/* ---------- 房间 ---------- */
+function exitRoom(){
+  SYNC.stop();
+  SYNC.room = null;
+  history.replaceState(null,"",location.pathname);
+  charList = []; teamList = []; saveStorage();
+  document.getElementById("syncStatus").textContent = "未登录";
+  document.getElementById("syncDot").className = "dot off";
+  renderAll();
+  openModal("loginModal");
+  document.getElementById("loginMsg").textContent = "";
+}
+function copyLink(){ navigator.clipboard.writeText(location.href).then(()=>{ const b=document.getElementById("copyLink"); b.textContent="✓ 已复制"; setTimeout(()=>b.textContent="🔗 分享链接",1200); }).catch(()=>prompt("请手动复制：",location.href)); }
+
+/* ---------- 登录弹窗 ---------- */
+function bindLoginTabs(){
+  document.querySelectorAll("[data-ltab]").forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll("[data-ltab]").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      const isJoin = t.dataset.ltab==="join";
+      document.getElementById("joinForm").style.display = isJoin?"block":"none";
+      document.getElementById("createForm").style.display = isJoin?"none":"block";
+      document.getElementById("loginMsg").textContent = "";
+    };
+  });
+}
+async function doJoinRoom(){
+  const rid=document.getElementById("joinRoomId").value.trim();
+  const pwd=document.getElementById("joinRoomPwd").value;
+  const msg=document.getElementById("loginMsg");
+  if(!rid){ msg.textContent="请输入房间号"; return; }
+  if(!pwd){ msg.textContent="请输入密码"; return; }
+  msg.textContent = "验证中…";
+  await SYNC.checkRoom(rid, pwd,
+    ()=>{ closeModal("loginModal"); msg.textContent=""; document.getElementById("joinRoomPwd").value=""; },
+    (err)=>{ msg.textContent = "✗ "+err; }
+  );
+}
+async function doCreateRoom(){
+  const rid=document.getElementById("createRoomId").value.trim();
+  const pwd=document.getElementById("createRoomPwd").value;
+  const msg=document.getElementById("loginMsg");
+  if(!rid){ msg.textContent="请输入房间号"; return; }
+  if(!pwd){ msg.textContent="请输入密码"; return; }
+  if(!/^[\u4e00-\u9fa5A-Za-z0-9_-]{1,30}$/.test(rid)){ msg.textContent="房间号只能用中文、字母、数字、下划线、短横线"; return; }
+  msg.textContent = "创建中…";
+  await SYNC.createRoom(rid, pwd,
+    ()=>{
+      closeModal("loginModal"); msg.textContent=""; document.getElementById("createRoomPwd").value="";
+      // 显示引导弹窗
+      document.getElementById("guideRoomId").textContent = rid;
+      openModal("guideModal");
+    },
+    (err)=>{ msg.textContent = "✗ "+err; }
+  );
+}
+function downloadTemplate(){
+  if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
+  const example=[
+    { "归属玩家":"鸟", "角色名称":"剑魂", "战力数值":15226, "类型":"C", "A套":"黄金乡", "B套":"黄金乡" },
+    { "归属玩家":"鸟", "角色名称":"缪斯", "战力数值":40328, "类型":"N", "A套":"黄金乡", "B套":"" }
+  ];
+  const ws=XLSX.utils.json_to_sheet(example);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"角色数据");
+  XLSX.writeFile(wb,"薄纱团本角色模板.xlsx");
+}
+
+/* ---------- 设置弹窗 ---------- */
+function openModal(id){ document.getElementById(id).classList.add("show"); }
+function closeModal(id){ document.getElementById(id).classList.remove("show"); }
+function fillCfgForm(){
+  const c=SYNC.cfg||{owner:"",repo:"",token:"",branch:"master"};
+  document.getElementById("cfgOwner").value=c.owner||"";
+  document.getElementById("cfgRepo").value=c.repo||"";
+  document.getElementById("cfgBranch").value=c.branch||"master";
+  document.getElementById("cfgToken").value=c.token||"";
+}
+function readCfgForm(){
+  return { owner:document.getElementById("cfgOwner").value.trim(),
+           repo:document.getElementById("cfgRepo").value.trim(),
+           branch:document.getElementById("cfgBranch").value.trim()||"master",
+           token:document.getElementById("cfgToken").value.trim() };
+}
+async function testCfg(){
+  const c=readCfgForm();
+  if(!c.owner||!c.repo||!c.token){ document.getElementById("cfgMsg").textContent="请填写完整"; return; }
+  document.getElementById("cfgMsg").textContent="测试中…";
+  try{
+    const r=await fetch(`https://gitee.com/api/v5/repos/${c.owner}/${c.repo}?access_token=${encodeURIComponent(c.token)}`);
+    if(r.status===200){ const j=await r.json(); document.getElementById("cfgMsg").textContent="✓ 连接成功，仓库："+j.full_name+"（默认分支："+j.default_branch+"）"; }
+    else if(r.status===404){ document.getElementById("cfgMsg").textContent="✗ 仓库不存在或令牌无权访问"; }
+    else if(r.status===401){ document.getElementById("cfgMsg").textContent="✗ 令牌无效"; }
+    else { document.getElementById("cfgMsg").textContent="✗ HTTP "+r.status; }
+  }catch(e){ document.getElementById("cfgMsg").textContent="✗ 网络错误："+e.message; }
+}
+function saveCfg(){
+  const c=readCfgForm();
+  if(!c.token){ SYNC.cfg=null; localStorage.removeItem(LS_SYNC); SYNC.stop(); SYNC.setStatus("本地模式","off"); document.getElementById("cfgMsg").textContent="已清除，转为本地模式"; return; }
+  localStorage.setItem(LS_SYNC, JSON.stringify(c));
+  SYNC.cfg=c; SYNC.start();
+  document.getElementById("cfgMsg").textContent="✓ 已保存并开始同步";
+}
+
+/* ---------- 标签 ---------- */
+function bindTab(){
+  document.querySelectorAll(".tab[data-tab]").forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll(".tab[data-tab]").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      document.querySelectorAll(".panel").forEach(p=>p.classList.remove("show"));
+      document.getElementById(t.dataset.tab).classList.add("show");
+    };
+  });
+}
+
+/* ---------- 管理员模块 ---------- */
+const ADMIN = {
+  user:"Wenby", pass:"mics", active:false,
+  login(u,p){
+    if(u===this.user && p===this.pass){ this.active=true; return true; }
+    return false;
+  },
+  async fetchRooms(){
+    if(!hasSync(SYNC.cfg)) return [];
+    try{
+      const r=await fetch(SYNC.url("rooms")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
+      if(!r.ok) return [];
+      const j=await r.json();
+      if(!Array.isArray(j)) return [];
+      const rooms=[];
+      for(const f of j){
+        const m=f.name.match(/^(.+)\.json$/);
+        if(!m) continue;
+        const roomId=m[1];
+        try{
+          const rr=await fetch(SYNC.url("rooms/"+f.name)+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
+          if(!rr.ok) continue;
+          const jj=await rr.json();
+          if(!jj || !jj.content) continue;
+          const data=JSON.parse(b64dec(jj.content));
+          const charCount=Array.isArray(data.charList)?data.charList.length:0;
+          const teamCount=Array.isArray(data.teamList)?data.teamList.length:0;
+          const cCount=Array.isArray(data.charList)?data.charList.filter(c=>c.type==="c").length:0;
+          const hCount=Array.isArray(data.charList)?data.charList.filter(c=>c.type==="N").length:0;
+          const presence=data.presence||{};
+          const now=Date.now();
+          let online=0;
+          for(const k in presence){ if(now-presence[k]<60000) online++; }
+          rooms.push({
+            id:roomId, sha:jj.sha, charCount, teamCount, cCount, hCount,
+            online, editor:data.editor||"-", dataVersion:data.dataVersion||0,
+            raidMode:data.raidMode||4, presence, createdBy:data.createdBy||data.editor||"-"
+          });
+        }catch(e){}
+      }
+      return rooms;
+    }catch(e){ return []; }
+  },
+  async deleteRoom(roomId, sha){
+    if(!hasSync(SYNC.cfg)) return false;
+    try{
+      const body={access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token),message:"admin delete room "+roomId,sha,branch:SYNC.cfg.branch||"master"};
+      const r=await fetch(SYNC.url("rooms/"+roomId+".json")+"?access_token="+SYNC.tok(),{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+      return r.ok;
+    }catch(e){ return false; }
+  },
+  async enterRoom(roomId){
+    // 管理员无密码进入房间
+    if(!hasSync(SYNC.cfg)){
+      SYNC.room={id:roomId,sha:null,dataVersion:0,presence:{},password:""};
+      history.replaceState(null,"","#room="+roomId);
+      SYNC.setStatus("本地模式（管理员）","off");
+      document.getElementById("adminPanel").classList.remove("show");
+      renderAll();
+      return;
+    }
+    try{
+      const r=await fetch(SYNC.url("rooms/"+roomId+".json")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
+      if(r.status===404){ alert("房间不存在"); return; }
+      if(!r.ok){ alert("读取失败"); return; }
+      const j=await r.json();
+      if(!j || !j.content){ alert("房间数据异常"); return; }
+      const data=JSON.parse(b64dec(j.content));
+      SYNC.room={id:roomId,sha:j.sha,dataVersion:data.dataVersion||0,presence:data.presence||{},password:data.password||""};
+      history.replaceState(null,"","#room="+roomId);
+      charList=Array.isArray(data.charList)?data.charList.map(c=>{if(c.type==="healer")c.type="N";return c;}):charList;
+      raidMode=data.raidMode||4;
+      teamList=Array.isArray(data.teamList)?data.teamList:arrange(charList);
+      saveStorage();renderAll();updateModeBtns();
+      SYNC.start();
+      document.getElementById("adminPanel").classList.remove("show");
+      // 显示状态标识
+      const ss=document.getElementById("syncStatus");
+      ss.textContent=(ADMIN.active?"管理员模式":"编辑模式")+" · 已同步";
+      ss.style.color="var(--orange)";
+    }catch(e){ alert("进入失败："+e.message); }
+  },
+  async renameRoom(oldId, newId, sha){
+    if(!hasSync(SYNC.cfg)) return false;
+    if(!/^[A-Za-z0-9_-]{1,30}$/.test(newId)) return false;
+    if(oldId===newId) return true;
+    try{
+      // 1. 读取原房间数据
+      const r=await fetch(SYNC.url("rooms/"+oldId+".json")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
+      if(!r.ok) return false;
+      const j=await r.json();
+      if(!j || !j.content) return false;
+      const data=JSON.parse(b64dec(j.content));
+      // 2. 检查新房间号是否已存在
+      const checkR=await fetch(SYNC.url("rooms/"+newId+".json")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
+      if(checkR.status!==404) return "exists";
+      // 3. 创建新房间
+      const body={access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token),message:"admin rename "+oldId+" -> "+newId,content:b64enc(JSON.stringify(data)),branch:SYNC.cfg.branch||"master"};
+      const pr=await fetch(SYNC.url("rooms/"+newId+".json")+"?access_token="+SYNC.tok(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+      if(!pr.ok) return false;
+      // 4. 删除旧房间
+      const delBody={access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token),message:"admin delete old room "+oldId,sha,branch:SYNC.cfg.branch||"master"};
+      await fetch(SYNC.url("rooms/"+oldId+".json")+"?access_token="+SYNC.tok(),{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(delBody)});
+      return true;
+    }catch(e){ return false; }
+  }
+};
+
+async function doAdminLogin(){
+  const u=document.getElementById("adminUser").value.trim();
+  const p=document.getElementById("adminPwd").value;
+  const msg=document.getElementById("adminLoginMsg");
+  if(!u||!p){ msg.textContent="请输入账号和密码"; return; }
+  if(ADMIN.login(u,p)){
+    /* 管理员登录：可管理所有房间 */
+    closeModal("adminLoginModal");
+    document.getElementById("adminPwd").value="";
+    document.getElementById("adminLoginMsg").textContent="管理员可管理所有房间，普通用户仅可管理自己创建的房间";
+    document.getElementById("adminPanelTitle").textContent="管理员控制台";
+    document.getElementById("adminPanelTag").textContent="Wenby";
+    document.getElementById("adminPanel").classList.add("show");
+    await loadAdminRooms();
+  }else{
+    /* 尝试普通用户登录 */
+    msg.textContent="验证中…";
+    const err=await ACCT.login(u,p);
+    if(err){
+      msg.textContent="✗ 账号或密码错误";
+      return;
+    }
+    /* 普通用户：仅可管理自己创建的房间 */
+    closeModal("adminLoginModal");
+    document.getElementById("adminPwd").value="";
+    document.getElementById("adminLoginMsg").textContent="管理员可管理所有房间，普通用户仅可管理自己创建的房间";
+    document.getElementById("adminPanelTitle").textContent="我的房间管理";
+    document.getElementById("adminPanelTag").textContent=u;
+    document.getElementById("adminPanel").classList.add("show");
+    await loadAdminRooms();
+  }
+}
+
+async function loadAdminRooms(){
+  const list=document.getElementById("adminRoomList");
+  list.innerHTML='<div class="admin-loading">加载房间数据中…</div>';
+  let rooms=await ADMIN.fetchRooms();
+  const isAdmin = ADMIN.active;
+  const currentUser = ACCT.currentUser() || "";
+  /* 非管理员仅显示自己创建的房间，其他用户的房间完全不可见 */
+  if(!isAdmin){
+    rooms=rooms.filter(r=>r.createdBy===currentUser);
+  }
+  if(!rooms.length){
+    list.innerHTML=isAdmin?'<div class="admin-loading">暂无房间数据</div>':'<div class="admin-loading">你还没有创建过房间，去新建一个吧</div>';
+    document.getElementById("adminRoomCount").textContent="0";
+    document.getElementById("adminTotalChars").textContent="0";
+    document.getElementById("adminTotalTeams").textContent="0";
+    document.getElementById("adminOnline").textContent="0";
+    document.getElementById("adminSelectedCount").textContent="0";
+    updateAdminBatchDel();
+    return;
+  }
+  let totalChars=0,totalTeams=0,totalOnline=0;
+  rooms.forEach(r=>{totalChars+=r.charCount;totalTeams+=r.teamCount;totalOnline+=r.online;});
+  document.getElementById("adminRoomCount").textContent=rooms.length;
+  document.getElementById("adminTotalChars").textContent=totalChars;
+  document.getElementById("adminTotalTeams").textContent=totalTeams;
+  document.getElementById("adminOnline").textContent=totalOnline;
+  document.getElementById("adminSelectedCount").textContent="0";
+  adminAllRooms=rooms;
+  // 清空搜索条件
+  document.getElementById("adminSearchRoom").value="";
+  document.getElementById("adminSearchEditor").value="";
+  document.getElementById("adminFilterMode").value="";
+  list.innerHTML=rooms.map(r=>{
+    const canManage = isAdmin || r.createdBy===currentUser;
+    return `
+    <div class="room-card">
+      <div class="room-card-head">
+        <input type="checkbox" data-admin-check="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}" style="width:auto;margin-right:6px">
+        <span class="rid">${escapeHtml(r.id)}</span>
+        <span class="rinfo">v${r.dataVersion} · 创建者：${escapeHtml(r.createdBy)} · 编辑者：${escapeHtml(r.editor)} · ${r.raidMode===12?"12人团本":"4人团本"}${r.online>0?' · <span style="color:var(--green)">'+r.online+'人在线</span>':''}</span>
+      </div>
+      <div class="room-card-body">
+        <span>角色 <b>${r.charCount}</b></span>
+        <span>C位 <b>${r.cCount}</b></span>
+        <span>奶位 <b>${r.hCount}</b></span>
+        <span>队伍 <b>${r.teamCount}</b></span>
+      </div>
+      <div class="room-card-actions">
+        <button class="sm" data-admin-enter="${escapeHtml(r.id)}">进入编辑</button>
+        ${canManage?`<button class="sm secondary" data-admin-rename="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}">重命名</button>
+        <button class="sm danger" data-admin-del="${escapeHtml(r.id)}" data-admin-sha="${escapeHtml(r.sha)}">删除房间</button>`:''}
+      </div>
+    </div>`;
+  }).join("");
+  // 绑定事件
+  document.querySelectorAll("[data-admin-enter]").forEach(b=>{
+    b.onclick=()=>ADMIN.enterRoom(b.dataset.adminEnter);
+  });
+  document.querySelectorAll("[data-admin-del]").forEach(b=>{
+    b.onclick=async()=>{
+      const rid=b.dataset.adminDel;
+      if(!confirm("确定删除房间 "+rid+"？此操作不可恢复！"))return;
+      const ok=await ADMIN.deleteRoom(rid,b.dataset.adminSha);
+      if(ok){ alert("房间 "+rid+" 已删除"); await loadAdminRooms(); }
+      else{ alert("删除失败，可能需要刷新后重试"); }
+    };
+  });
+  document.querySelectorAll("[data-admin-rename]").forEach(b=>{
+    b.onclick=async()=>{
+      const oldId=b.dataset.adminRename;
+      const sha=b.dataset.adminSha;
+      const newId=prompt("请输入新的房间号（中文、字母、数字、下划线、短横线）：",oldId);
+      if(!newId||newId.trim()===oldId) return;
+      if(!/^[\u4e00-\u9fa5A-Za-z0-9_-]{1,30}$/.test(newId.trim())){ alert("房间号只能用中文、字母、数字、下划线、短横线，最多30字符"); return; }
+      const result=await ADMIN.renameRoom(oldId,newId.trim(),sha);
+      if(result===true){ alert("房间已从 "+oldId+" 重命名为 "+newId.trim()); await loadAdminRooms(); }
+      else if(result==="exists"){ alert("房间号 "+newId.trim()+" 已存在，请换一个"); }
+      else{ alert("重命名失败，请重试"); }
+    };
+  });
+  // 绑定复选框
+  document.querySelectorAll("[data-admin-check]").forEach(cb=>{
+    cb.onchange=updateAdminBatchDel;
+  });
+  updateAdminBatchDel();
+}
+
+function updateAdminBatchDel(){
+  const checked=document.querySelectorAll("[data-admin-check]:checked");
+  const btn=document.getElementById("adminBatchDel");
+  const cnt=document.getElementById("adminSelectedCount");
+  cnt.textContent=checked.length;
+  btn.disabled=checked.length===0;
+  btn.style.opacity=checked.length===0?"0.4":"1";
+}
+
+let adminAllRooms=[]; /* 缓存所有房间数据 */
+
+function filterAdminRooms(){
+  if(!adminAllRooms.length) return;
+  const kw=document.getElementById("adminSearchRoom").value.trim().toLowerCase();
+  const ekw=document.getElementById("adminSearchEditor").value.trim().toLowerCase();
+  const mode=document.getElementById("adminFilterMode").value;
+  const cards=document.querySelectorAll("#adminRoomList .room-card");
+  cards.forEach((card,i)=>{
+    const r=adminAllRooms[i];
+    if(!r) return;
+    const matchRoom = !kw || r.id.toLowerCase().includes(kw);
+    const matchEditor = !ekw || (r.editor||"-").toLowerCase().includes(ekw);
+    const matchMode = !mode || String(r.raidMode)===mode;
+    const visible = matchRoom && matchEditor && matchMode;
+    card.style.display = visible ? "" : "none";
+  });
+}
+
+async function doBatchDelete(){
+  const checked=document.querySelectorAll("[data-admin-check]:checked");
+  if(!checked.length) return;
+  const ids=Array.from(checked).map(cb=>cb.dataset.adminCheck);
+  if(!confirm("确定批量删除 "+ids.length+" 个房间？\n"+ids.join(", ")+"\n\n此操作不可恢复！"))return;
+  let ok=0,fail=0;
+  for(const cb of checked){
+    const r=await ADMIN.deleteRoom(cb.dataset.adminCheck, cb.dataset.adminSha);
+    if(r) ok++; else fail++;
+  }
+  alert("批量删除完成：成功 "+ok+" 个"+(fail>0?"，失败 "+fail+" 个":""));
+  await loadAdminRooms();
+}
+
+/* ---------- 初始化 ---------- */
+function init(){
+  // 昵称
+  const nick=localStorage.getItem(LS_NICK)||("");
+  document.getElementById("nickInput").value=nick;
+  document.getElementById("nickInput").addEventListener("input",function(){ 
+    const v=this.value.trim();
+    localStorage.setItem(LS_NICK,v); 
+    SYNC.renderPresence(); 
+    /* 同步昵称到云端 */
+    if(ACCT.isLoggedIn()) ACCT.updateNickDebounced(v);
+  });
+
+  bindTab();
+  document.getElementById("autoArrange").onclick=doAutoArrange;
+  document.getElementById("undoBtn").onclick=doUndo;
+  document.getElementById("redoBtn").onclick=doRedo;
+  // 键盘快捷键 Ctrl+Z 撤销, Ctrl+Shift+Z / Ctrl+Y 重做
+  document.addEventListener("keydown",function(e){
+    if((e.ctrlKey||e.metaKey) && e.key==="z" && !e.shiftKey){ e.preventDefault(); doUndo(); }
+    else if((e.ctrlKey||e.metaKey) && (e.key==="y" || (e.key==="z" && e.shiftKey))){ e.preventDefault(); doRedo(); }
+  });
+  document.querySelectorAll(".mode-btn").forEach(b=>{ b.onclick=()=>switchMode(Number(b.dataset.mode)); });
+  document.querySelectorAll(".view-btn").forEach(b=>{ b.onclick=()=>{
+    viewMode=b.dataset.view;
+    document.querySelectorAll(".view-btn").forEach(x=>{
+      const active=x.dataset.view===viewMode;
+      x.style.background=active?"var(--blue)":"transparent";
+      x.style.color=active?"#fff":"var(--mut)";
+    });
+    renderTeamTable();
+  };});
+  document.getElementById("saveChar").onclick=saveChar;
+  document.getElementById("cancelEdit").onclick=clearEdit;
+  document.getElementById("exportData").onclick=exportData;
+  document.getElementById("exportImg").onclick=exportImg;
+  document.getElementById("copyImg").onclick=copyImgToClipboard;
+  document.getElementById("downloadImg").onclick=downloadImg;
+  document.getElementById("closeImg").onclick=()=>closeModal("imgModal");
+  document.getElementById("resetAll").onclick=doReset;
+  document.getElementById("clearTeams").onclick=doClearTeams;
+  document.getElementById("addTeam").onclick=doAddTeam;
+
+  /* 编辑角色弹窗 */
+  document.getElementById("modalSaveChar").onclick=saveModalChar;
+  document.getElementById("closeEditChar").onclick=()=>closeModal("editCharModal");
+
+  /* 12人模式门槛配置持久化：修改即同步到房间 */
+  ["thresholdRed","thresholdYellow","thresholdGreen","dualHealer"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){
+      el.addEventListener("change",async()=>{
+        if(raidMode===12 && SYNC.room){
+          const cfg=readRaid12Config();
+          SYNC.writeStateLocal(st=>{ st.raid12Config=cfg; return st; });
+        }
+      });
+    }
+  });
+
+  document.getElementById("importData").onclick=()=>openModal("importModal");
+  document.getElementById("closeImport").onclick=()=>closeModal("importModal");
+  document.getElementById("doImport").onclick=doImport;
+
+  document.getElementById("exitRoom").onclick=exitRoom;
+  document.getElementById("saveBtn").onclick=()=>SYNC.flushToRemote();
+  document.getElementById("copyLink").onclick=copyLink;
+  document.getElementById("openShengyan").onclick=()=>{
+    window.open("http://shengyan.xyz","_blank","noopener");
+  };
+
+  // 登录弹窗
+  bindAcctTabs();
+  bindLoginTabs();
+  document.getElementById("doAcctRegister").onclick=doAcctRegister;
+  document.getElementById("doAcctLogin").onclick=doAcctLogin;
+  document.getElementById("acctLogout").onclick=()=>{
+    ACCT.clearSession();
+    showAcctStep();
+  };
+  document.getElementById("myRoomsBtn").onclick=async()=>{
+    // 普通用户进入管理面板（非管理员模式）
+    ADMIN.active=false;
+    const user=ACCT.currentUser();
+    document.getElementById("adminPanelTitle").textContent="我的房间管理";
+    document.getElementById("adminPanelTag").textContent=user||"";
+    closeModal("loginModal");
+    document.getElementById("adminPanel").classList.add("show");
+    await loadAdminRooms();
+  };
+  document.getElementById("doJoin").onclick=doJoinRoom;
+  document.getElementById("doCreate").onclick=doCreateRoom;
+
+  // 引导弹窗
+  document.getElementById("downloadTemplate").onclick=downloadTemplate;
+  document.getElementById("closeGuide").onclick=()=>closeModal("guideModal");
+
+  document.getElementById("openHelp").onclick=()=>openModal("helpModal");
+  document.getElementById("closeHelp").onclick=()=>closeModal("helpModal");
+
+  // 版本更新日志
+  document.getElementById("openChangelog").onclick=()=>openModal("changelogModal");
+  document.getElementById("closeChangelog").onclick=()=>closeModal("changelogModal");
+
+  // 主题切换
+  const themeSelect=document.getElementById("themeSelect");
+  const savedTheme=localStorage.getItem("busha_theme")||"dark";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+  themeSelect.value=savedTheme;
+  themeSelect.onchange=()=>{
+    const v=themeSelect.value;
+    document.documentElement.setAttribute("data-theme", v);
+    localStorage.setItem("busha_theme", v);
+  };
+
+  // 管理员
+  document.getElementById("openAdminLogin").onclick=()=>{ closeModal("loginModal"); openModal("adminLoginModal"); document.getElementById("adminUser").focus(); };
+  document.getElementById("doAdminLogin").onclick=doAdminLogin;
+  document.getElementById("closeAdminLogin").onclick=()=>{
+    closeModal("adminLoginModal");
+    // 返回到正确的步骤并重新打开登录弹窗
+    if(ACCT.isLoggedIn()) showRoomStep();
+    else { document.getElementById("acctStep").style.display="block"; document.getElementById("roomStep").style.display="none"; }
+    openModal("loginModal");
+  };
+  document.getElementById("adminRefresh").onclick=loadAdminRooms;
+  document.getElementById("adminBatchDel").onclick=doBatchDelete;
+  document.getElementById("adminSelectAll").onclick=()=>{
+    // 只全选当前可见（搜索过滤后）的房间
+    document.querySelectorAll("#adminRoomList .room-card").forEach(card=>{
+      if(card.style.display!=="none"){
+        const cb=card.querySelector("[data-admin-check]");
+        if(cb) cb.checked=true;
+      }
+    });
+    updateAdminBatchDel();
+  };
+  document.getElementById("adminSelectNone").onclick=()=>{
+    // 只取消当前可见的房间
+    document.querySelectorAll("#adminRoomList .room-card").forEach(card=>{
+      if(card.style.display!=="none"){
+        const cb=card.querySelector("[data-admin-check]");
+        if(cb) cb.checked=false;
+      }
+    });
+    updateAdminBatchDel();
+  };
+  document.getElementById("adminExit").onclick=()=>{
+    ADMIN.active=false;
+    document.getElementById("adminPanel").classList.remove("show");
+    if(ACCT.isLoggedIn()) showRoomStep();
+    else { document.getElementById("acctStep").style.display="block"; document.getElementById("roomStep").style.display="none"; }
+    openModal("loginModal");
+  };
+
+  // 点遮罩关闭（登录弹窗除外）
+  document.querySelectorAll(".modal").forEach(m=>{
+    if(m.id==="loginModal") return; // 登录弹窗不可点外关闭
+    m.addEventListener("click",e=>{ if(e.target===m) m.classList.remove("show"); });
+  });
+
+  SYNC.init();
+  updateModeBtns();
+  // 不在登录前渲染数据，登录后由 checkRoom/createRoom 触发 renderAll
+  const syncBadgeEl=document.getElementById("syncBadge");
+  if(syncBadgeEl) syncBadgeEl.textContent="未加入房间";
+  // 检查是否有已登录会话，有则直接进入房间步骤
+  if(ACCT.isLoggedIn()){
+    showRoomStep();
+  }
+}
+init();
+</script>
+</body>
+</html>
