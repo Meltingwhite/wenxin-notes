@@ -665,6 +665,11 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <a href="https://shengyan.xyz" target="_blank" rel="noopener" style="font-size:0.78rem;color:rgba(201,162,39,0.7);text-decoration:none;white-space:nowrap">在新标签打开 ↗</a>
     </div>
     <iframe src="about:blank" id="shengyanFrame" style="position:fixed;top:52px;left:0;width:100%;height:calc(100% - 52px);border:none" title="盛宴 · 米歇尔练习"></iframe>
+    <!-- 加载超时提示 -->
+    <div id="shengyanTip" style="display:none;position:fixed;top:52px;left:0;right:0;bottom:0;z-index:10000;flex-direction:column;align-items:center;justify-content:center;gap:1rem;background:#0d0b08;color:#f7efd6">
+      <p style="font-size:1.1rem">网页加载较慢，请稍候…</p>
+      <a href="https://shengyan.xyz" target="_blank" rel="noopener" style="padding:0.6rem 1.5rem;border:1px solid rgba(201,162,39,0.5);border-radius:0.5rem;color:#f7efd6;text-decoration:none;background:rgba(201,162,39,0.1)">点击在新标签打开 ↗</a>
+    </div>
   </div>
 
   <!-- 登录弹窗 -->
@@ -3519,12 +3524,23 @@ function init(){
     const fr=document.getElementById("shengyanFrame");
     fr.src="https://shengyan.xyz";
     ov.style.display="block";
+    /* iframe 加载超时检测：6秒未完成则显示提示 */
+    let _syLoaded=false;
+    fr.onload=()=>{ _syLoaded=true; };
+    setTimeout(()=>{
+      if(!_syLoaded){
+        const tip=document.getElementById("shengyanTip");
+        if(tip) tip.style.display="flex";
+      }
+    },6000);
   };
   document.getElementById("closeShengyan").onclick=()=>{
     const ov=document.getElementById("shengyanOverlay");
     const fr=document.getElementById("shengyanFrame");
     fr.src="about:blank";
     ov.style.display="none";
+    const tip=document.getElementById("shengyanTip");
+    if(tip) tip.style.display="none";
   };
 
   // 登录弹窗
