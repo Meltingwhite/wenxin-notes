@@ -565,6 +565,18 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <div class="changelog-content" style="margin-top:15px">
         <div class="version-entry">
           <div class="version-header">
+            <span class="ver-tag">v1.13.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>角色增删改不再自动覆盖已有排表，仅空表时自动排表</li>
+            <li>删除角色时仅清空该角色在队伍中的占用，保留用户原有排表</li>
+            <li>多用户合并时保留远端/本地已有排表，不自动重排</li>
+            <li>仅「一键排表」按钮才会触发重新排表</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
             <span class="ver-tag">v1.12.0</span>
             <span class="ver-date">2026-08-19</span>
           </div>
@@ -2070,8 +2082,16 @@ const SYNC = {
         for(const rc of remoteChars){
           if(rc.id && !localIds.has(rc.id)) mergedChars.push(rc);
         }
-        /* 用合并后的角色列表重新排表 */
-        const mergedTeamList = arrange(mergedChars, raidMode, base.raid12Config);
+        /* 排表：远端有排表则保留远端，本地有排表则保留本地，都无则自动排表 */
+        let mergedTeamList;
+        const remoteTL = Array.isArray(base.teamList) ? base.teamList : [];
+        if(remoteTL.length > 0){
+          mergedTeamList = remoteTL;
+        } else if(teamList.length > 0){
+          mergedTeamList = teamList;
+        } else {
+          mergedTeamList = arrange(mergedChars, raidMode, base.raid12Config);
+        }
         const pushData = {
           charList: mergedChars,
           teamList: mergedTeamList,
@@ -2397,7 +2417,11 @@ function renderCharList(){
       pushHistory();
       SYNC.writeStateRemote(st=>{
         st.charList=st.charList.filter(c=>!ids.includes(Number(c.id)));
-        st.teamList=arrange(st.charList);
+        if(st.teamList && st.teamList.length>0){
+          st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId && ids.includes(Number(s.charId))) s.charId=null; }));
+        } else {
+          st.teamList=arrange(st.charList);
+        }
         return st;
       });
     };
@@ -2429,7 +2453,11 @@ function renderCharList(){
       pushHistory();
       SYNC.writeStateRemote(st=>{
         st.charList=st.charList.filter(c=>!ids.includes(Number(c.id)));
-        st.teamList=arrange(st.charList);
+        if(st.teamList && st.teamList.length>0){
+          st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId && ids.includes(Number(s.charId))) s.charId=null; }));
+        } else {
+          st.teamList=arrange(st.charList);
+        }
         return st;
       });
     };
@@ -2889,7 +2917,8 @@ async function saveModalChar(){
     const idx=st.charList.findIndex(x=>Number(x.id)===target);
     if(idx>=0) st.charList[idx]=Object.assign({id:target},draft);
     else st.charList.push(Object.assign({id:target},draft));
-    st.teamList=arrange(st.charList);
+    /* 已有排表时不覆盖，仅空表时自动排表 */
+    if(!st.teamList || st.teamList.length===0) st.teamList=arrange(st.charList);
     return st;
   });
   closeModal("editCharModal");
@@ -2920,16 +2949,26 @@ async function saveChar(){
       const newId=Math.max(0,...st.charList.map(x=>Number(x.id)||0))+1;
       st.charList.push(Object.assign({id:newId},draft));
     }
-    st.teamList=arrange(st.charList);
+    /* 已有排表时不覆盖，仅空表时自动排表 */
+    if(!st.teamList || st.teamList.length===0) st.teamList=arrange(st.charList);
     return st;
   });
   clearEdit();
 }
 async function delChar(id){
-  if(!confirm("确定删除该角色？队伍内占用会清空并重新排表"))return;
+  if(!confirm("确定删除该角色？队伍内该角色的占用会清空"))return;
   const numId=Number(id);
   pushHistory();
-  SYNC.writeStateRemote(st=>{ st.charList=st.charList.filter(x=>Number(x.id)!==numId); st.teamList=arrange(st.charList); return st; });
+  SYNC.writeStateRemote(st=>{
+    st.charList=st.charList.filter(x=>Number(x.id)!==numId);
+    if(st.teamList && st.teamList.length>0){
+      /* 已有排表：清空该角色在队伍中的占用，不重新排表 */
+      st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId===numId) s.charId=null; }));
+    } else {
+      st.teamList=arrange(st.charList);
+    }
+    return st;
+  });
 }
 
 /* ---------- 顶栏动作 ---------- */
