@@ -769,7 +769,11 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 
 <script>
 /* ================= 可嵌入配置（一键分享用，留空则用设置面板/本地模式） ================= */
-const EMBED_SYNC = { owner:"meltingwhite1", repo:"dnf-team-sync", token:"78c4858b04f984c81f147a5bef3edfdb", branch:"master" };
+const EMBED_SYNC = { proxy:"https://dnf-team-sync-proxy.corner-rocket.workers.dev", key:"busha2026" };
+/* 同步 URL/Token 构造器：proxy 模式走代理，否则直连 Gitee */
+function syncUrl(cfg,path){ if(!cfg) return null; if(cfg.proxy) return `${cfg.proxy}/${path}`; return `https://gitee.com/api/v5/repos/${cfg.owner}/${cfg.repo}/contents/${path}`; }
+function syncTok(cfg){ if(!cfg) return ""; return encodeURIComponent(cfg.key||cfg.token||""); }
+function hasSync(cfg){ return !!(cfg&&(cfg.proxy||cfg.token)); }
 /* ===================================================================================== */
 
 const LS_CHAR = "busha末世录团表_v2";
@@ -827,7 +831,7 @@ const ACCT = {
   clearSession(){ localStorage.removeItem(LS_SESSION); },
   /* 获取 Gitee 同步配置 */
   syncCfg(){
-    if(EMBED_SYNC && EMBED_SYNC.token) return Object.assign({branch:"master"}, EMBED_SYNC);
+    if(EMBED_SYNC && (EMBED_SYNC.proxy||EMBED_SYNC.token)) return Object.assign({branch:"master"}, EMBED_SYNC);
     return null;
   },
   /* 从远端拉取 accounts.json */
@@ -835,7 +839,7 @@ const ACCT = {
     const cfg=this.syncCfg();
     if(!cfg) return {users:null, sha:null};
     try{
-      const r=await fetch(`https://gitee.com/api/v5/repos/${cfg.owner}/${cfg.repo}/contents/accounts.json?access_token=${encodeURIComponent(cfg.token)}&ref=${encodeURIComponent(cfg.branch||"master")}`);
+      const r=await fetch(syncUrl(cfg,"accounts.json")+"?access_token="+syncTok(cfg)+"&ref="+encodeURIComponent(cfg.branch||"master"));
       if(r.status===404) return {users:{}, sha:null};
       if(!r.ok) throw new Error("HTTP "+r.status);
       const j=await r.json();
@@ -849,10 +853,10 @@ const ACCT = {
   async pushRemoteUsers(users, sha){
     const cfg=this.syncCfg();
     if(!cfg) return false;
-    const body={ access_token:cfg.token, message:"update accounts", content:b64enc(JSON.stringify(users)), branch:cfg.branch||"master" };
+    const body={ access_token:cfg.key||cfg.token, message:"update accounts", content:b64enc(JSON.stringify(users)), branch:cfg.branch||"master" };
     if(sha) body.sha=sha;
     const method=sha?"PUT":"POST";
-    const r=await fetch(`https://gitee.com/api/v5/repos/${cfg.owner}/${cfg.repo}/contents/accounts.json?access_token=${encodeURIComponent(cfg.token)}`, {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+    const r=await fetch(syncUrl(cfg,"accounts.json")+"?access_token="+syncTok(cfg), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
     if(!r.ok){
       const e=await r.json().catch(()=>({}));
       if(r.status===409||r.status===422) return "conflict";
@@ -1828,7 +1832,7 @@ const SYNC = {
   },
   // 验证并加入房间
   async checkRoom(roomId, password, onOk, onErr){
-    if(!this.cfg || !this.cfg.token){
+    if(!hasSync(this.cfg)){
       // 无同步配置：本地模式直接进入
       this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password };
       history.replaceState(null,"","#room="+roomId);
@@ -1859,7 +1863,7 @@ const SYNC = {
   },
   // 创建新房间
   async createRoom(roomId, password, onOk, onErr){
-    if(!this.cfg || !this.cfg.token){
+    if(!hasSync(this.cfg)){
       this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password };
       history.replaceState(null,"","#room="+roomId);
       charList = []; teamList = []; saveStorage();
@@ -1883,7 +1887,7 @@ const SYNC = {
         createdBy: ACCT.currentUser() || this.nick()
       };
       const body = {
-        access_token: this.cfg.token,
+        access_token: this.cfg.key||this.cfg.token,
         message: "create room "+roomId,
         content: b64enc(JSON.stringify(initData)),
         branch: this.cfg.branch||"master"
@@ -1906,8 +1910,8 @@ const SYNC = {
     }catch(e){ onErr("创建失败："+e.message); }
   },
   loadCfg(){
-    if(EMBED_SYNC && EMBED_SYNC.token) return Object.assign({branch:"master"}, EMBED_SYNC);
-    try{ const s=JSON.parse(localStorage.getItem(LS_SYNC)); if(s&&s.token) return s; }catch(e){}
+    if(EMBED_SYNC && (EMBED_SYNC.proxy||EMBED_SYNC.token)) return Object.assign({branch:"master"}, EMBED_SYNC);
+    try{ const s=JSON.parse(localStorage.getItem(LS_SYNC)); if(s&&(s.token||s.proxy)) return s; }catch(e){}
     return null;
   },
   start(){
@@ -1919,11 +1923,11 @@ const SYNC = {
     this.sendPresence();
   },
   stop(){ clearInterval(this.pollT); clearInterval(this.presenceT); },
-  url(path){ return `https://gitee.com/api/v5/repos/${this.cfg.owner}/${this.cfg.repo}/contents/${path}`; },
-  tok(){ return encodeURIComponent(this.cfg.token); },
+  url(path){ return syncUrl(this.cfg, path); },
+  tok(){ return syncTok(this.cfg); },
   br(){ return encodeURIComponent(this.cfg.branch||"master"); },
   async fetchState(initial){
-    if(!this.cfg || !this.cfg.token) return;
+    if(!hasSync(this.cfg)) return;
     if(!this.room) return;
     try{
       const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
@@ -1960,7 +1964,7 @@ const SYNC = {
       saveStorage(); renderAll(); updateModeBtns();
       return;
     }
-    if(!this.cfg || !this.cfg.token){
+    if(!hasSync(this.cfg)){
       // 本地模式：直接对本地状态应用
       const st = {charList, teamList, raidMode, presence:this.room.presence||{}};
       const next = intent(st) || st;
@@ -1984,7 +1988,7 @@ const SYNC = {
         next.presence = Object.assign({}, base.presence||{}, next.presence||{}, {[this.nick()]:Date.now()});
         next.password = this.room.password || base.password || "";
         if(!next.createdBy) next.createdBy = base.createdBy || ACCT.currentUser() || this.nick();
-        const body = { access_token:this.cfg.token, message:"sync "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        const body = { access_token:this.cfg.key||this.cfg.token, message:"sync "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
         const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
@@ -2005,7 +2009,7 @@ const SYNC = {
     finally{ this.writing--; }
   },
   async sendPresence(){
-    if(!this.cfg || !this.cfg.token) return;
+    if(!hasSync(this.cfg)) return;
     if(!this.room) return;
     if(this.writing>0) return;
     await this.writeState(s=>{ s.presence = s.presence||{}; s.presence[this.nick()]=Date.now(); return s; });
@@ -3032,7 +3036,7 @@ const ADMIN = {
     return false;
   },
   async fetchRooms(){
-    if(!SYNC.cfg || !SYNC.cfg.token) return [];
+    if(!hasSync(SYNC.cfg)) return [];
     try{
       const r=await fetch(SYNC.url("rooms")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
       if(!r.ok) return [];
@@ -3068,16 +3072,16 @@ const ADMIN = {
     }catch(e){ return []; }
   },
   async deleteRoom(roomId, sha){
-    if(!SYNC.cfg || !SYNC.cfg.token) return false;
+    if(!hasSync(SYNC.cfg)) return false;
     try{
-      const body={access_token:SYNC.cfg.token,message:"admin delete room "+roomId,sha,branch:SYNC.cfg.branch||"master"};
+      const body={access_token:SYNC.cfg.key||SYNC.cfg.token,message:"admin delete room "+roomId,sha,branch:SYNC.cfg.branch||"master"};
       const r=await fetch(SYNC.url("rooms/"+roomId+".json")+"?access_token="+SYNC.tok(),{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
       return r.ok;
     }catch(e){ return false; }
   },
   async enterRoom(roomId){
     // 管理员无密码进入房间
-    if(!SYNC.cfg || !SYNC.cfg.token){
+    if(!hasSync(SYNC.cfg)){
       SYNC.room={id:roomId,sha:null,dataVersion:0,presence:{},password:""};
       history.replaceState(null,"","#room="+roomId);
       SYNC.setStatus("本地模式（管理员）","off");
@@ -3107,7 +3111,7 @@ const ADMIN = {
     }catch(e){ alert("进入失败："+e.message); }
   },
   async renameRoom(oldId, newId, sha){
-    if(!SYNC.cfg || !SYNC.cfg.token) return false;
+    if(!hasSync(SYNC.cfg)) return false;
     if(!/^[A-Za-z0-9_-]{1,30}$/.test(newId)) return false;
     if(oldId===newId) return true;
     try{
@@ -3121,11 +3125,11 @@ const ADMIN = {
       const checkR=await fetch(SYNC.url("rooms/"+newId+".json")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
       if(checkR.status!==404) return "exists";
       // 3. 创建新房间
-      const body={access_token:SYNC.cfg.token,message:"admin rename "+oldId+" -> "+newId,content:b64enc(JSON.stringify(data)),branch:SYNC.cfg.branch||"master"};
+      const body={access_token:SYNC.cfg.key||SYNC.cfg.token,message:"admin rename "+oldId+" -> "+newId,content:b64enc(JSON.stringify(data)),branch:SYNC.cfg.branch||"master"};
       const pr=await fetch(SYNC.url("rooms/"+newId+".json")+"?access_token="+SYNC.tok(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
       if(!pr.ok) return false;
       // 4. 删除旧房间
-      const delBody={access_token:SYNC.cfg.token,message:"admin delete old room "+oldId,sha,branch:SYNC.cfg.branch||"master"};
+      const delBody={access_token:SYNC.cfg.key||SYNC.cfg.token,message:"admin delete old room "+oldId,sha,branch:SYNC.cfg.branch||"master"};
       await fetch(SYNC.url("rooms/"+oldId+".json")+"?access_token="+SYNC.tok(),{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(delBody)});
       return true;
     }catch(e){ return false; }
