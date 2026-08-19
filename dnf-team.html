@@ -552,6 +552,16 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <div class="changelog-content" style="margin-top:15px">
         <div class="version-entry">
           <div class="version-header">
+            <span class="ver-tag">v1.10.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>4人模式排表算法重构：C从高到低贪心分配给当前C总战力最低的队伍，保证各波C总均衡</li>
+            <li>C总相同时优先分配给奶战力较低的队伍，保留小奶配大C逻辑</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
             <span class="ver-tag">v1.9.0</span>
             <span class="ver-date">2026-08-19</span>
           </div>
@@ -1812,45 +1822,39 @@ function arrange12(chars, opts){
   return finalTeams;
 }
 
-/* 4人团本：全部角色均衡排表 */
+/* 4人团本：全部角色均衡排表
+   核心策略：
+   1. 奶从高到低分配到各队，保证高奶在前
+   2. C从高到低逐个分配，每次给当前C总战力最低且无同玩家冲突的队伍
+   3. C总相同时优先给奶战力较低的队伍（小奶配大C）
+   4. 同一波绝不出现同一玩家
+*/
 function arrange4(chars){
   const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
   const H = chars.filter(c=>c.type==="N").slice().sort((a,b)=>b.power-a.power);
-  const used = new Set();
   if(H.length===0) return [];
   const n = H.length;
   const teams = [];
   for(let i=0;i<n;i++){
-    used.add(H[i].id);
-    teams.push({slots:[{charId:H[i].id}], owners:new Set([H[i].owner]), total:H[i].power});
+    teams.push({slots:[{charId:H[i].id}], owners:new Set([H[i].owner]), hPower:H[i].power, cTotal:0});
   }
-  function pickAssign(ti, preferHigh){
-    for(let k=preferHigh?0:C.length-1; preferHigh?k<C.length:k>=0; k+=preferHigh?1:-1){
-      const c=C[k];
-      if(!used.has(c.id) && !teams[ti].owners.has(c.owner)){
-        teams[ti].slots.push({charId:c.id}); teams[ti].owners.add(c.owner);
-        teams[ti].total+=c.power; used.add(c.id); return true;
+  /* 贪心分配：每个C给当前cTotal最低且无冲突的队，cTotal相同时优先低奶队 */
+  for(const c of C){
+    let best=-1, minCTotal=Infinity, minHPower=Infinity;
+    for(let ti=0;ti<n;ti++){
+      if(teams[ti].slots.length>=4) continue; /* 满员跳过 */
+      if(teams[ti].owners.has(c.owner)) continue; /* 同波禁止同一玩家 */
+      if(teams[ti].cTotal<minCTotal ||
+         (teams[ti].cTotal===minCTotal && teams[ti].hPower<minHPower)){
+        minCTotal=teams[ti].cTotal;
+        minHPower=teams[ti].hPower;
+        best=ti;
       }
     }
-    return false;
-  }
-  for(let round=0;round<2;round++){
-    for(let ti=n-1;ti>=0;ti--){
-      if(teams[ti].slots.length>=3) continue;
-      pickAssign(ti,true);
-    }
-  }
-  for(const c of C){
-    if(used.has(c.id)) continue;
-    let best=-1,bp=Infinity;
-    for(let ti=0;ti<n;ti++){
-      if(teams[ti].slots.length>=4) continue;
-      if(teams[ti].owners.has(c.owner)) continue; /* 同一波禁止同一玩家 */
-      if(teams[ti].total<bp){bp=teams[ti].total;best=ti;}
-    }
     if(best===-1) continue; /* 找不到无冲突的队伍则跳过，绝不放宽 */
-    teams[best].slots.push({charId:c.id}); teams[best].owners.add(c.owner);
-    teams[best].total+=c.power; used.add(c.id);
+    teams[best].slots.push({charId:c.id});
+    teams[best].owners.add(c.owner);
+    teams[best].cTotal+=c.power;
   }
   return teams.map(t=>({slots:t.slots}));
 }
