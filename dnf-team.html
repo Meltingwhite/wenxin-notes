@@ -212,6 +212,17 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 .slot.highlight{box-shadow:0 0 0 2px var(--yellow),0 0 8px rgba(234,179,8,.4);border-color:var(--yellow)!important;background:#3a3a15!important}
 .card.highlight{box-shadow:0 0 0 2px var(--yellow),0 0 8px rgba(234,179,8,.4);border-color:var(--yellow)!important}
 .slot.click-hl{box-shadow:0 0 0 2px var(--blue2),0 0 10px rgba(96,165,250,.5);border-color:var(--blue2)!important;background:#1a2a3a!important;cursor:pointer}
+
+/* 版本更新日志 */
+.changelog-content{font-size:14px}
+.version-entry{margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid var(--line)}
+.version-entry:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.version-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.version-header .ver-tag{font-weight:bold;color:#fff;background:var(--blue);padding:2px 10px;border-radius:10px;font-size:13px}
+.version-header .ver-date{color:var(--mut);font-size:13px}
+.changes-list{padding-left:0;margin:0;list-style:none}
+.changes-list li{margin-bottom:6px;padding-left:16px;position:relative;line-height:1.6}
+.changes-list li:before{content:"";position:absolute;left:4px;top:9px;width:4px;height:4px;border-radius:50%;background:var(--blue)}
 .slot{cursor:pointer}
 
 /* 12人团本分组容器 */
@@ -312,6 +323,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     <div class="grp" style="margin-left:auto">
       <span class="badge" id="syncStatus">未登录</span>
       <button class="sm danger" id="exitRoom">退出房间</button>
+      <button class="sm secondary" id="openChangelog">📋 版本日志</button>
       <button class="sm secondary" id="openHelp">❓</button>
       <select id="themeSelect" class="sm" style="width:auto;padding:4px 8px;font-size:12px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);cursor:pointer">
         <option value="dark">🌙 暗色</option>
@@ -515,6 +527,108 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
         <p style="margin-top:10px"><b>数据安全</b>：房间密码存储在同步数据中，仅限本工具验证用途。</p>
       </div>
       <div style="margin-top:12px"><button class="secondary" id="closeHelp">关闭</button></div>
+    </div>
+  </div>
+
+  <!-- 版本更新日志弹窗 -->
+  <div class="modal" id="changelogModal">
+    <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
+      <h3>📋 版本更新日志</h3>
+      <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.6.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>新增版本更新日志入口，支持查看历史版本功能变更记录</li>
+            <li>角色编辑改为弹窗模式，左侧表单仅用于新增角色</li>
+            <li>每个玩家角色支持批量勾选删除</li>
+            <li>12人模式红黄绿门槛数值持久化保存到房间配置</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.5.0</span>
+            <span class="ver-date">2026-08-17</span>
+          </div>
+          <ul class="changes-list">
+            <li>4人模式支持拖拽队伍进行插入排序</li>
+            <li>12人模式支持拖拽队伍对调排序</li>
+            <li>12人模式支持长按波数标题拖拽整波排序</li>
+            <li>更换角色支持选择空位</li>
+            <li>优化拖拽视觉反馈效果</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.4.0</span>
+            <span class="ver-date">2026-08-16</span>
+          </div>
+          <ul class="changes-list">
+            <li>12人模式新增波内补队+号按钮（红→黄→绿）</li>
+            <li>新增波数+号按钮，支持用户手动创建新波数</li>
+            <li>支持用户新建和删除队伍（4人/12人模式）</li>
+            <li>修复同波数出现相同玩家的问题</li>
+            <li>优化C战力和奶战力独立均衡算法</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.3.0</span>
+            <span class="ver-date">2026-08-14</span>
+          </div>
+          <ul class="changes-list">
+            <li>新增排表图片导出功能，支持复制/下载分享</li>
+            <li>新增一键清空排表按钮</li>
+            <li>「重置原始数据」更名为「重置为导入状态」</li>
+            <li>支持双奶配置（2C2N）</li>
+            <li>12人模式更换角色显示当前波数和红黄绿队伍信息</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.2.0</span>
+            <span class="ver-date">2026-08-12</span>
+          </div>
+          <ul class="changes-list">
+            <li>新增4种UI主题：暗色、B站粉、极简白、深夜紫</li>
+            <li>优化各主题文字对比度</li>
+            <li>链接展示框改为分享按钮，点击复制链接</li>
+            <li>合并重复的房间ID显示</li>
+            <li>新增浏览器favicon图标</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.1.0</span>
+            <span class="ver-date">2026-08-10</span>
+          </div>
+          <ul class="changes-list">
+            <li>新增账号注册登录系统，支持云端同步用户信息</li>
+            <li>管理员界面新增房间ID、编辑者、团本模式搜索筛选</li>
+            <li>支持全选/取消全选批量操作</li>
+            <li>普通用户可进入管理员界面管理自己创建的房间</li>
+            <li>非本人房间显示只读标识</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.0.0</span>
+            <span class="ver-date">2026-08-08</span>
+          </div>
+          <ul class="changes-list">
+            <li>薄纱团本排表协作工具首次发布</li>
+            <li>支持4人团本和12人团本两种模式</li>
+            <li>Excel导入导出角色数据</li>
+            <li>Gitee多人协作实时同步</li>
+            <li>一键均衡排表算法</li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;justify-content:flex-end">
+        <button class="secondary" id="closeChangelog">关闭</button>
+      </div>
     </div>
   </div>
 
@@ -3221,6 +3335,10 @@ function init(){
 
   document.getElementById("openHelp").onclick=()=>openModal("helpModal");
   document.getElementById("closeHelp").onclick=()=>closeModal("helpModal");
+
+  // 版本更新日志
+  document.getElementById("openChangelog").onclick=()=>openModal("changelogModal");
+  document.getElementById("closeChangelog").onclick=()=>closeModal("changelogModal");
 
   // 主题切换
   const themeSelect=document.getElementById("themeSelect");
