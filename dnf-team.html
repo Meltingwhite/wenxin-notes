@@ -173,6 +173,9 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .owner-header{width:100%;padding:8px 4px 4px;font-size:14px;font-weight:700;color:var(--blue);border-bottom:1px solid var(--line);margin-top:8px;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
 .owner-header:first-child{margin-top:0}
 .owner-header .cnt{font-size:11px;color:var(--mut);font-weight:400;margin-left:6px}
+.owner-toggle{background:none;border:1px solid var(--line);color:var(--mut);cursor:pointer;font-size:12px;padding:1px 8px;border-radius:4px;line-height:1.4;transition:all .15s;flex-shrink:0}
+.owner-toggle:hover{border-color:var(--blue);color:var(--blue)}
+.owner-chars.collapsed{display:none}
 .batch-del-btn{font-size:12px;padding:3px 10px}
 .team-block{background:var(--panel2);padding:12px;border-radius:9px;margin-bottom:12px;border:1px solid var(--line)}
 .team-block.raid-red{border:2px solid #e74c3c;background:#2a1515}
@@ -550,6 +553,15 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.11.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>角色管理界面每个玩家名字后面新增缩略按钮，支持折叠/展开该玩家所有角色</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.10.0</span>
@@ -2221,8 +2233,12 @@ function renderCharList(){
       <span>${escapeHtml(owner)}</span>
     </label>
     <span class="cnt">${chars.length}个角色 · ${used}已配置 / ${chars.length-used}未配置</span>
+    <button class="owner-toggle" data-toggle="${escapeHtml(owner)}" title="缩略/展开">▼</button>
     <button class="sm danger batch-del-btn" data-batch-del="${escapeHtml(owner)}" style="margin-left:auto;display:none">批量删除</button>`;
     wrap.appendChild(hdr);
+    const charWrap=document.createElement("div");
+    charWrap.className="owner-chars";
+    charWrap.dataset.ownerWrap=owner;
     chars.forEach(c=>{
       const div=document.createElement("div");
       div.className=`card ${c.type} ${usedIds.has(c.id)?"used":""}`;
@@ -2238,11 +2254,24 @@ function renderCharList(){
             </div>
           </div>
         </div>`;
-      wrap.appendChild(div);
+      charWrap.appendChild(div);
     });
+    wrap.appendChild(charWrap);
   });
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editChar(Number(b.dataset.edit)));
   document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delChar(Number(b.dataset.del)));
+
+  /* 缩略/展开按钮（按玩家组） */
+  document.querySelectorAll(".owner-toggle").forEach(btn=>{
+    btn.onclick=function(){
+      const owner=this.dataset.toggle;
+      const charWrap=document.querySelector(`[data-owner-wrap="${owner.replace(/"/g,'&quot;')}"]`);
+      if(charWrap){
+        const isCollapsed=charWrap.classList.toggle("collapsed");
+        this.textContent=isCollapsed?"▶":"▼";
+      }
+    };
+  })
 
   /* 全选/取消全选（按玩家组） */
   document.querySelectorAll(".owner-select-all").forEach(cb=>{
