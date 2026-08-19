@@ -565,6 +565,16 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <div class="changelog-content" style="margin-top:15px">
         <div class="version-entry">
           <div class="version-header">
+            <span class="ver-tag">v1.15.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>有未保存修改时，关闭/刷新网页弹出浏览器提醒，避免漏保存</li>
+            <li>切换标签页时保存按钮持续高亮提示</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
             <span class="ver-tag">v1.14.0</span>
             <span class="ver-date">2026-08-19</span>
           </div>
@@ -3952,6 +3962,23 @@ function init(){
   }
 }
 init();
+
+/* 未保存修改时，关闭/刷新/切换网页提醒用户 */
+window.addEventListener("beforeunload",function(e){
+  if(SYNC.dirty){
+    e.preventDefault();
+    e.returnValue="";
+    return "";
+  }
+});
+/* 切换标签页时提醒 */
+document.addEventListener("visibilitychange",function(){
+  if(document.visibilityState==="hidden" && SYNC.dirty){
+    /* beforeunload 已覆盖关闭场景；此处用提示音/状态栏标记提醒 */
+    const btn=document.getElementById("saveBtn");
+    if(btn){ btn.classList.add("dirty"); }
+  }
+});
 </script>
 </body>
 </html>
