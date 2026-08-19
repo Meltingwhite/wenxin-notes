@@ -2312,8 +2312,8 @@ function renderTeamTable(){
 }
 
 function bindTeamDragHandlers(isRaid12){
-  const blocks=document.querySelectorAll("[data-teamDrag]");
-  const waveLabels=document.querySelectorAll("[data-waveDrag]");
+  const blocks=document.querySelectorAll("[data-team-drag]");
+  const waveLabels=document.querySelectorAll("[data-wave-drag]");
 
   blocks.forEach(block=>{
     block.addEventListener("dragstart",function(e){
