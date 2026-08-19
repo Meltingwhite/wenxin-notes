@@ -327,6 +327,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     <div class="grp" style="margin-left:auto">
       <span class="badge" id="syncStatus">未登录</span>
       <button class="sm" id="saveBtn" disabled style="opacity:.5">✓ 已保存</button>
+      <button class="sm secondary" id="openShengyan" style="background:var(--panel2);border:1px solid rgba(201,162,39,0.4);color:var(--yellow)">⚔️ 米歇尔练习</button>
       <button class="sm danger" id="exitRoom">退出房间</button>
       <button class="sm secondary" id="openChangelog">📋 版本日志</button>
       <button class="sm secondary" id="openHelp">❓</button>
@@ -653,6 +654,17 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
         <button class="secondary" id="closeChangelog">关闭</button>
       </div>
     </div>
+  </div>
+
+  <!-- 米歇尔练习 iframe 全屏遮罩 -->
+  <div id="shengyanOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#0d0b08">
+    <div style="position:fixed;top:0;left:0;right:0;height:52px;z-index:10001;display:flex;align-items:center;gap:1rem;padding:0.6rem 1.2rem;background:linear-gradient(180deg,rgba(18,14,8,0.95),rgba(18,14,8,0.75));border-bottom:1px solid rgba(201,162,39,0.35);backdrop-filter:blur(12px)">
+      <button class="sm" id="closeShengyan" style="background:rgba(201,162,39,0.12);border:1px solid rgba(201,162,39,0.35);color:#f7efd6;border-radius:0.4rem;padding:0.35rem 0.9rem;font-weight:600;cursor:pointer;white-space:nowrap">← 返回排表</button>
+      <span style="font-size:1rem;font-weight:600;letter-spacing:0.18em;color:#f7efd6;text-shadow:0 1px 6px rgba(0,0,0,0.6)">米歇尔练习 · 盛宴</span>
+      <span style="flex:1"></span>
+      <a href="https://shengyan.xyz" target="_blank" rel="noopener" style="font-size:0.78rem;color:rgba(201,162,39,0.7);text-decoration:none;white-space:nowrap">在新标签打开 ↗</a>
+    </div>
+    <iframe src="about:blank" id="shengyanFrame" style="position:fixed;top:52px;left:0;width:100%;height:calc(100% - 52px);border:none" title="盛宴 · 米歇尔练习"></iframe>
   </div>
 
   <!-- 登录弹窗 -->
@@ -3502,6 +3514,18 @@ function init(){
   document.getElementById("exitRoom").onclick=exitRoom;
   document.getElementById("saveBtn").onclick=()=>SYNC.flushToRemote();
   document.getElementById("copyLink").onclick=copyLink;
+  document.getElementById("openShengyan").onclick=()=>{
+    const ov=document.getElementById("shengyanOverlay");
+    const fr=document.getElementById("shengyanFrame");
+    fr.src="https://shengyan.xyz";
+    ov.style.display="block";
+  };
+  document.getElementById("closeShengyan").onclick=()=>{
+    const ov=document.getElementById("shengyanOverlay");
+    const fr=document.getElementById("shengyanFrame");
+    fr.src="about:blank";
+    ov.style.display="none";
+  };
 
   // 登录弹窗
   bindAcctTabs();
