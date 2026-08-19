@@ -1,5 +1,5 @@
 /* 温欣随记 Service Worker - 离线缓存 + 添加到桌面支持 */
-const CACHE_NAME = 'wenxin-v4';
+const CACHE_NAME = 'wenxin-v5';
 const CACHE_FILES = [
   './',
   './index.html',

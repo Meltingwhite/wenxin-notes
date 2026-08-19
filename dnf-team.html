@@ -552,6 +552,16 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <div class="changelog-content" style="margin-top:15px">
         <div class="version-entry">
           <div class="version-header">
+            <span class="ver-tag">v1.9.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>修复4人模式自动排表：移除回退逻辑，同一波绝不出现同一玩家</li>
+            <li>手动切换角色下拉时增加同波防重校验，弹出提示阻止重复</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
             <span class="ver-tag">v1.8.0</span>
             <span class="ver-date">2026-08-19</span>
           </div>
@@ -1835,16 +1845,10 @@ function arrange4(chars){
     let best=-1,bp=Infinity;
     for(let ti=0;ti<n;ti++){
       if(teams[ti].slots.length>=4) continue;
-      if(teams[ti].owners.has(c.owner)) continue;
+      if(teams[ti].owners.has(c.owner)) continue; /* 同一波禁止同一玩家 */
       if(teams[ti].total<bp){bp=teams[ti].total;best=ti;}
     }
-    if(best===-1){
-      for(let ti=0;ti<n;ti++){
-        if(teams[ti].slots.length>=4) continue;
-        if(teams[ti].total<bp){bp=teams[ti].total;best=ti;}
-      }
-    }
-    if(best===-1) continue;
+    if(best===-1) continue; /* 找不到无冲突的队伍则跳过，绝不放宽 */
     teams[best].slots.push({charId:c.id}); teams[best].owners.add(c.owner);
     teams[best].total+=c.power; used.add(c.id);
   }
@@ -2360,6 +2364,24 @@ function renderTeamTable(){
         /* "clear"=清空为空位；""=未选择不做操作；其他=角色ID */
         const newCid=(val==="clear"||!val)?null:Number(val);
         if(val==="") return; /* 未选择任何项 */
+        /* 同一波禁止同一玩家：检查目标队伍是否已有该角色所属玩家 */
+        if(newCid){
+          const newChar=charList.find(c=>Number(c.id)===newCid);
+          if(newChar && teamList[t]){
+            for(let si=0;si<teamList[t].slots.length;si++){
+              if(si===s) continue;
+              const slotCid=teamList[t].slots[si].charId;
+              if(slotCid){
+                const slotChar=charList.find(c=>Number(c.id)===Number(slotCid));
+                if(slotChar && slotChar.owner===newChar.owner){
+                  alert("同一波不能出现同一玩家的不同角色");
+                  this.value="";
+                  return;
+                }
+              }
+            }
+          }
+        }
         pushHistory();
         SYNC.writeStateLocal(st=>{
           if(newCid){
