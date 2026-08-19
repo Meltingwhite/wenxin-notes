@@ -255,6 +255,10 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 .wave-label[draggable="true"]{cursor:grab;user-select:none}
 .wave-label.dragging{opacity:.5}
 .wave-label.drag-over .wnum{box-shadow:0 0 0 2px var(--blue)}
+.wave-actions{display:flex;gap:2px;margin-left:auto}
+.wave-btn{background:var(--panel2);border:1px solid var(--line);color:var(--mut);cursor:pointer;font-size:11px;padding:2px 8px;border-radius:4px;line-height:1.4;transition:all .15s;white-space:nowrap}
+.wave-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--bg)}
+.wave-btn:active{transform:scale(.92)}
 @media(max-width:900px){
   .team-grid-12{grid-template-columns:repeat(2,1fr)}
 }
@@ -546,6 +550,17 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.8.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>每个波数后面新增上移、下移、移至最顶、移至最底四个排序按钮</li>
+            <li>按钮排序与拖拽排序共用同一套波数重排逻辑，确保队伍对调生效</li>
+            <li>12人模式和4人模式均支持波数按钮排序</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.7.0</span>
@@ -2410,6 +2425,16 @@ function renderTeamTable(){
       doAddTeam();
     });
   });
+  // 绑定波数排序按钮（上移/下移/移至最顶/移至最底）
+  document.querySelectorAll(".wave-btn[data-wave-act]").forEach(btn=>{
+    btn.addEventListener("click",function(e){
+      e.stopPropagation();
+      e.preventDefault();
+      const action=this.dataset.waveAct;
+      const wave=Number(this.dataset.waveNum);
+      if(action&&wave) doWaveAction(action,wave);
+    });
+  });
   // 绑定拖拽：队伍排序（4人模式插入排序，12人模式队伍对调）
   bindTeamDragHandlers(isRaid12);
 }
@@ -2525,7 +2550,13 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       wl.className="wave-label";
       wl.draggable=true;
       wl.dataset.waveDrag=curGroup;
-      wl.innerHTML=`<span class="wnum">第 ${curGroup} 波</span><span class="wline"></span>`;
+      wl.innerHTML=`<span class="wnum">第 ${curGroup} 波</span><span class="wline"></span>
+        <div class="wave-actions">
+          <button class="wave-btn" draggable="false" data-wave-act="top" data-wave-num="${curGroup}" title="移至最顶">↑↑</button>
+          <button class="wave-btn" draggable="false" data-wave-act="up" data-wave-num="${curGroup}" title="上移">↑</button>
+          <button class="wave-btn" draggable="false" data-wave-act="down" data-wave-num="${curGroup}" title="下移">↓</button>
+          <button class="wave-btn" draggable="false" data-wave-act="bottom" data-wave-num="${curGroup}" title="移至最底">↓↓</button>
+        </div>`;
       container.appendChild(wl);
       prevGroup=curGroup;
       curWaveColors=[];
@@ -2534,7 +2565,13 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       wl.className="wave-label";
       wl.draggable=true;
       wl.dataset.waveDrag=tIdx+1;
-      wl.innerHTML=`<span class="wnum">第 ${tIdx+1} 波</span><span class="wline"></span>`;
+      wl.innerHTML=`<span class="wnum">第 ${tIdx+1} 波</span><span class="wline"></span>
+        <div class="wave-actions">
+          <button class="wave-btn" draggable="false" data-wave-act="top" data-wave-num="${tIdx+1}" title="移至最顶">↑↑</button>
+          <button class="wave-btn" draggable="false" data-wave-act="up" data-wave-num="${tIdx+1}" title="上移">↑</button>
+          <button class="wave-btn" draggable="false" data-wave-act="down" data-wave-num="${tIdx+1}" title="下移">↓</button>
+          <button class="wave-btn" draggable="false" data-wave-act="bottom" data-wave-num="${tIdx+1}" title="移至最底">↓↓</button>
+        </div>`;
       container.appendChild(wl);
     }
     const rColor = team.raidColor || (isRaid12 ? raidColors[tIdx%3] : null);
@@ -3034,6 +3071,55 @@ async function doMoveWave(fromWave,toWave){
       waveOrder.push(fromWave);
     } else {
       waveOrder.splice(ti,0,fromWave);
+    }
+    /* 按新顺序重编号并展平 */
+    const newTeamList=[];
+    waveOrder.forEach((oldG,newGIdx)=>{
+      const newGroup=newGIdx+1;
+      for(const t of waves[oldG]){
+        if(is12) t.group=newGroup;
+        newTeamList.push(t);
+      }
+    });
+    st.teamList=newTeamList;
+    return st;
+  });
+}
+
+/* ---------- 波数按钮排序（上移/下移/移至最顶/移至最底） ---------- */
+async function doWaveAction(action,fromWave){
+  pushHistory();
+  SYNC.writeStateLocal(st=>{
+    const is12=(st.raidMode||4)===12;
+    /* 按波数分组，保留出现顺序 */
+    const waves={};
+    const waveOrder=[];
+    st.teamList.forEach((t,i)=>{
+      const g=is12?(t.group||(Math.floor(i/3)+1)):(i+1);
+      if(!waves[g]){waves[g]=[];waveOrder.push(g);}
+      waves[g].push(t);
+    });
+    if(!waves[fromWave]) return st;
+    const fi=waveOrder.indexOf(fromWave);
+    if(fi===-1) return st;
+    /* 从顺序中移除源波数 */
+    waveOrder.splice(fi,1);
+    /* 根据操作类型插入到新位置 */
+    switch(action){
+      case 'top':
+        waveOrder.unshift(fromWave);
+        break;
+      case 'up':
+        /* 插入到原位置的前一位（已移除，所以 fi-1 就是前一位） */
+        waveOrder.splice(Math.max(0,fi-1),0,fromWave);
+        break;
+      case 'down':
+        /* 插入到原位置的后一位（已移除，所以 fi+1 就是后一位） */
+        waveOrder.splice(Math.min(waveOrder.length,fi+1),0,fromWave);
+        break;
+      case 'bottom':
+        waveOrder.push(fromWave);
+        break;
     }
     /* 按新顺序重编号并展平 */
     const newTeamList=[];
