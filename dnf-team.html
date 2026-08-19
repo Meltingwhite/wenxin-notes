@@ -150,6 +150,18 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 #saveBtn.dirty{background:var(--yellow);color:#000;font-weight:bold;opacity:1!important;animation:pulse 1.5s ease-in-out infinite}
 #saveBtn:not(:disabled){cursor:pointer}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,200,0,.4)}50%{box-shadow:0 0 0 4px rgba(255,200,0,0)}}
+/* 未保存修改浮动提示条 */
+#unsavedBar{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#e8a700,#ffcc00);color:#1a1a1a;font-size:13px;font-weight:600;text-align:center;padding:7px 40px 7px 20px;box-shadow:0 2px 8px rgba(0,0,0,.3);transform:translateY(-100%);transition:transform .3s ease;display:flex;align-items:center;justify-content:center;gap:8px}
+#unsavedBar.show{transform:translateY(0)}
+#unsavedBar .ub-icon{font-size:16px}
+#unsavedBar .ub-text{flex:1}
+#unsavedBar .ub-btn{background:#1a1a1a;color:#ffcc00;border:none;border-radius:5px;padding:3px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+#unsavedBar .ub-btn:hover{background:#333}
+#unsavedBar .ub-close{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#1a1a1a;font-size:18px;cursor:pointer;opacity:.6;line-height:1;padding:0 4px}
+#unsavedBar .ub-close:hover{opacity:1}
+/* Toast 通知 */
+#toastNotify{position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(100px);z-index:9998;background:var(--panel);border:1px solid var(--yellow);border-radius:8px;padding:8px 18px;font-size:13px;color:var(--yellow);box-shadow:0 4px 12px rgba(0,0,0,.4);opacity:0;transition:all .3s ease;pointer-events:none}
+#toastNotify.show{transform:translateX(-50%) translateY(0);opacity:1}
 .online-chips{display:flex;gap:5px;flex-wrap:wrap}
 .chip{font-size:11px;padding:2px 8px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);color:var(--mut)}
 .chip.me{background:#1f3d2a;border-color:var(--green);color:#bff5d0}
@@ -326,6 +338,15 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 </style>
 </head>
 <body>
+<!-- 未保存修改浮动提示条 -->
+<div id="unsavedBar">
+  <span class="ub-icon">⚠️</span>
+  <span class="ub-text">当前有<b id="unsavedCount">0</b>项未保存的修改，点击保存到云端避免丢失</span>
+  <button class="ub-btn" id="unsavedSaveBtn">💾 立即保存</button>
+  <button class="ub-close" id="unsavedClose" title="稍后提醒">×</button>
+</div>
+<!-- Toast 通知 -->
+<div id="toastNotify"></div>
 <div class="container">
 
   <!-- 协作房间栏 -->
@@ -571,6 +592,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
           <ul class="changes-list">
             <li>有未保存修改时，关闭/刷新网页弹出浏览器提醒，避免漏保存</li>
             <li>切换标签页时保存按钮持续高亮提示</li>
+            <li>顶部浮动提示条显示未保存数量，一键保存；编辑即时 Toast 提醒</li>
           </ul>
         </div>
         <div class="version-entry">
@@ -604,7 +626,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
           </div>
           <ul class="changes-list">
             <li>角色管理操作（新增/删除/编辑/导入/重置/批量删除）改为即时同步到远端，支持多用户同时添加角色</li>
-            <li>队伍排表操作保持手动保存，点击「保存到云端」才上传</li>
+            <li>队伍排表操作保持手动保存，点击「保存到云端」才上传；顶部浮动条 + Toast 提示未保存</li>
             <li>角色卡片颜色区分增强：加宽左边框+内阴影+类型标签，C橙色奶绿色各主题统一</li>
           </ul>
         </div>
@@ -655,6 +677,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
           </div>
           <ul class="changes-list">
             <li>新增手动保存模式：编辑操作即时更新本地，点击「保存到云端」按钮才上传 Gitee</li>
+            <li>优化未保存提示：顶部浮动提示条 + 保存按钮显示未保存数量 + Toast 即时提醒</li>
             <li>修复拖拽无反应：dataset 属性名与 querySelectorAll 选择器不匹配</li>
             <li>修复4人模式波数拖拽：使用队伍索引编号波数</li>
             <li>本地未保存时跳过远端轮询，避免覆盖本地编辑</li>
@@ -1932,7 +1955,7 @@ function arrange4(chars){
 
 /* ---------- 同步模块（Gitee Contents API） ---------- */
 const SYNC = {
-  cfg:null, room:null, pollT:null, presenceT:null, writing:0, dirty:false,
+  cfg:null, room:null, pollT:null, presenceT:null, writing:0, dirty:false, dirtyCount:0,
   init(){
     this.cfg = this.loadCfg();
     // 检查账号登录状态
@@ -2077,9 +2100,11 @@ const SYNC = {
     charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
     if(this.room) this.room.presence = next.presence||{};
     this.dirty = true;
+    this.dirtyCount++;
     saveStorage(); renderAll(); updateModeBtns();
     this.updateSaveBtn();
     this.setStatus("未保存","warn");
+    showToast("⚠️ 修改未保存，记得点击「保存到云端」");
   },
   /* 立即同步：更新本地状态并立即推送到远端（用于角色管理，支持多用户同时操作） */
   async writeStateRemote(intent){
@@ -2146,6 +2171,7 @@ const SYNC = {
         /* 更新本地为合并后的最终状态 */
         charList = mergedChars; teamList = mergedTeamList;
         this.dirty = false;
+        this.dirtyCount = 0;
         saveStorage(); renderAll(); updateModeBtns();
         this.setStatus("已同步","on");
         this.updateSaveBtn();
@@ -2154,8 +2180,10 @@ const SYNC = {
     }catch(e){
       /* 远端失败 → 标记 dirty，用户可手动保存重试 */
       this.dirty = true;
+      if(!this.dirtyCount) this.dirtyCount = 1;
       this.updateSaveBtn();
       this.setStatus("角色保存失败，请手动保存："+e.message,"err");
+      showToast("⚠️ 保存失败，请点击「保存到云端」重试");
     }
     finally{ this.writing--; }
   },
@@ -2165,17 +2193,19 @@ const SYNC = {
     if(!btn) return;
     if(this.dirty){
       btn.classList.add("dirty");
-      btn.textContent="💾 保存到云端";
+      btn.textContent=`💾 有 ${this.dirtyCount} 项未保存`;
       btn.disabled=false;
+      showUnsavedBar(this.dirtyCount);
     }else{
       btn.classList.remove("dirty");
       btn.textContent="✓ 已保存";
       btn.disabled=true;
+      hideUnsavedBar();
     }
   },
   /* 手动保存：将本地状态推送到 Gitee */
   async flushToRemote(){
-    if(!this.room || !hasSync(this.cfg)){ this.dirty=false; this.updateSaveBtn(); return; }
+    if(!this.room || !hasSync(this.cfg)){ this.dirty=false; this.dirtyCount=0; this.updateSaveBtn(); return; }
     if(!this.dirty) return;
     this.writing++;
     this.setStatus("保存中…","off");
@@ -2213,9 +2243,11 @@ const SYNC = {
         this.room.dataVersion = next.dataVersion;
         this.room.presence = next.presence;
         this.dirty = false;
+        this.dirtyCount = 0;
         saveStorage();
         this.setStatus("已保存","on");
         this.updateSaveBtn();
+        showToast("✅ 已保存到云端");
         return;
       }
     }catch(e){
@@ -3963,22 +3995,50 @@ function init(){
 }
 init();
 
+/* 未保存修改浮动提示条 / Toast 通知 */
+let _toastT=null;
+function showToast(msg){
+  const el=document.getElementById("toastNotify");
+  if(!el) return;
+  el.textContent=msg;
+  el.classList.add("show");
+  clearTimeout(_toastT);
+  _toastT=setTimeout(()=>el.classList.remove("show"),2500);
+}
+function showUnsavedBar(count){
+  const bar=document.getElementById("unsavedBar");
+  const cnt=document.getElementById("unsavedCount");
+  if(bar){ bar.classList.add("show"); }
+  if(cnt){ cnt.textContent=count||0; }
+}
+function hideUnsavedBar(){
+  const bar=document.getElementById("unsavedBar");
+  if(bar){ bar.classList.remove("show"); }
+}
 /* 未保存修改时，关闭/刷新/切换网页提醒用户 */
 window.addEventListener("beforeunload",function(e){
   if(SYNC.dirty){
     e.preventDefault();
-    e.returnValue="";
-    return "";
+    e.returnValue="您有未保存的修改，确定要离开吗？";
+    return e.returnValue;
   }
 });
 /* 切换标签页时提醒 */
 document.addEventListener("visibilitychange",function(){
   if(document.visibilityState==="hidden" && SYNC.dirty){
-    /* beforeunload 已覆盖关闭场景；此处用提示音/状态栏标记提醒 */
+    /* beforeunload 已覆盖关闭场景；此处保持按钮高亮 + 弹出浮动提示条 */
     const btn=document.getElementById("saveBtn");
     if(btn){ btn.classList.add("dirty"); }
+    showUnsavedBar(SYNC.dirtyCount);
   }
 });
+/* 浮动提示条按钮事件 */
+(function(){
+  const saveBtn=document.getElementById("unsavedSaveBtn");
+  const closeBtn=document.getElementById("unsavedClose");
+  if(saveBtn){ saveBtn.onclick=()=>SYNC.flushToRemote(); }
+  if(closeBtn){ closeBtn.onclick=()=>hideUnsavedBar(); }
+})();
 </script>
 </body>
 </html>
