@@ -656,22 +656,6 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     </div>
   </div>
 
-  <!-- 米歇尔练习 iframe 全屏遮罩 -->
-  <div id="shengyanOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#0d0b08">
-    <div style="position:fixed;top:0;left:0;right:0;height:52px;z-index:10001;display:flex;align-items:center;gap:1rem;padding:0.6rem 1.2rem;background:linear-gradient(180deg,rgba(18,14,8,0.95),rgba(18,14,8,0.75));border-bottom:1px solid rgba(201,162,39,0.35);backdrop-filter:blur(12px)">
-      <button class="sm" id="closeShengyan" style="background:rgba(201,162,39,0.12);border:1px solid rgba(201,162,39,0.35);color:#f7efd6;border-radius:0.4rem;padding:0.35rem 0.9rem;font-weight:600;cursor:pointer;white-space:nowrap">← 返回排表</button>
-      <span style="font-size:1rem;font-weight:600;letter-spacing:0.18em;color:#f7efd6;text-shadow:0 1px 6px rgba(0,0,0,0.6)">米歇尔练习 · 盛宴</span>
-      <span style="flex:1"></span>
-      <a href="http://shengyan.xyz" target="_blank" rel="noopener" style="font-size:0.78rem;color:rgba(201,162,39,0.7);text-decoration:none;white-space:nowrap">在新标签打开 ↗</a>
-    </div>
-    <iframe src="about:blank" id="shengyanFrame" style="position:fixed;top:52px;left:0;width:100%;height:calc(100% - 52px);border:none" title="盛宴 · 米歇尔练习"></iframe>
-    <!-- 加载超时提示 -->
-    <div id="shengyanTip" style="display:none;position:fixed;top:52px;left:0;right:0;bottom:0;z-index:10000;flex-direction:column;align-items:center;justify-content:center;gap:1rem;background:#0d0b08;color:#f7efd6">
-      <p style="font-size:1.1rem">网页加载较慢，请稍候…</p>
-      <a href="http://shengyan.xyz" target="_blank" rel="noopener" style="padding:0.6rem 1.5rem;border:1px solid rgba(201,162,39,0.5);border-radius:0.5rem;color:#f7efd6;text-decoration:none;background:rgba(201,162,39,0.1)">点击在新标签打开 ↗</a>
-    </div>
-  </div>
-
   <!-- 登录弹窗 -->
   <div class="modal show" id="loginModal">
     <div class="modal-box" style="max-width:420px">
@@ -3520,27 +3504,7 @@ function init(){
   document.getElementById("saveBtn").onclick=()=>SYNC.flushToRemote();
   document.getElementById("copyLink").onclick=copyLink;
   document.getElementById("openShengyan").onclick=()=>{
-    const ov=document.getElementById("shengyanOverlay");
-    const fr=document.getElementById("shengyanFrame");
-    fr.src="http://shengyan.xyz";
-    ov.style.display="block";
-    /* iframe 加载超时检测：6秒未完成则显示提示 */
-    let _syLoaded=false;
-    fr.onload=()=>{ _syLoaded=true; };
-    setTimeout(()=>{
-      if(!_syLoaded){
-        const tip=document.getElementById("shengyanTip");
-        if(tip) tip.style.display="flex";
-      }
-    },6000);
-  };
-  document.getElementById("closeShengyan").onclick=()=>{
-    const ov=document.getElementById("shengyanOverlay");
-    const fr=document.getElementById("shengyanFrame");
-    fr.src="about:blank";
-    ov.style.display="none";
-    const tip=document.getElementById("shengyanTip");
-    if(tip) tip.style.display="none";
+    window.open("http://shengyan.xyz","_blank","noopener");
   };
 
   // 登录弹窗
