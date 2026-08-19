@@ -2910,14 +2910,15 @@ async function doMoveWave(fromWave,toWave){
   if(fromWave===toWave) return;
   pushHistory();
   await SYNC.writeState(st=>{
-    /* 按波数分组，保留出现顺序 */
+    const is12 = (st.raidMode||4)===12;
+    /* 按波数分组，保留出现顺序。4人模式每队单独一波，用 tIdx+1 作 group */
     const waves={};
     const waveOrder=[];
-    for(const t of st.teamList){
-      const g=t.group||(Math.floor(st.teamList.indexOf(t)/3)+1);
+    st.teamList.forEach((t,i)=>{
+      const g = is12 ? (t.group||(Math.floor(i/3)+1)) : (i+1);
       if(!waves[g]){ waves[g]=[]; waveOrder.push(g); }
       waves[g].push(t);
-    }
+    });
     /* 源波数不存在则跳过 */
     if(!waves[fromWave]) return st;
     /* 从顺序中移除源波数 */
@@ -2927,7 +2928,6 @@ async function doMoveWave(fromWave,toWave){
     /* 插入到目标波数之前 */
     const ti=waveOrder.indexOf(toWave);
     if(ti===-1){
-      /* 目标波数不存在（可能是唯一的波数），追加到末尾 */
       waveOrder.push(fromWave);
     } else {
       waveOrder.splice(ti,0,fromWave);
@@ -2937,7 +2937,7 @@ async function doMoveWave(fromWave,toWave){
     waveOrder.forEach((oldG,newGIdx)=>{
       const newGroup=newGIdx+1;
       for(const t of waves[oldG]){
-        t.group=newGroup;
+        if(is12) t.group=newGroup;
         newTeamList.push(t);
       }
     });
