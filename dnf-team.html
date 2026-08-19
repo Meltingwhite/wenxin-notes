@@ -140,6 +140,10 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
 .dot.off{background:var(--mut)}
 .dot.err{background:var(--red)}
+.dot.warn{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
+#saveBtn.dirty{background:var(--yellow);color:#000;font-weight:bold;opacity:1!important;animation:pulse 1.5s ease-in-out infinite}
+#saveBtn:not(:disabled){cursor:pointer}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,200,0,.4)}50%{box-shadow:0 0 0 4px rgba(255,200,0,0)}}
 .online-chips{display:flex;gap:5px;flex-wrap:wrap}
 .chip{font-size:11px;padding:2px 8px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);color:var(--mut)}
 .chip.me{background:#1f3d2a;border-color:var(--green);color:#bff5d0}
@@ -322,6 +326,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     </div>
     <div class="grp" style="margin-left:auto">
       <span class="badge" id="syncStatus">未登录</span>
+      <button class="sm" id="saveBtn" disabled style="opacity:.5">✓ 已保存</button>
       <button class="sm danger" id="exitRoom">退出房间</button>
       <button class="sm secondary" id="openChangelog">📋 版本日志</button>
       <button class="sm secondary" id="openHelp">❓</button>
@@ -540,6 +545,19 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.7.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>新增手动保存模式：编辑操作即时更新本地，点击「保存到云端」按钮才上传 Gitee</li>
+            <li>修复拖拽无反应：dataset 属性名与 querySelectorAll 选择器不匹配</li>
+            <li>修复4人模式波数拖拽：使用队伍索引编号波数</li>
+            <li>本地未保存时跳过远端轮询，避免覆盖本地编辑</li>
+            <li>Gitee token 源码加密（XOR+Base64），明文不出现在源码中</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.6.0</span>
@@ -811,7 +829,7 @@ async function doUndo(){
   const prev = undoStack.pop();
   charList = prev.charList; teamList = prev.teamList; raidMode = prev.raidMode;
   saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
-  await SYNC.writeState(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
+  SYNC.writeStateLocal(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
 }
 async function doRedo(){
   if(!redoStack.length) return;
@@ -819,7 +837,7 @@ async function doRedo(){
   const next = redoStack.pop();
   charList = next.charList; teamList = next.teamList; raidMode = next.raidMode;
   saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
-  await SYNC.writeState(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
+  SYNC.writeStateLocal(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
 }
 
 /* ---------- 账号系统 ---------- */
@@ -1819,7 +1837,7 @@ function arrange4(chars){
 
 /* ---------- 同步模块（Gitee Contents API） ---------- */
 const SYNC = {
-  cfg:null, room:null, pollT:null, presenceT:null, writing:0,
+  cfg:null, room:null, pollT:null, presenceT:null, writing:0, dirty:false,
   init(){
     this.cfg = this.loadCfg();
     // 检查账号登录状态
@@ -1931,6 +1949,8 @@ const SYNC = {
   async fetchState(initial){
     if(!hasSync(this.cfg)) return;
     if(!this.room) return;
+    /* 本地有未保存修改时，跳过远端拉取，避免覆盖本地编辑 */
+    if(this.dirty && !initial) return;
     try{
       const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
       if(r.status===404){ this.setStatus(initial?"房间未同步，编辑后自动创建":"房间未同步","off"); this.renderPresence(); return; }
@@ -1952,10 +1972,85 @@ const SYNC = {
       }
       this.room.presence = data.presence || {};
       this.renderPresence();
-      this.setStatus("已同步","on");
+      this.setStatus(this.dirty?"未保存":"已同步", this.dirty?"warn":"on");
     }catch(e){ this.setStatus("同步失败："+e.message,"err"); }
   },
-  // intent(state)=>state；对最新远端状态应用意图后写回，冲突自动重试
+  /* 本地编辑：仅更新本地状态，标记 dirty，不上传远端 */
+  writeStateLocal(intent){
+    const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
+    const next = intent(st) || st;
+    charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+    if(this.room) this.room.presence = next.presence||{};
+    this.dirty = true;
+    saveStorage(); renderAll(); updateModeBtns();
+    this.updateSaveBtn();
+    this.setStatus("未保存","warn");
+  },
+  /* 更新保存按钮 UI */
+  updateSaveBtn(){
+    const btn=document.getElementById("saveBtn");
+    if(!btn) return;
+    if(this.dirty){
+      btn.classList.add("dirty");
+      btn.textContent="💾 保存到云端";
+      btn.disabled=false;
+    }else{
+      btn.classList.remove("dirty");
+      btn.textContent="✓ 已保存";
+      btn.disabled=true;
+    }
+  },
+  /* 手动保存：将本地状态推送到 Gitee */
+  async flushToRemote(){
+    if(!this.room || !hasSync(this.cfg)){ this.dirty=false; this.updateSaveBtn(); return; }
+    if(!this.dirty) return;
+    this.writing++;
+    this.setStatus("保存中…","off");
+    try{
+      for(let attempt=0; attempt<5; attempt++){
+        let base, sha;
+        const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+        if(r.status===404){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; }
+        else if(!r.ok) throw new Error("GET HTTP "+r.status);
+        else { const j=await r.json(); if(!j || Array.isArray(j) || !j.content){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; } else { sha=j.sha; base=JSON.parse(b64dec(j.content)); if(Array.isArray(base.charList)) base.charList=base.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }); } }
+        /* 合并：以本地编辑为准，但保留远端的 presence 和其他用户上线状态 */
+        const next = {
+          charList: charList,
+          teamList: teamList,
+          raidMode: raidMode,
+          presence: Object.assign({}, base.presence||{}, this.room.presence||{}, {[this.nick()]:Date.now()}),
+          dataVersion: (base.dataVersion||0)+1,
+          editor: this.nick(),
+          room: this.room.id,
+          password: this.room.password || base.password || "",
+          createdBy: base.createdBy || ACCT.currentUser() || this.nick()
+        };
+        if(base.raid12Config) next.raid12Config = base.raid12Config;
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"save "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        if(sha) body.sha = sha;
+        const method = sha ? "PUT" : "POST";
+        const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+        if(!pr.ok){
+          const e=await pr.json().catch(()=>({})); const msg=e.message||"";
+          if(pr.status===409 || pr.status===422 || (method==="POST" && /exist|already|已存在|sha/i.test(msg))){ await sleep(350); continue; }
+          throw new Error(method+" HTTP "+pr.status+" "+msg);
+        }
+        const pj = await pr.json();
+        this.room.sha = (pj.content && pj.content.sha) || pj.sha;
+        this.room.dataVersion = next.dataVersion;
+        this.room.presence = next.presence;
+        this.dirty = false;
+        saveStorage();
+        this.setStatus("已保存","on");
+        this.updateSaveBtn();
+        return;
+      }
+    }catch(e){
+      this.setStatus("保存失败："+e.message,"err");
+    }
+    finally{ this.writing--; }
+  },
+  // intent(state)=>state；对最新远端状态应用意图后写回，冲突自动重试（仅用于后台同步如 presence）
   async writeState(intent, opts){
     opts = opts||{};
     if(!this.room){
@@ -2024,6 +2119,13 @@ const SYNC = {
     if(!hasSync(this.cfg)) return;
     if(!this.room) return;
     if(this.writing>0) return;
+    /* 本地有未保存修改时，仅更新本地 presence，不触发远端写入 */
+    if(this.dirty){
+      if(!this.room.presence) this.room.presence={};
+      this.room.presence[this.nick()]=Date.now();
+      this.renderPresence();
+      return;
+    }
     await this.writeState(s=>{ s.presence = s.presence||{}; s.presence[this.nick()]=Date.now(); return s; });
   },
   nick(){ return (document.getElementById("nickInput").value||"").trim() || "玩家"+randId().slice(0,3); },
@@ -2149,7 +2251,7 @@ function renderCharList(){
       if(ids.length===0) return;
       if(!confirm(`确认批量删除 ${owner} 的 ${ids.length} 个角色？`))return;
       pushHistory();
-      await SYNC.writeState(st=>{
+      SYNC.writeStateLocal(st=>{
         st.charList=st.charList.filter(c=>!ids.includes(Number(c.id)));
         st.teamList=arrange(st.charList);
         return st;
@@ -2181,7 +2283,7 @@ function renderCharList(){
       if(ids.length===0) return;
       if(!confirm(`确认批量删除选中的 ${ids.length} 个角色？\n此操作不可恢复！`))return;
       pushHistory();
-      await SYNC.writeState(st=>{
+      SYNC.writeStateLocal(st=>{
         st.charList=st.charList.filter(c=>!ids.includes(Number(c.id)));
         st.teamList=arrange(st.charList);
         return st;
@@ -2243,7 +2345,7 @@ function renderTeamTable(){
         const newCid=(val==="clear"||!val)?null:Number(val);
         if(val==="") return; /* 未选择任何项 */
         pushHistory();
-        await SYNC.writeState(st=>{
+        SYNC.writeStateLocal(st=>{
           if(newCid){
             /* 选中了角色：先从其他位置移除该角色 */
             for(let ti=0;ti<st.teamList.length;ti++){
@@ -2598,7 +2700,7 @@ async function saveModalChar(){
   if(!o){alert("请填写归属玩家");return;}
   if(!n){alert("角色名称不能为空");return;}
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     const draft={owner:o,name:n,power:p,type:tp,a,b};
     const idx=st.charList.findIndex(x=>Number(x.id)===target);
     if(idx>=0) st.charList[idx]=Object.assign({id:target},draft);
@@ -2624,7 +2726,7 @@ async function saveChar(){
   if(!n){alert("角色名称不能为空");return;}
   const target=editTargetId;
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     const draft={owner:o,name:n,power:p,type:tp,a,b};
     if(target){
       const idx=st.charList.findIndex(x=>Number(x.id)===Number(target));
@@ -2643,7 +2745,7 @@ async function delChar(id){
   if(!confirm("确定删除该角色？队伍内占用会清空并重新排表"))return;
   const numId=Number(id);
   pushHistory();
-  await SYNC.writeState(st=>{ st.charList=st.charList.filter(x=>Number(x.id)!==numId); st.teamList=arrange(st.charList); return st; });
+  SYNC.writeStateLocal(st=>{ st.charList=st.charList.filter(x=>Number(x.id)!==numId); st.teamList=arrange(st.charList); return st; });
 }
 
 /* ---------- 顶栏动作 ---------- */
@@ -2673,7 +2775,7 @@ async function doAutoArrange(){
   }
   const opts=readRaid12Config();
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     st.raid12Config=opts;
     st.teamList=arrange(st.charList, raidMode, opts);
     return st;
@@ -2685,7 +2787,7 @@ async function switchMode(m){
   const wasEmpty = !teamList || teamList.length===0;
   /* 切换到12人模式时，保存当前门槛配置到房间 */
   const cfg = m===12 ? readRaid12Config() : null;
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     st.raidMode=m; raidMode=m;
     if(cfg) st.raid12Config=cfg;
     /* 排表已清空时切换模式不自动重排，保持空状态由用户手动一键排表 */
@@ -2781,27 +2883,27 @@ async function doImport(){
     // 分配ID
     let maxId=0; arr.forEach((c,i)=>{ c.id=i+1; });
     pushHistory();
-    await SYNC.writeState(st=>{ st.charList=arr; st.teamList=arrange(st.charList); return st; });
+    SYNC.writeStateLocal(st=>{ st.charList=arr; st.teamList=arrange(st.charList); return st; });
     closeModal("importModal"); fileInput.value=""; alert("导入成功，共"+arr.length+"个角色");
   }catch(e){ alert("Excel解析失败："+e.message); }
 }
 async function doReset(){
   if(!confirm("确认重置为导入状态？所有修改将被覆盖并同步到房间。"))return;
   pushHistory();
-  await SYNC.writeState(st=>{ st.charList=getInitData(); st.teamList=arrange(st.charList); return st; });
+  SYNC.writeStateLocal(st=>{ st.charList=getInitData(); st.teamList=arrange(st.charList); return st; });
   clearEdit();
 }
 async function doClearTeams(){
   if(!confirm("确认清空当前排表？角色数据保留，清空后可重新「一键均衡排完所有角色」。"))return;
   pushHistory();
-  await SYNC.writeState(st=>{ st.teamList=[]; return st; });
+  SYNC.writeStateLocal(st=>{ st.teamList=[]; return st; });
   clearEdit();
 }
 
 /* ---------- 新建队伍 ---------- */
 async function doAddTeam(){
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     if(raidMode===12){
       /* 12人模式：新建队伍需要确定波数和颜色 */
       const maxGroup = st.teamList.reduce((mx,t)=>Math.max(mx,t.group||0),0);
@@ -2832,7 +2934,7 @@ async function doAddTeam(){
 /* ---------- 波内添加队伍（12人模式） ---------- */
 async function doAddTeamToWave(groupNum){
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     const colors=["red","yellow","green"];
     const waveTeams = st.teamList.filter(t=>t.group===groupNum);
     const usedColors = new Set(waveTeams.map(t=>t.raidColor));
@@ -2857,7 +2959,7 @@ async function doAddTeamToWave(groupNum){
 /* ---------- 新增波数（12人模式） ---------- */
 async function doAddNewWave(){
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     const maxGroup = st.teamList.reduce((mx,t)=>Math.max(mx,t.group||0),0);
     const newGroup = maxGroup + 1;
     st.teamList.push({slots:[{charId:null},{charId:null},{charId:null},{charId:null}],raidColor:"red",group:newGroup});
@@ -2869,7 +2971,7 @@ async function doAddNewWave(){
 async function doRemoveTeam(tIdx){
   if(!confirm("确认删除此队伍？队伍中的角色将回到未配置。"))return;
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     if(tIdx>=0 && tIdx<st.teamList.length){
       st.teamList.splice(tIdx,1);
     }
@@ -2880,7 +2982,7 @@ async function doRemoveTeam(tIdx){
 /* ---------- 拖拽：4人模式队伍插入排序 ---------- */
 async function doMoveTeam(fromIdx,toIdx){
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     if(fromIdx<0||fromIdx>=st.teamList.length||toIdx<0||toIdx>=st.teamList.length) return st;
     const team=st.teamList.splice(fromIdx,1)[0];
     st.teamList.splice(toIdx,0,team);
@@ -2891,7 +2993,7 @@ async function doMoveTeam(fromIdx,toIdx){
 /* ---------- 拖拽：12人模式队伍对调 ---------- */
 async function doSwapTeams12(fromIdx,toIdx){
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     if(fromIdx<0||fromIdx>=st.teamList.length||toIdx<0||toIdx>=st.teamList.length) return st;
     /* 对调两队的位置和波数/颜色信息 */
     const a=st.teamList[fromIdx], b=st.teamList[toIdx];
@@ -2909,7 +3011,7 @@ async function doSwapTeams12(fromIdx,toIdx){
 async function doMoveWave(fromWave,toWave){
   if(fromWave===toWave) return;
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     const is12 = (st.raidMode||4)===12;
     /* 按波数分组，保留出现顺序。4人模式每队单独一波，用 tIdx+1 作 group */
     const waves={};
@@ -3387,7 +3489,7 @@ function init(){
       el.addEventListener("change",async()=>{
         if(raidMode===12 && SYNC.room){
           const cfg=readRaid12Config();
-          await SYNC.writeState(st=>{ st.raid12Config=cfg; return st; });
+          SYNC.writeStateLocal(st=>{ st.raid12Config=cfg; return st; });
         }
       });
     }
@@ -3398,6 +3500,7 @@ function init(){
   document.getElementById("doImport").onclick=doImport;
 
   document.getElementById("exitRoom").onclick=exitRoom;
+  document.getElementById("saveBtn").onclick=()=>SYNC.flushToRemote();
   document.getElementById("copyLink").onclick=copyLink;
 
   // 登录弹窗
