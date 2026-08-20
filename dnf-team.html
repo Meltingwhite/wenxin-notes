@@ -296,9 +296,9 @@
   --orange:#e8590c; --green:#2f9e44; --red:#e03131; --yellow:#d97706;
   --radius:12px;
   --wg:224,49,49; --wave-stroke:#cf2f3f; --wave-bg:rgba(224,49,49,.12); --wave-badge-bg:#a61e2b;
-  /* 玩家高亮：樱花主题，樱粉光晕 */
-  --pA:217,119,6; --pA-bg:#fff1d6; --pA-stroke:#d97706; --pA-text:#b45309;
-  --pB:214,51,108; --pB-bg:#fddce9; --pB-stroke:#d6336c; --pB-text:#a61e4f;
+  /* 玩家高亮：樱花主题专属——深樱花底+白字（搜索高亮深樱 / 点击高亮梅樱，对比度5.6:1与7.2:1） */
+  --pA:240,101,156; --pA-bg:#c2255c; --pA-stroke:#fcc2d7; --pA-text:#ffffff;
+  --pB:214,51,108; --pB-bg:#a61e4f; --pB-stroke:#f783ac; --pB-text:#ffffff;
   background-color:#fdf0f4;
   background-image:
     radial-gradient(circle at 20% 22%,rgba(230,73,128,.16) 0 3px,transparent 4px),
@@ -920,6 +920,16 @@ body.captain-lock .team-block[data-team-drag]{border-style:dashed!important}
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.25.0</span>
+            <span class="ver-date">2026-08-20</span>
+          </div>
+          <ul class="changes-list">
+            <li>樱花粉主题高亮专属配色：选中玩家名片底色改为深樱花色（搜索高亮深樱 #c2255c / 点击高亮梅樱 #a61e4f，两档深度仍可区分），文字改为白色，深底白字对比度 5.6:1 ~ 7.2:1，清晰醒目</li>
+            <li>配套调整：描边改为浅樱粉，呼吸灯光晕与渐变叠色同步切换为樱粉系，副文本同步白字</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.24.0</span>
