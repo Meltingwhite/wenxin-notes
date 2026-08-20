@@ -465,12 +465,16 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 .wave-label[draggable="true"]{cursor:grab;user-select:none}
 .wave-label.dragging{opacity:.5}
 .wave-label.drag-over .wnum{box-shadow:0 0 0 2px var(--blue)}
-/* 当前选中波次高亮（单击波次标签切换） */
-.wave-label.wave-active{border-radius:8px;padding:6px 10px;margin:8px 0 4px;border-bottom-color:var(--green);border-bottom-width:2px}
+/* 当前选中波次高亮（单击波次标签或队伍卡片框体切换） */
+.wave-label.wave-active{border-radius:8px;padding:6px 10px;margin:8px 0 4px;border-bottom:2px solid var(--green);background:rgba(34,197,94,.10)}
 .wave-label.wave-active .wnum{background:var(--green);box-shadow:0 0 0 2px rgba(34,197,94,.35)}
 .wave-label.wave-active .wline{background:var(--green);opacity:.4}
 .wave-label.wave-active .wave-btn{color:var(--green);border-color:var(--green)}
-.team-block.wave-active{box-shadow:0 0 0 2px var(--green);border-radius:8px}
+.team-block.wave-active{box-shadow:0 0 0 3px var(--green),0 2px 14px rgba(34,197,94,.45);border-radius:8px;outline:1px solid var(--green)}
+.team-block.wave-active .team-title{border-bottom:1px solid var(--green)}
+.team-block[data-wave-num]{cursor:pointer}
+.team-block[data-wave-num] .slot{cursor:default}
+.team-block[data-wave-num] .slot[data-owner]{cursor:pointer}
 .wave-actions{display:flex;gap:2px;margin-left:auto}
 .wave-btn{background:var(--panel2);border:1px solid var(--line);color:var(--mut);cursor:pointer;font-size:11px;padding:2px 8px;border-radius:4px;line-height:1.4;transition:all .15s;white-space:nowrap}
 .wave-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--bg)}
@@ -802,7 +806,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
             <span class="ver-date">2026-08-20</span>
           </div>
           <ul class="changes-list">
-            <li>4人/12人团本模式新增波次高亮：单击波次标签可标记为「当前波次」，该波标签与所有队伍框体高亮显示（绿色边框），再次点击取消</li>
+            <li>4人/12人团本模式新增波次高亮：单击波次标签或队伍卡片框体可标记为「当前波次」，该波标签与所有队伍框体高亮显示（绿色描边），再次点击取消</li>
           </ul>
         </div>
         <div class="version-entry">
@@ -3344,6 +3348,19 @@ function renderTeamTable(){
       if(e.target.closest(".wave-btn")) return; /* 排序按钮已自行处理 */
       if(window._dragging) return; /* 拖拽进行中，忽略点击 */
       const wave=Number(this.dataset.waveDrag);
+      if(currentWaveHL!==null && currentWaveHL===wave){ currentWaveHL=null; }
+      else { currentWaveHL=wave; }
+      renderTeamTable();
+    });
+  });
+  // 绑定队伍卡片框体单击：点击卡片标题/边框区域同样标记该波为当前波次
+  // （角色卡 .slot 与按钮/下拉不触发，避免与玩家高亮、删除等操作冲突）
+  document.querySelectorAll(".team-block[data-wave-num]").forEach(b=>{
+    b.addEventListener("click",function(e){
+      if(e.target.closest(".slot")||e.target.closest("button")||e.target.closest("select")) return;
+      if(window._dragging) return;
+      const wave=Number(this.dataset.waveNum);
+      if(!wave) return;
       if(currentWaveHL!==null && currentWaveHL===wave){ currentWaveHL=null; }
       else { currentWaveHL=wave; }
       renderTeamTable();
