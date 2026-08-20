@@ -68,6 +68,10 @@
 [data-theme="light"] .chip.me{background:#e8f8ee;border-color:var(--green);color:var(--green)}
 [data-theme="bilibili"] .card,
 [data-theme="light"] .card{background:var(--panel);border-color:var(--line)}
+[data-theme="bilibili"] .card.c,
+[data-theme="light"] .card.c{border-left-color:var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
+[data-theme="bilibili"] .card.N,
+[data-theme="light"] .card.N{border-left-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}
 [data-theme="bilibili"] .team-block,
 [data-theme="light"] .team-block{background:var(--panel);border-color:var(--line)}
 [data-theme="bilibili"] .slot,
@@ -105,6 +109,8 @@
 
 /* === 深夜紫主题细化 === */
 [data-theme="midnight"] .card{background:var(--panel2);border-color:var(--line)}
+[data-theme="midnight"] .card.c{border-left-color:var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
+[data-theme="midnight"] .card.N{border-left-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}
 [data-theme="midnight"] .team-block{background:var(--panel2);border-color:var(--line)}
 [data-theme="midnight"] .slot{background:var(--panel2);border-color:var(--line)}
 [data-theme="midnight"] .slot.c{background:#2a1f3d;border-color:var(--orange)}
@@ -140,6 +146,22 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
 .dot.off{background:var(--mut)}
 .dot.err{background:var(--red)}
+.dot.warn{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
+#saveBtn.dirty{background:var(--yellow);color:#000;font-weight:bold;opacity:1!important;animation:pulse 1.5s ease-in-out infinite}
+#saveBtn:not(:disabled){cursor:pointer}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,200,0,.4)}50%{box-shadow:0 0 0 4px rgba(255,200,0,0)}}
+/* 未保存修改浮动提示条 */
+#unsavedBar{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#e8a700,#ffcc00);color:#1a1a1a;font-size:13px;font-weight:600;text-align:center;padding:7px 40px 7px 20px;box-shadow:0 2px 8px rgba(0,0,0,.3);transform:translateY(-100%);transition:transform .3s ease;display:flex;align-items:center;justify-content:center;gap:8px}
+#unsavedBar.show{transform:translateY(0)}
+#unsavedBar .ub-icon{font-size:16px}
+#unsavedBar .ub-text{flex:1}
+#unsavedBar .ub-btn{background:#1a1a1a;color:#ffcc00;border:none;border-radius:5px;padding:3px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+#unsavedBar .ub-btn:hover{background:#333}
+#unsavedBar .ub-close{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#1a1a1a;font-size:18px;cursor:pointer;opacity:.6;line-height:1;padding:0 4px}
+#unsavedBar .ub-close:hover{opacity:1}
+/* Toast 通知 */
+#toastNotify{position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(100px);z-index:9998;background:var(--panel);border:1px solid var(--yellow);border-radius:8px;padding:8px 18px;font-size:13px;color:var(--yellow);box-shadow:0 4px 12px rgba(0,0,0,.4);opacity:0;transition:all .3s ease;pointer-events:none}
+#toastNotify.show{transform:translateX(-50%) translateY(0);opacity:1}
 .online-chips{display:flex;gap:5px;flex-wrap:wrap}
 .chip{font-size:11px;padding:2px 8px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);color:var(--mut)}
 .chip.me{background:#1f3d2a;border-color:var(--green);color:#bff5d0}
@@ -160,15 +182,22 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .form-item{margin:8px 0}
 .char-pool{flex:1;min-width:0}
 .char-pool h3,.form-box h3{margin-bottom:10px;font-size:15px}
-.card{background:var(--panel2);padding:10px;border-radius:8px;width:235px;border:1px solid var(--line);border-left:4px solid var(--orange)}
-.card.N{border-left-color:var(--green)}
+.card{background:var(--panel2);padding:10px;border-radius:8px;width:235px;border:1px solid var(--line);border-left:5px solid var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
+.card.N{border-left-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}
 .card.used{opacity:.45}
 .card h4{margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
 .card .meta{font-size:11px;color:var(--mut);line-height:1.5}
 .card .pwr{color:var(--yellow);font-weight:600}
+.card .type-tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:4px;vertical-align:middle}
+.card .type-tag.c{background:rgba(249,115,22,.18);color:var(--orange)}
+.card .type-tag.N{background:rgba(34,197,94,.18);color:var(--green)}
 .owner-header{width:100%;padding:8px 4px 4px;font-size:14px;font-weight:700;color:var(--blue);border-bottom:1px solid var(--line);margin-top:8px;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
 .owner-header:first-child{margin-top:0}
 .owner-header .cnt{font-size:11px;color:var(--mut);font-weight:400;margin-left:6px}
+.owner-toggle{background:none;border:1px solid var(--line);color:var(--mut);cursor:pointer;font-size:12px;padding:1px 8px;border-radius:4px;line-height:1.4;transition:all .15s;flex-shrink:0}
+.owner-toggle:hover{border-color:var(--blue);color:var(--blue)}
+.owner-chars{display:flex;gap:12px;flex-wrap:wrap}
+.owner-chars.collapsed{display:none}
 .batch-del-btn{font-size:12px;padding:3px 10px}
 .team-block{background:var(--panel2);padding:12px;border-radius:9px;margin-bottom:12px;border:1px solid var(--line)}
 .team-block.raid-red{border:2px solid #e74c3c;background:#2a1515}
@@ -251,6 +280,10 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 .wave-label[draggable="true"]{cursor:grab;user-select:none}
 .wave-label.dragging{opacity:.5}
 .wave-label.drag-over .wnum{box-shadow:0 0 0 2px var(--blue)}
+.wave-actions{display:flex;gap:2px;margin-left:auto}
+.wave-btn{background:var(--panel2);border:1px solid var(--line);color:var(--mut);cursor:pointer;font-size:11px;padding:2px 8px;border-radius:4px;line-height:1.4;transition:all .15s;white-space:nowrap}
+.wave-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--bg)}
+.wave-btn:active{transform:scale(.92)}
 @media(max-width:900px){
   .team-grid-12{grid-template-columns:repeat(2,1fr)}
 }
@@ -269,14 +302,14 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 
 /* 一览模式 */
 .team-block.view-ultra{padding:6px;margin-bottom:5px}
-.team-block.view-ultra .team-grid{grid-template-columns:repeat(4,1fr);gap:3px}
-.team-block.view-ultra .slot{padding:4px 6px;min-height:48px;border-radius:4px;display:flex;flex-direction:column;gap:1px;overflow:hidden}
-.team-block.view-ultra .slot .sn{font-size:11px;line-height:1.3;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.team-block.view-ultra .slot .cn{font-size:10px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85}
-.team-block.view-ultra .slot .sp{font-size:9px;color:var(--yellow);line-height:1.2}
+.team-block.view-ultra .team-grid{grid-template-columns:repeat(4,1fr);gap:4px}
+.team-block.view-ultra .slot{padding:5px 4px;min-height:52px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;overflow:hidden}
+.team-block.view-ultra .slot .sn{font-size:13px;line-height:1.3;text-align:center;font-weight:bold;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team-block.view-ultra .slot .cn{font-size:12px;line-height:1.3;text-align:center;opacity:.88;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team-block.view-ultra .slot .sp{display:none}
 .team-block.view-ultra .slot select{display:none}
-.team-block.view-ultra .team-title{font-size:11px;margin-bottom:3px}
-.team-block.view-ultra .slot-empty{min-height:48px;font-size:10px;display:flex;align-items:center;justify-content:center}
+.team-block.view-ultra .team-title{font-size:12px;margin-bottom:4px}
+.team-block.view-ultra .slot-empty{min-height:52px;font-size:12px}
 .team-grid-ultra{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:5px}
 .team-grid-12.view-ultra,.team-grid-12 .view-ultra{grid-template-columns:repeat(3,1fr)!important}
 @media(max-width:760px){
@@ -306,6 +339,15 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 </style>
 </head>
 <body>
+<!-- 未保存修改浮动提示条 -->
+<div id="unsavedBar">
+  <span class="ub-icon">⚠️</span>
+  <span class="ub-text">当前有<b id="unsavedCount">0</b>项未保存的修改，点击保存到云端避免丢失</span>
+  <button class="ub-btn" id="unsavedSaveBtn">💾 立即保存</button>
+  <button class="ub-close" id="unsavedClose" title="稍后提醒">×</button>
+</div>
+<!-- Toast 通知 -->
+<div id="toastNotify"></div>
 <div class="container">
 
   <!-- 协作房间栏 -->
@@ -323,6 +365,8 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     </div>
     <div class="grp" style="margin-left:auto">
       <span class="badge" id="syncStatus">未登录</span>
+      <button class="sm" id="saveBtn" disabled style="opacity:.5">✓ 已保存</button>
+      <button class="sm secondary" id="openShengyan" style="background:var(--panel2);border:1px solid rgba(201,162,39,0.4);color:var(--yellow)">⚔️ 米歇尔练习</button>
       <button class="sm danger" id="exitRoom">退出房间</button>
       <button class="sm secondary" id="openChangelog">📋 版本日志</button>
       <button class="sm secondary" id="openHelp">❓</button>
@@ -418,6 +462,11 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       </div>
       <div class="char-pool">
         <h3>全部角色池（橙=C 绿=奶，已排入队伍会置灰）</h3>
+        <div class="batch-toolbar" id="batchToolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px">
+          <button class="sm secondary" id="globalSelectAll">全选</button>
+          <button class="sm danger" id="globalBatchDel" disabled style="opacity:.4">批量删除选中</button>
+          <span class="muted" id="batchSelCnt" style="font-size:12px">已选 0 个</span>
+        </div>
         <div class="flex-row" id="charList"></div>
       </div>
     </div>
@@ -536,6 +585,117 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.16.0</span>
+            <span class="ver-date">2026-08-20</span>
+          </div>
+          <ul class="changes-list">
+            <li>修复版本覆盖问题：恢复 v1.7.0 至 v1.15.0 全部功能（手动保存、记住房间、未保存提醒、排表算法优化等）</li>
+            <li>一览视图排版优化：玩家名字第一行，角色名字第二行，两行分别占满显示</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.15.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>有未保存修改时，关闭/刷新网页弹出浏览器提醒，避免漏保存</li>
+            <li>切换标签页时保存按钮持续高亮提示</li>
+            <li>顶部浮动提示条显示未保存数量，一键保存；编辑即时 Toast 提醒</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.14.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>加入房间弹窗新增「记住此房间」勾选，密码保存到本地浏览器</li>
+            <li>输入房间号时自动匹配已记住房间并填充密码</li>
+            <li>仅一个记住房间时自动填充房间号和密码</li>
+            <li>最多记住 20 个房间，超出按时间自动清理</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.13.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>角色增删改不再自动覆盖已有排表，仅空表时自动排表</li>
+            <li>删除角色时仅清空该角色在队伍中的占用，保留用户原有排表</li>
+            <li>多用户合并时保留远端/本地已有排表，不自动重排</li>
+            <li>仅「一键排表」按钮才会触发重新排表</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.12.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>角色管理操作（新增/删除/编辑/导入/重置/批量删除）改为即时同步到远端，支持多用户同时添加角色</li>
+            <li>队伍排表操作保持手动保存，点击「保存到云端」才上传；顶部浮动条 + Toast 提示未保存</li>
+            <li>角色卡片颜色区分增强：加宽左边框+内阴影+类型标签，C橙色奶绿色各主题统一</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.11.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>角色管理界面每个玩家名字后面新增缩略按钮，支持折叠/展开该玩家所有角色</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.10.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>4人模式排表算法重构：C从高到低贪心分配给当前C总战力最低的队伍，保证各波C总均衡</li>
+            <li>C总相同时优先分配给奶战力较低的队伍，保留小奶配大C逻辑</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.9.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>修复4人模式自动排表：移除回退逻辑，同一波绝不出现同一玩家</li>
+            <li>手动切换角色下拉时增加同波防重校验，弹出提示阻止重复</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.8.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>每个波数后面新增上移、下移、移至最顶、移至最底四个排序按钮</li>
+            <li>按钮排序与拖拽排序共用同一套波数重排逻辑，确保队伍对调生效</li>
+            <li>12人模式和4人模式均支持波数按钮排序</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.7.0</span>
+            <span class="ver-date">2026-08-19</span>
+          </div>
+          <ul class="changes-list">
+            <li>新增手动保存模式：编辑操作即时更新本地，点击「保存到云端」按钮才上传 Gitee</li>
+            <li>优化未保存提示：顶部浮动提示条 + 保存按钮显示未保存数量 + Toast 即时提醒</li>
+            <li>一览视图优化：移除角色战力显示，放大角色名字体，整体视觉更清晰</li>
+            <li>修复拖拽无反应：dataset 属性名与 querySelectorAll 选择器不匹配</li>
+            <li>修复4人模式波数拖拽：使用队伍索引编号波数</li>
+            <li>本地未保存时跳过远端轮询，避免覆盖本地编辑</li>
+            <li>Gitee token 源码加密（XOR+Base64），明文不出现在源码中</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.6.0</span>
@@ -674,6 +834,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
         <div id="joinForm">
           <div class="form-item"><label>房间号</label><input id="joinRoomId" placeholder="输入房间号，如 1"></div>
           <div class="form-item"><label>密码</label><input type="password" id="joinRoomPwd" placeholder="房间密码" onkeydown="if(event.key==='Enter')document.getElementById('doJoin').click()"></div>
+          <div class="form-item" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="rememberRoom" style="width:16px;height:16px;cursor:pointer"><label for="rememberRoom" style="cursor:pointer;font-size:13px;color:var(--mut)">记住此房间（免重复输入密码）</label></div>
           <button id="doJoin" style="width:100%;margin-top:8px">进入房间</button>
         </div>
         <div id="createForm" style="display:none">
@@ -765,7 +926,13 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 
 <script>
 /* ================= 可嵌入配置（一键分享用，留空则用设置面板/本地模式） ================= */
-const EMBED_SYNC = { owner:"meltingwhite1", repo:"dnf-team-sync", token:"78c4858b04f984c81f147a5bef3edfdb", branch:"master" };
+const EMBED_SYNC = { owner:"meltingwhite1", repo:"dnf-team-sync", branch:"master", _e:"VU0QXFkHCFAGVhNKUFVRCANQU0FECVRQVVQFBxEVDAM=" };
+/* _e 为 XOR 加密后的 Gitee token，运行时用密码 busha2026 解密，明文不出现在源码中 */
+function _d(e,p){ try{ const r=atob(e); let s=""; for(let i=0;i<r.length;i++) s+=String.fromCharCode(r.charCodeAt(i)^p.charCodeAt(i%p.length)); return s; }catch(x){ return ""; } }
+/* 同步 URL/Token 构造器 */
+function syncUrl(cfg,path){ if(!cfg) return null; return `https://gitee.com/api/v5/repos/${cfg.owner}/${cfg.repo}/contents/${path}`; }
+function syncTok(cfg){ if(!cfg) return ""; return encodeURIComponent(cfg._e?_d(cfg._e,"busha2026"):(cfg.token||"")); }
+function hasSync(cfg){ return !!(cfg&&(cfg._e||cfg.token)); }
 /* ===================================================================================== */
 
 const LS_CHAR = "busha末世录团表_v2";
@@ -774,6 +941,7 @@ const LS_SYNC = "busha_sync_cfg";
 const LS_BACK = "busha_backup";
 const LS_ACCT = "busha_acct_v1"; /* 注册用户列表 */
 const LS_SESSION = "busha_session_v1"; /* 当前登录会话 */
+const LS_REMEMBER = "busha_remember_rooms"; /* 记住房间 */
 let charList = [];
 let teamList = [];
 let editTargetId = null;
@@ -801,7 +969,7 @@ async function doUndo(){
   const prev = undoStack.pop();
   charList = prev.charList; teamList = prev.teamList; raidMode = prev.raidMode;
   saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
-  await SYNC.writeState(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
+  SYNC.writeStateLocal(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
 }
 async function doRedo(){
   if(!redoStack.length) return;
@@ -809,7 +977,7 @@ async function doRedo(){
   const next = redoStack.pop();
   charList = next.charList; teamList = next.teamList; raidMode = next.raidMode;
   saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
-  await SYNC.writeState(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
+  SYNC.writeStateLocal(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
 }
 
 /* ---------- 账号系统 ---------- */
@@ -823,7 +991,7 @@ const ACCT = {
   clearSession(){ localStorage.removeItem(LS_SESSION); },
   /* 获取 Gitee 同步配置 */
   syncCfg(){
-    if(EMBED_SYNC && EMBED_SYNC.token) return Object.assign({branch:"master"}, EMBED_SYNC);
+    if(EMBED_SYNC && (EMBED_SYNC._e||EMBED_SYNC.token)) return Object.assign({branch:"master"}, EMBED_SYNC);
     return null;
   },
   /* 从远端拉取 accounts.json */
@@ -831,7 +999,7 @@ const ACCT = {
     const cfg=this.syncCfg();
     if(!cfg) return {users:null, sha:null};
     try{
-      const r=await fetch(`https://gitee.com/api/v5/repos/${cfg.owner}/${cfg.repo}/contents/accounts.json?access_token=${encodeURIComponent(cfg.token)}&ref=${encodeURIComponent(cfg.branch||"master")}`);
+      const r=await fetch(syncUrl(cfg,"accounts.json")+"?access_token="+syncTok(cfg)+"&ref="+encodeURIComponent(cfg.branch||"master"));
       if(r.status===404) return {users:{}, sha:null};
       if(!r.ok) throw new Error("HTTP "+r.status);
       const j=await r.json();
@@ -845,10 +1013,10 @@ const ACCT = {
   async pushRemoteUsers(users, sha){
     const cfg=this.syncCfg();
     if(!cfg) return false;
-    const body={ access_token:cfg.token, message:"update accounts", content:b64enc(JSON.stringify(users)), branch:cfg.branch||"master" };
+    const body={ access_token:(cfg._e?_d(cfg._e,"busha2026"):cfg.token), message:"update accounts", content:b64enc(JSON.stringify(users)), branch:cfg.branch||"master" };
     if(sha) body.sha=sha;
     const method=sha?"PUT":"POST";
-    const r=await fetch(`https://gitee.com/api/v5/repos/${cfg.owner}/${cfg.repo}/contents/accounts.json?access_token=${encodeURIComponent(cfg.token)}`, {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+    const r=await fetch(syncUrl(cfg,"accounts.json")+"?access_token="+syncTok(cfg), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
     if(!r.ok){
       const e=await r.json().catch(()=>({}));
       if(r.status===409||r.status===422) return "conflict";
@@ -1047,6 +1215,8 @@ function showRoomStep(){
     document.getElementById("joinRoomId").value=decodeURIComponent(m[1]);
     document.getElementById("loginMsg").textContent="请输入房间 "+m[1]+" 的密码";
   }
+  // 尝试自动填充已记住房间
+  tryAutoFillRememberedRoom();
 }
 
 function showAcctStep(){
@@ -1758,58 +1928,46 @@ function arrange12(chars, opts){
   return finalTeams;
 }
 
-/* 4人团本：全部角色均衡排表 */
+/* 4人团本：全部角色均衡排表
+   核心策略：
+   1. 奶从高到低分配到各队，保证高奶在前
+   2. C从高到低逐个分配，每次给当前C总战力最低且无同玩家冲突的队伍
+   3. C总相同时优先给奶战力较低的队伍（小奶配大C）
+   4. 同一波绝不出现同一玩家
+*/
 function arrange4(chars){
   const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
   const H = chars.filter(c=>c.type==="N").slice().sort((a,b)=>b.power-a.power);
-  const used = new Set();
   if(H.length===0) return [];
   const n = H.length;
   const teams = [];
   for(let i=0;i<n;i++){
-    used.add(H[i].id);
-    teams.push({slots:[{charId:H[i].id}], owners:new Set([H[i].owner]), total:H[i].power});
+    teams.push({slots:[{charId:H[i].id}], owners:new Set([H[i].owner]), hPower:H[i].power, cTotal:0});
   }
-  function pickAssign(ti, preferHigh){
-    for(let k=preferHigh?0:C.length-1; preferHigh?k<C.length:k>=0; k+=preferHigh?1:-1){
-      const c=C[k];
-      if(!used.has(c.id) && !teams[ti].owners.has(c.owner)){
-        teams[ti].slots.push({charId:c.id}); teams[ti].owners.add(c.owner);
-        teams[ti].total+=c.power; used.add(c.id); return true;
-      }
-    }
-    return false;
-  }
-  for(let round=0;round<2;round++){
-    for(let ti=n-1;ti>=0;ti--){
-      if(teams[ti].slots.length>=3) continue;
-      pickAssign(ti,true);
-    }
-  }
+  /* 贪心分配：每个C给当前cTotal最低且无冲突的队，cTotal相同时优先低奶队 */
   for(const c of C){
-    if(used.has(c.id)) continue;
-    let best=-1,bp=Infinity;
+    let best=-1, minCTotal=Infinity, minHPower=Infinity;
     for(let ti=0;ti<n;ti++){
-      if(teams[ti].slots.length>=4) continue;
-      if(teams[ti].owners.has(c.owner)) continue;
-      if(teams[ti].total<bp){bp=teams[ti].total;best=ti;}
-    }
-    if(best===-1){
-      for(let ti=0;ti<n;ti++){
-        if(teams[ti].slots.length>=4) continue;
-        if(teams[ti].total<bp){bp=teams[ti].total;best=ti;}
+      if(teams[ti].slots.length>=4) continue; /* 满员跳过 */
+      if(teams[ti].owners.has(c.owner)) continue; /* 同波禁止同一玩家 */
+      if(teams[ti].cTotal<minCTotal ||
+         (teams[ti].cTotal===minCTotal && teams[ti].hPower<minHPower)){
+        minCTotal=teams[ti].cTotal;
+        minHPower=teams[ti].hPower;
+        best=ti;
       }
     }
-    if(best===-1) continue;
-    teams[best].slots.push({charId:c.id}); teams[best].owners.add(c.owner);
-    teams[best].total+=c.power; used.add(c.id);
+    if(best===-1) continue; /* 找不到无冲突的队伍则跳过，绝不放宽 */
+    teams[best].slots.push({charId:c.id});
+    teams[best].owners.add(c.owner);
+    teams[best].cTotal+=c.power;
   }
   return teams.map(t=>({slots:t.slots}));
 }
 
 /* ---------- 同步模块（Gitee Contents API） ---------- */
 const SYNC = {
-  cfg:null, room:null, pollT:null, presenceT:null, writing:0,
+  cfg:null, room:null, pollT:null, presenceT:null, writing:0, dirty:false, dirtyCount:0,
   init(){
     this.cfg = this.loadCfg();
     // 检查账号登录状态
@@ -1824,7 +1982,7 @@ const SYNC = {
   },
   // 验证并加入房间
   async checkRoom(roomId, password, onOk, onErr){
-    if(!this.cfg || !this.cfg.token){
+    if(!hasSync(this.cfg)){
       // 无同步配置：本地模式直接进入
       this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password };
       history.replaceState(null,"","#room="+roomId);
@@ -1855,7 +2013,7 @@ const SYNC = {
   },
   // 创建新房间
   async createRoom(roomId, password, onOk, onErr){
-    if(!this.cfg || !this.cfg.token){
+    if(!hasSync(this.cfg)){
       this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password };
       history.replaceState(null,"","#room="+roomId);
       charList = []; teamList = []; saveStorage();
@@ -1879,7 +2037,7 @@ const SYNC = {
         createdBy: ACCT.currentUser() || this.nick()
       };
       const body = {
-        access_token: this.cfg.token,
+        access_token: (this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token),
         message: "create room "+roomId,
         content: b64enc(JSON.stringify(initData)),
         branch: this.cfg.branch||"master"
@@ -1902,8 +2060,8 @@ const SYNC = {
     }catch(e){ onErr("创建失败："+e.message); }
   },
   loadCfg(){
-    if(EMBED_SYNC && EMBED_SYNC.token) return Object.assign({branch:"master"}, EMBED_SYNC);
-    try{ const s=JSON.parse(localStorage.getItem(LS_SYNC)); if(s&&s.token) return s; }catch(e){}
+    if(EMBED_SYNC && (EMBED_SYNC._e||EMBED_SYNC.token)) return Object.assign({branch:"master"}, EMBED_SYNC);
+    try{ const s=JSON.parse(localStorage.getItem(LS_SYNC)); if(s&&(s._e||s.token)) return s; }catch(e){}
     return null;
   },
   start(){
@@ -1915,12 +2073,14 @@ const SYNC = {
     this.sendPresence();
   },
   stop(){ clearInterval(this.pollT); clearInterval(this.presenceT); },
-  url(path){ return `https://gitee.com/api/v5/repos/${this.cfg.owner}/${this.cfg.repo}/contents/${path}`; },
-  tok(){ return encodeURIComponent(this.cfg.token); },
+  url(path){ return syncUrl(this.cfg, path); },
+  tok(){ return syncTok(this.cfg); },
   br(){ return encodeURIComponent(this.cfg.branch||"master"); },
   async fetchState(initial){
-    if(!this.cfg || !this.cfg.token) return;
+    if(!hasSync(this.cfg)) return;
     if(!this.room) return;
+    /* 本地有未保存修改时，跳过远端拉取，避免覆盖本地编辑 */
+    if(this.dirty && !initial) return;
     try{
       const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
       if(r.status===404){ this.setStatus(initial?"房间未同步，编辑后自动创建":"房间未同步","off"); this.renderPresence(); return; }
@@ -1942,10 +2102,172 @@ const SYNC = {
       }
       this.room.presence = data.presence || {};
       this.renderPresence();
-      this.setStatus("已同步","on");
+      this.setStatus(this.dirty?"未保存":"已同步", this.dirty?"warn":"on");
     }catch(e){ this.setStatus("同步失败："+e.message,"err"); }
   },
-  // intent(state)=>state；对最新远端状态应用意图后写回，冲突自动重试
+  /* 本地编辑：仅更新本地状态，标记 dirty，不上传远端（用于队伍排表） */
+  writeStateLocal(intent){
+    const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
+    const next = intent(st) || st;
+    charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+    if(this.room) this.room.presence = next.presence||{};
+    this.dirty = true;
+    this.dirtyCount++;
+    saveStorage(); renderAll(); updateModeBtns();
+    this.updateSaveBtn();
+    this.setStatus("未保存","warn");
+    showToast("⚠️ 修改未保存，记得点击「保存到云端」");
+  },
+  /* 立即同步：更新本地状态并立即推送到远端（用于角色管理，支持多用户同时操作） */
+  async writeStateRemote(intent){
+    /* 1. 先更新本地状态，UI 即时响应 */
+    const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
+    const next = intent(st) || st;
+    charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+    if(this.room) this.room.presence = next.presence||{};
+    saveStorage(); renderAll(); updateModeBtns();
+    /* 2. 无远端配置 → 仅本地 */
+    if(!this.room || !hasSync(this.cfg)){ return; }
+    /* 3. 读取远端状态并合并角色列表 */
+    this.writing++;
+    this.setStatus("同步中…","off");
+    try{
+      for(let attempt=0; attempt<5; attempt++){
+        let base, sha;
+        const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+        if(r.status===404){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; }
+        else if(!r.ok) throw new Error("GET HTTP "+r.status);
+        else { const j=await r.json(); if(!j || Array.isArray(j) || !j.content){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; } else { sha=j.sha; base=JSON.parse(b64dec(j.content)); if(Array.isArray(base.charList)) base.charList=base.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }); } }
+        /* 合并 charList：本地为准，补充远端中本地没有的角色（其他用户添加的） */
+        const remoteChars = Array.isArray(base.charList) ? base.charList : [];
+        const localIds = new Set(charList.map(c=>c.id));
+        const mergedChars = [...charList];
+        for(const rc of remoteChars){
+          if(rc.id && !localIds.has(rc.id)) mergedChars.push(rc);
+        }
+        /* 排表：远端有排表则保留远端，本地有排表则保留本地，都无则自动排表 */
+        let mergedTeamList;
+        const remoteTL = Array.isArray(base.teamList) ? base.teamList : [];
+        if(remoteTL.length > 0){
+          mergedTeamList = remoteTL;
+        } else if(teamList.length > 0){
+          mergedTeamList = teamList;
+        } else {
+          mergedTeamList = arrange(mergedChars, raidMode, base.raid12Config);
+        }
+        const pushData = {
+          charList: mergedChars,
+          teamList: mergedTeamList,
+          raidMode: raidMode,
+          presence: Object.assign({}, base.presence||{}, this.room.presence||{}, {[this.nick()]:Date.now()}),
+          dataVersion: (base.dataVersion||0)+1,
+          editor: this.nick(),
+          room: this.room.id,
+          password: this.room.password || base.password || "",
+          createdBy: base.createdBy || ACCT.currentUser() || this.nick()
+        };
+        if(base.raid12Config) pushData.raid12Config = base.raid12Config;
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"char-sync "+pushData.dataVersion, content:b64enc(JSON.stringify(pushData)), branch:this.cfg.branch||"master" };
+        if(sha) body.sha = sha;
+        const method = sha ? "PUT" : "POST";
+        const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+        if(!pr.ok){
+          const e=await pr.json().catch(()=>({})); const msg=e.message||"";
+          if(pr.status===409 || pr.status===422 || (method==="POST" && /exist|already|已存在|sha/i.test(msg))){ await sleep(350); continue; }
+          throw new Error(method+" HTTP "+pr.status+" "+msg);
+        }
+        const pj = await pr.json();
+        this.room.sha = (pj.content && pj.content.sha) || pj.sha;
+        this.room.dataVersion = pushData.dataVersion;
+        this.room.presence = pushData.presence;
+        /* 更新本地为合并后的最终状态 */
+        charList = mergedChars; teamList = mergedTeamList;
+        this.dirty = false;
+        this.dirtyCount = 0;
+        saveStorage(); renderAll(); updateModeBtns();
+        this.setStatus("已同步","on");
+        this.updateSaveBtn();
+        return;
+      }
+    }catch(e){
+      /* 远端失败 → 标记 dirty，用户可手动保存重试 */
+      this.dirty = true;
+      if(!this.dirtyCount) this.dirtyCount = 1;
+      this.updateSaveBtn();
+      this.setStatus("角色保存失败，请手动保存："+e.message,"err");
+      showToast("⚠️ 保存失败，请点击「保存到云端」重试");
+    }
+    finally{ this.writing--; }
+  },
+  /* 更新保存按钮 UI */
+  updateSaveBtn(){
+    const btn=document.getElementById("saveBtn");
+    if(!btn) return;
+    if(this.dirty){
+      btn.classList.add("dirty");
+      btn.textContent=`💾 有 ${this.dirtyCount} 项未保存`;
+      btn.disabled=false;
+      showUnsavedBar(this.dirtyCount);
+    }else{
+      btn.classList.remove("dirty");
+      btn.textContent="✓ 已保存";
+      btn.disabled=true;
+      hideUnsavedBar();
+    }
+  },
+  /* 手动保存：将本地状态推送到 Gitee */
+  async flushToRemote(){
+    if(!this.room || !hasSync(this.cfg)){ this.dirty=false; this.dirtyCount=0; this.updateSaveBtn(); return; }
+    if(!this.dirty) return;
+    this.writing++;
+    this.setStatus("保存中…","off");
+    try{
+      for(let attempt=0; attempt<5; attempt++){
+        let base, sha;
+        const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+        if(r.status===404){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; }
+        else if(!r.ok) throw new Error("GET HTTP "+r.status);
+        else { const j=await r.json(); if(!j || Array.isArray(j) || !j.content){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; } else { sha=j.sha; base=JSON.parse(b64dec(j.content)); if(Array.isArray(base.charList)) base.charList=base.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }); } }
+        /* 合并：以本地编辑为准，但保留远端的 presence 和其他用户上线状态 */
+        const next = {
+          charList: charList,
+          teamList: teamList,
+          raidMode: raidMode,
+          presence: Object.assign({}, base.presence||{}, this.room.presence||{}, {[this.nick()]:Date.now()}),
+          dataVersion: (base.dataVersion||0)+1,
+          editor: this.nick(),
+          room: this.room.id,
+          password: this.room.password || base.password || "",
+          createdBy: base.createdBy || ACCT.currentUser() || this.nick()
+        };
+        if(base.raid12Config) next.raid12Config = base.raid12Config;
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"save "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        if(sha) body.sha = sha;
+        const method = sha ? "PUT" : "POST";
+        const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+        if(!pr.ok){
+          const e=await pr.json().catch(()=>({})); const msg=e.message||"";
+          if(pr.status===409 || pr.status===422 || (method==="POST" && /exist|already|已存在|sha/i.test(msg))){ await sleep(350); continue; }
+          throw new Error(method+" HTTP "+pr.status+" "+msg);
+        }
+        const pj = await pr.json();
+        this.room.sha = (pj.content && pj.content.sha) || pj.sha;
+        this.room.dataVersion = next.dataVersion;
+        this.room.presence = next.presence;
+        this.dirty = false;
+        this.dirtyCount = 0;
+        saveStorage();
+        this.setStatus("已保存","on");
+        this.updateSaveBtn();
+        showToast("✅ 已保存到云端");
+        return;
+      }
+    }catch(e){
+      this.setStatus("保存失败："+e.message,"err");
+    }
+    finally{ this.writing--; }
+  },
+  // intent(state)=>state；对最新远端状态应用意图后写回，冲突自动重试（仅用于后台同步如 presence）
   async writeState(intent, opts){
     opts = opts||{};
     if(!this.room){
@@ -1956,7 +2278,7 @@ const SYNC = {
       saveStorage(); renderAll(); updateModeBtns();
       return;
     }
-    if(!this.cfg || !this.cfg.token){
+    if(!hasSync(this.cfg)){
       // 本地模式：直接对本地状态应用
       const st = {charList, teamList, raidMode, presence:this.room.presence||{}};
       const next = intent(st) || st;
@@ -1980,7 +2302,7 @@ const SYNC = {
         next.presence = Object.assign({}, base.presence||{}, next.presence||{}, {[this.nick()]:Date.now()});
         next.password = this.room.password || base.password || "";
         if(!next.createdBy) next.createdBy = base.createdBy || ACCT.currentUser() || this.nick();
-        const body = { access_token:this.cfg.token, message:"sync "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"sync "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
         const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
@@ -1997,13 +2319,30 @@ const SYNC = {
         this.setStatus("已同步","on");
         return;
       }
-    }catch(e){ this.setStatus("写入失败："+e.message,"err"); }
+    }catch(e){
+      this.setStatus("写入失败："+e.message,"err");
+      /* 本地回退：Gitee 失败时仍更新本地状态，确保拖拽等操作即时生效 */
+      try{
+        const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
+        const next = intent(st) || st;
+        charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+        if(this.room) this.room.presence = next.presence||{};
+        saveStorage(); renderAll(); updateModeBtns();
+      }catch(e2){ console.error("local fallback failed:", e2); }
+    }
     finally{ this.writing--; }
   },
   async sendPresence(){
-    if(!this.cfg || !this.cfg.token) return;
+    if(!hasSync(this.cfg)) return;
     if(!this.room) return;
     if(this.writing>0) return;
+    /* 本地有未保存修改时，仅更新本地 presence，不触发远端写入 */
+    if(this.dirty){
+      if(!this.room.presence) this.room.presence={};
+      this.room.presence[this.nick()]=Date.now();
+      this.renderPresence();
+      return;
+    }
     await this.writeState(s=>{ s.presence = s.presence||{}; s.presence[this.nick()]=Date.now(); return s; });
   },
   nick(){ return (document.getElementById("nickInput").value||"").trim() || "玩家"+randId().slice(0,3); },
@@ -2075,8 +2414,12 @@ function renderCharList(){
       <span>${escapeHtml(owner)}</span>
     </label>
     <span class="cnt">${chars.length}个角色 · ${used}已配置 / ${chars.length-used}未配置</span>
+    <button class="owner-toggle" data-toggle="${escapeHtml(owner)}" title="缩略/展开">▼</button>
     <button class="sm danger batch-del-btn" data-batch-del="${escapeHtml(owner)}" style="margin-left:auto;display:none">批量删除</button>`;
     wrap.appendChild(hdr);
+    const charWrap=document.createElement("div");
+    charWrap.className="owner-chars";
+    charWrap.dataset.ownerWrap=owner;
     chars.forEach(c=>{
       const div=document.createElement("div");
       div.className=`card ${c.type} ${usedIds.has(c.id)?"used":""}`;
@@ -2084,27 +2427,41 @@ function renderCharList(){
         <div style="display:flex;align-items:flex-start;gap:8px">
           <input type="checkbox" class="char-checkbox" data-char-id="${c.id}" data-owner="${escapeHtml(c.owner)}" style="margin-top:4px;width:16px;height:16px;cursor:pointer;flex-shrink:0">
           <div style="flex:1;min-width:0">
-            <h4>${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span class="pwr">${c.power}</span></h4>
-            <div class="meta">${c.type==="c"?"输出C":"奶"} ｜ A:${escapeHtml(c.a||"-")} B:${escapeHtml(c.b||"-")}</div>
+            <h4><span class="type-tag ${c.type}">${c.type==="c"?"C":"奶"}</span>${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span class="pwr">${c.power}</span></h4>
+            <div class="meta">A:${escapeHtml(c.a||"-")} B:${escapeHtml(c.b||"-")}</div>
             <div style="margin-top:6px;display:flex;gap:6px">
               <button class="sm" data-edit="${c.id}">编辑</button>
               <button class="sm danger" data-del="${c.id}">删除</button>
             </div>
           </div>
         </div>`;
-      wrap.appendChild(div);
+      charWrap.appendChild(div);
     });
+    wrap.appendChild(charWrap);
   });
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editChar(Number(b.dataset.edit)));
   document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delChar(Number(b.dataset.del)));
 
-  /* 全选/取消全选 */
+  /* 缩略/展开按钮（按玩家组） */
+  document.querySelectorAll(".owner-toggle").forEach(btn=>{
+    btn.onclick=function(){
+      const owner=this.dataset.toggle;
+      const charWrap=document.querySelector(`[data-owner-wrap="${owner.replace(/"/g,'&quot;')}"]`);
+      if(charWrap){
+        const isCollapsed=charWrap.classList.toggle("collapsed");
+        this.textContent=isCollapsed?"▶":"▼";
+      }
+    };
+  })
+
+  /* 全选/取消全选（按玩家组） */
   document.querySelectorAll(".owner-select-all").forEach(cb=>{
     cb.onchange=function(){
       const owner=this.dataset.owner;
       const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
       cbs.forEach(c=>c.checked=this.checked);
       updateBatchDelBtn(owner);
+      updateGlobalBatchUI();
     };
   });
   /* 单个勾选 */
@@ -2112,13 +2469,14 @@ function renderCharList(){
     cb.onchange=function(){
       const owner=this.dataset.owner;
       updateBatchDelBtn(owner);
-      /* 更新全选状态 */
+      /* 更新该组全选状态 */
       const all=document.querySelector(`.owner-select-all[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
       const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
       if(all){ all.checked = Array.from(cbs).every(c=>c.checked); }
+      updateGlobalBatchUI();
     };
   });
-  /* 批量删除 */
+  /* 批量删除（按玩家组） */
   document.querySelectorAll("[data-batch-del]").forEach(btn=>{
     btn.onclick=async function(){
       const owner=this.dataset.batchDel;
@@ -2127,18 +2485,73 @@ function renderCharList(){
       if(ids.length===0) return;
       if(!confirm(`确认批量删除 ${owner} 的 ${ids.length} 个角色？`))return;
       pushHistory();
-      await SYNC.writeState(st=>{
+      SYNC.writeStateRemote(st=>{
         st.charList=st.charList.filter(c=>!ids.includes(Number(c.id)));
-        st.teamList=arrange(st.charList);
+        if(st.teamList && st.teamList.length>0){
+          st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId && ids.includes(Number(s.charId))) s.charId=null; }));
+        } else {
+          st.teamList=arrange(st.charList);
+        }
         return st;
       });
     };
   });
+  /* 全局全选/取消全选 */
+  const gSelAll=document.getElementById("globalSelectAll");
+  if(gSelAll){
+    gSelAll.onclick=function(){
+      const allCbs=document.querySelectorAll(".char-checkbox");
+      const allChecked=allCbs.length>0&&Array.from(allCbs).every(c=>c.checked);
+      allCbs.forEach(c=>c.checked=!allChecked);
+      document.querySelectorAll(".owner-select-all").forEach(cb=>{
+        const owner=cb.dataset.owner;
+        const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]`);
+        cb.checked=cbs.length>0&&Array.from(cbs).every(c=>c.checked);
+        updateBatchDelBtn(owner);
+      });
+      updateGlobalBatchUI();
+    };
+  }
+  /* 全局批量删除 */
+  const gBatchDel=document.getElementById("globalBatchDel");
+  if(gBatchDel){
+    gBatchDel.onclick=async function(){
+      const cbs=document.querySelectorAll(".char-checkbox:checked");
+      const ids=Array.from(cbs).map(c=>Number(c.dataset.charId));
+      if(ids.length===0) return;
+      if(!confirm(`确认批量删除选中的 ${ids.length} 个角色？\n此操作不可恢复！`))return;
+      pushHistory();
+      SYNC.writeStateRemote(st=>{
+        st.charList=st.charList.filter(c=>!ids.includes(Number(c.id)));
+        if(st.teamList && st.teamList.length>0){
+          st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId && ids.includes(Number(s.charId))) s.charId=null; }));
+        } else {
+          st.teamList=arrange(st.charList);
+        }
+        return st;
+      });
+    };
+  }
+  updateGlobalBatchUI();
 }
 function updateBatchDelBtn(owner){
   const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]:checked`);
   const btn=document.querySelector(`[data-batch-del="${owner.replace(/"/g,'&quot;')}"]`);
   if(btn) btn.style.display=cbs.length>0?"inline-block":"none";
+}
+function updateGlobalBatchUI(){
+  const checked=document.querySelectorAll(".char-checkbox:checked");
+  const cnt=checked.length;
+  const cntEl=document.getElementById("batchSelCnt");
+  const delBtn=document.getElementById("globalBatchDel");
+  const selAllBtn=document.getElementById("globalSelectAll");
+  if(cntEl) cntEl.textContent=`已选 ${cnt} 个`;
+  if(delBtn){ delBtn.disabled=cnt===0; delBtn.style.opacity=cnt===0?".4":"1"; }
+  if(selAllBtn){
+    const allCbs=document.querySelectorAll(".char-checkbox");
+    const allChecked=allCbs.length>0&&Array.from(allCbs).every(c=>c.checked);
+    selAllBtn.textContent=allChecked?"取消全选":"全选";
+  }
 }
 
 function renderTeamTable(){
@@ -2173,8 +2586,26 @@ function renderTeamTable(){
         /* "clear"=清空为空位；""=未选择不做操作；其他=角色ID */
         const newCid=(val==="clear"||!val)?null:Number(val);
         if(val==="") return; /* 未选择任何项 */
+        /* 同一波禁止同一玩家：检查目标队伍是否已有该角色所属玩家 */
+        if(newCid){
+          const newChar=charList.find(c=>Number(c.id)===newCid);
+          if(newChar && teamList[t]){
+            for(let si=0;si<teamList[t].slots.length;si++){
+              if(si===s) continue;
+              const slotCid=teamList[t].slots[si].charId;
+              if(slotCid){
+                const slotChar=charList.find(c=>Number(c.id)===Number(slotCid));
+                if(slotChar && slotChar.owner===newChar.owner){
+                  alert("同一波不能出现同一玩家的不同角色");
+                  this.value="";
+                  return;
+                }
+              }
+            }
+          }
+        }
         pushHistory();
-        await SYNC.writeState(st=>{
+        SYNC.writeStateLocal(st=>{
           if(newCid){
             /* 选中了角色：先从其他位置移除该角色 */
             for(let ti=0;ti<st.teamList.length;ti++){
@@ -2238,13 +2669,23 @@ function renderTeamTable(){
       doAddTeam();
     });
   });
+  // 绑定波数排序按钮（上移/下移/移至最顶/移至最底）
+  document.querySelectorAll(".wave-btn[data-wave-act]").forEach(btn=>{
+    btn.addEventListener("click",function(e){
+      e.stopPropagation();
+      e.preventDefault();
+      const action=this.dataset.waveAct;
+      const wave=Number(this.dataset.waveNum);
+      if(action&&wave) doWaveAction(action,wave);
+    });
+  });
   // 绑定拖拽：队伍排序（4人模式插入排序，12人模式队伍对调）
   bindTeamDragHandlers(isRaid12);
 }
 
 function bindTeamDragHandlers(isRaid12){
-  const blocks=document.querySelectorAll("[data-teamDrag]");
-  const waveLabels=document.querySelectorAll("[data-waveDrag]");
+  const blocks=document.querySelectorAll("[data-team-drag]");
+  const waveLabels=document.querySelectorAll("[data-wave-drag]");
 
   blocks.forEach(block=>{
     block.addEventListener("dragstart",function(e){
@@ -2285,43 +2726,41 @@ function bindTeamDragHandlers(isRaid12){
     });
   });
 
-  /* 12人模式：波数拖拽（长按拖动整个波数） */
-  if(isRaid12){
-    waveLabels.forEach(wl=>{
-      wl.addEventListener("dragstart",function(e){
-        e.stopPropagation();
-        window._dragging=true;
-        e.dataTransfer.setData("text/plain",JSON.stringify({type:"wave",wave:Number(this.dataset.waveDrag)}));
-        e.dataTransfer.effectAllowed="move";
-        this.classList.add("dragging");
-      });
-      wl.addEventListener("dragend",function(){
-        window._dragging=false;
-        this.classList.remove("dragging");
-        document.querySelectorAll(".drag-over").forEach(el=>el.classList.remove("drag-over"));
-      });
-      wl.addEventListener("dragover",function(e){
-        e.preventDefault();
-        e.dataTransfer.dropEffect="move";
-        this.classList.add("drag-over");
-      });
-      wl.addEventListener("dragleave",function(){
-        this.classList.remove("drag-over");
-      });
-      wl.addEventListener("drop",async function(e){
-        e.preventDefault();
-        this.classList.remove("drag-over");
-        const raw=e.dataTransfer.getData("text/plain");
-        if(!raw){ return; }
-        let data;
-        try{ data=JSON.parse(raw); }catch(_){ return; }
-        if(!data||data.type!=="wave") return;
-        const fromWave=data.wave, toWave=Number(this.dataset.waveDrag);
-        if(fromWave===toWave) return;
-        await doMoveWave(fromWave,toWave);
-      });
+  /* 波数拖拽：12人模式 + 4人模式均支持插入排序 */
+  waveLabels.forEach(wl=>{
+    wl.addEventListener("dragstart",function(e){
+      e.stopPropagation();
+      window._dragging=true;
+      e.dataTransfer.setData("text/plain",JSON.stringify({type:"wave",wave:Number(this.dataset.waveDrag)}));
+      e.dataTransfer.effectAllowed="move";
+      this.classList.add("dragging");
     });
-  }
+    wl.addEventListener("dragend",function(){
+      window._dragging=false;
+      this.classList.remove("dragging");
+      document.querySelectorAll(".drag-over").forEach(el=>el.classList.remove("drag-over"));
+    });
+    wl.addEventListener("dragover",function(e){
+      e.preventDefault();
+      e.dataTransfer.dropEffect="move";
+      this.classList.add("drag-over");
+    });
+    wl.addEventListener("dragleave",function(){
+      this.classList.remove("drag-over");
+    });
+    wl.addEventListener("drop",async function(e){
+      e.preventDefault();
+      this.classList.remove("drag-over");
+      const raw=e.dataTransfer.getData("text/plain");
+      if(!raw){ return; }
+      let data;
+      try{ data=JSON.parse(raw); }catch(_){ return; }
+      if(!data||data.type!=="wave") return;
+      const fromWave=data.wave, toWave=Number(this.dataset.waveDrag);
+      if(fromWave===toWave) return;
+      await doMoveWave(fromWave,toWave);
+    });
+  });
 }
 
 function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, raidLabels, gTeams){
@@ -2355,14 +2794,28 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       wl.className="wave-label";
       wl.draggable=true;
       wl.dataset.waveDrag=curGroup;
-      wl.innerHTML=`<span class="wnum">第 ${curGroup} 波</span><span class="wline"></span>`;
+      wl.innerHTML=`<span class="wnum">第 ${curGroup} 波</span><span class="wline"></span>
+        <div class="wave-actions">
+          <button class="wave-btn" draggable="false" data-wave-act="top" data-wave-num="${curGroup}" title="移至最顶">↑↑</button>
+          <button class="wave-btn" draggable="false" data-wave-act="up" data-wave-num="${curGroup}" title="上移">↑</button>
+          <button class="wave-btn" draggable="false" data-wave-act="down" data-wave-num="${curGroup}" title="下移">↓</button>
+          <button class="wave-btn" draggable="false" data-wave-act="bottom" data-wave-num="${curGroup}" title="移至最底">↓↓</button>
+        </div>`;
       container.appendChild(wl);
       prevGroup=curGroup;
       curWaveColors=[];
     } else if(!isRaid12 && !isUltra){
       const wl=document.createElement("div");
       wl.className="wave-label";
-      wl.innerHTML=`<span class="wnum">第 ${tIdx+1} 波</span><span class="wline"></span>`;
+      wl.draggable=true;
+      wl.dataset.waveDrag=tIdx+1;
+      wl.innerHTML=`<span class="wnum">第 ${tIdx+1} 波</span><span class="wline"></span>
+        <div class="wave-actions">
+          <button class="wave-btn" draggable="false" data-wave-act="top" data-wave-num="${tIdx+1}" title="移至最顶">↑↑</button>
+          <button class="wave-btn" draggable="false" data-wave-act="up" data-wave-num="${tIdx+1}" title="上移">↑</button>
+          <button class="wave-btn" draggable="false" data-wave-act="down" data-wave-num="${tIdx+1}" title="下移">↓</button>
+          <button class="wave-btn" draggable="false" data-wave-act="bottom" data-wave-num="${tIdx+1}" title="移至最底">↓↓</button>
+        </div>`;
       container.appendChild(wl);
     }
     const rColor = team.raidColor || (isRaid12 ? raidColors[tIdx%3] : null);
@@ -2414,7 +2867,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       }
       const c=slotChar;
       if(isUltra){
-        html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}"><div class="sn">${escapeHtml(c.owner)}</div><div class="cn">${escapeHtml(c.name)}</div><div class="sp">${c.power}</div></div>`;
+        html+=`<div class="slot ${c.type}${hlClass(c.owner)}" data-owner="${escapeHtml(c.owner)}"><div class="sn">${escapeHtml(c.owner)}</div><div class="cn">${escapeHtml(c.name)}</div></div>`;
         return;
       }
       const teamOwners=new Set();
@@ -2529,12 +2982,13 @@ async function saveModalChar(){
   if(!o){alert("请填写归属玩家");return;}
   if(!n){alert("角色名称不能为空");return;}
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     const draft={owner:o,name:n,power:p,type:tp,a,b};
     const idx=st.charList.findIndex(x=>Number(x.id)===target);
     if(idx>=0) st.charList[idx]=Object.assign({id:target},draft);
     else st.charList.push(Object.assign({id:target},draft));
-    st.teamList=arrange(st.charList);
+    /* 已有排表时不覆盖，仅空表时自动排表 */
+    if(!st.teamList || st.teamList.length===0) st.teamList=arrange(st.charList);
     return st;
   });
   closeModal("editCharModal");
@@ -2555,7 +3009,7 @@ async function saveChar(){
   if(!n){alert("角色名称不能为空");return;}
   const target=editTargetId;
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateRemote(st=>{
     const draft={owner:o,name:n,power:p,type:tp,a,b};
     if(target){
       const idx=st.charList.findIndex(x=>Number(x.id)===Number(target));
@@ -2565,16 +3019,26 @@ async function saveChar(){
       const newId=Math.max(0,...st.charList.map(x=>Number(x.id)||0))+1;
       st.charList.push(Object.assign({id:newId},draft));
     }
-    st.teamList=arrange(st.charList);
+    /* 已有排表时不覆盖，仅空表时自动排表 */
+    if(!st.teamList || st.teamList.length===0) st.teamList=arrange(st.charList);
     return st;
   });
   clearEdit();
 }
 async function delChar(id){
-  if(!confirm("确定删除该角色？队伍内占用会清空并重新排表"))return;
+  if(!confirm("确定删除该角色？队伍内该角色的占用会清空"))return;
   const numId=Number(id);
   pushHistory();
-  await SYNC.writeState(st=>{ st.charList=st.charList.filter(x=>Number(x.id)!==numId); st.teamList=arrange(st.charList); return st; });
+  SYNC.writeStateRemote(st=>{
+    st.charList=st.charList.filter(x=>Number(x.id)!==numId);
+    if(st.teamList && st.teamList.length>0){
+      /* 已有排表：清空该角色在队伍中的占用，不重新排表 */
+      st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId===numId) s.charId=null; }));
+    } else {
+      st.teamList=arrange(st.charList);
+    }
+    return st;
+  });
 }
 
 /* ---------- 顶栏动作 ---------- */
@@ -2604,7 +3068,7 @@ async function doAutoArrange(){
   }
   const opts=readRaid12Config();
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     st.raid12Config=opts;
     st.teamList=arrange(st.charList, raidMode, opts);
     return st;
@@ -2616,7 +3080,7 @@ async function switchMode(m){
   const wasEmpty = !teamList || teamList.length===0;
   /* 切换到12人模式时，保存当前门槛配置到房间 */
   const cfg = m===12 ? readRaid12Config() : null;
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     st.raidMode=m; raidMode=m;
     if(cfg) st.raid12Config=cfg;
     /* 排表已清空时切换模式不自动重排，保持空状态由用户手动一键排表 */
@@ -2712,27 +3176,27 @@ async function doImport(){
     // 分配ID
     let maxId=0; arr.forEach((c,i)=>{ c.id=i+1; });
     pushHistory();
-    await SYNC.writeState(st=>{ st.charList=arr; st.teamList=arrange(st.charList); return st; });
+    SYNC.writeStateRemote(st=>{ st.charList=arr; st.teamList=arrange(st.charList); return st; });
     closeModal("importModal"); fileInput.value=""; alert("导入成功，共"+arr.length+"个角色");
   }catch(e){ alert("Excel解析失败："+e.message); }
 }
 async function doReset(){
   if(!confirm("确认重置为导入状态？所有修改将被覆盖并同步到房间。"))return;
   pushHistory();
-  await SYNC.writeState(st=>{ st.charList=getInitData(); st.teamList=arrange(st.charList); return st; });
+  SYNC.writeStateRemote(st=>{ st.charList=getInitData(); st.teamList=arrange(st.charList); return st; });
   clearEdit();
 }
 async function doClearTeams(){
   if(!confirm("确认清空当前排表？角色数据保留，清空后可重新「一键均衡排完所有角色」。"))return;
   pushHistory();
-  await SYNC.writeState(st=>{ st.teamList=[]; return st; });
+  SYNC.writeStateLocal(st=>{ st.teamList=[]; return st; });
   clearEdit();
 }
 
 /* ---------- 新建队伍 ---------- */
 async function doAddTeam(){
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     if(raidMode===12){
       /* 12人模式：新建队伍需要确定波数和颜色 */
       const maxGroup = st.teamList.reduce((mx,t)=>Math.max(mx,t.group||0),0);
@@ -2763,7 +3227,7 @@ async function doAddTeam(){
 /* ---------- 波内添加队伍（12人模式） ---------- */
 async function doAddTeamToWave(groupNum){
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     const colors=["red","yellow","green"];
     const waveTeams = st.teamList.filter(t=>t.group===groupNum);
     const usedColors = new Set(waveTeams.map(t=>t.raidColor));
@@ -2788,7 +3252,7 @@ async function doAddTeamToWave(groupNum){
 /* ---------- 新增波数（12人模式） ---------- */
 async function doAddNewWave(){
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     const maxGroup = st.teamList.reduce((mx,t)=>Math.max(mx,t.group||0),0);
     const newGroup = maxGroup + 1;
     st.teamList.push({slots:[{charId:null},{charId:null},{charId:null},{charId:null}],raidColor:"red",group:newGroup});
@@ -2800,7 +3264,7 @@ async function doAddNewWave(){
 async function doRemoveTeam(tIdx){
   if(!confirm("确认删除此队伍？队伍中的角色将回到未配置。"))return;
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     if(tIdx>=0 && tIdx<st.teamList.length){
       st.teamList.splice(tIdx,1);
     }
@@ -2811,7 +3275,7 @@ async function doRemoveTeam(tIdx){
 /* ---------- 拖拽：4人模式队伍插入排序 ---------- */
 async function doMoveTeam(fromIdx,toIdx){
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     if(fromIdx<0||fromIdx>=st.teamList.length||toIdx<0||toIdx>=st.teamList.length) return st;
     const team=st.teamList.splice(fromIdx,1)[0];
     st.teamList.splice(toIdx,0,team);
@@ -2822,7 +3286,7 @@ async function doMoveTeam(fromIdx,toIdx){
 /* ---------- 拖拽：12人模式队伍对调 ---------- */
 async function doSwapTeams12(fromIdx,toIdx){
   pushHistory();
-  await SYNC.writeState(st=>{
+  SYNC.writeStateLocal(st=>{
     if(fromIdx<0||fromIdx>=st.teamList.length||toIdx<0||toIdx>=st.teamList.length) return st;
     /* 对调两队的位置和波数/颜色信息 */
     const a=st.teamList[fromIdx], b=st.teamList[toIdx];
@@ -2836,20 +3300,92 @@ async function doSwapTeams12(fromIdx,toIdx){
   });
 }
 
-/* ---------- 拖拽：12人模式整个波数插入排序 ---------- */
+/* ---------- 拖拽：波数插入排序（12人模式 + 4人模式均支持） ---------- */
 async function doMoveWave(fromWave,toWave){
   if(fromWave===toWave) return;
   pushHistory();
-  await SYNC.writeState(st=>{
-    /* 收集两个波数的所有队伍 */
-    const fromTeams=st.teamList.filter(t=>t.group===fromWave);
-    const toTeams=st.teamList.filter(t=>t.group===toWave);
-    if(!fromTeams.length||!toTeams.length) return st;
-    /* 交换波数编号：fromWave的队伍变为toWave，toWave的变为fromWave */
-    fromTeams.forEach(t=>t.group=toWave);
-    toTeams.forEach(t=>t.group=fromWave);
-    /* 重新排序teamList，按波数顺序排列 */
-    st.teamList.sort((a,b)=>(a.group||0)-(b.group||0));
+  SYNC.writeStateLocal(st=>{
+    const is12 = (st.raidMode||4)===12;
+    /* 按波数分组，保留出现顺序。4人模式每队单独一波，用 tIdx+1 作 group */
+    const waves={};
+    const waveOrder=[];
+    st.teamList.forEach((t,i)=>{
+      const g = is12 ? (t.group||(Math.floor(i/3)+1)) : (i+1);
+      if(!waves[g]){ waves[g]=[]; waveOrder.push(g); }
+      waves[g].push(t);
+    });
+    /* 源波数不存在则跳过 */
+    if(!waves[fromWave]) return st;
+    /* 从顺序中移除源波数 */
+    const fi=waveOrder.indexOf(fromWave);
+    if(fi===-1) return st;
+    waveOrder.splice(fi,1);
+    /* 插入到目标波数之前 */
+    const ti=waveOrder.indexOf(toWave);
+    if(ti===-1){
+      waveOrder.push(fromWave);
+    } else {
+      waveOrder.splice(ti,0,fromWave);
+    }
+    /* 按新顺序重编号并展平 */
+    const newTeamList=[];
+    waveOrder.forEach((oldG,newGIdx)=>{
+      const newGroup=newGIdx+1;
+      for(const t of waves[oldG]){
+        if(is12) t.group=newGroup;
+        newTeamList.push(t);
+      }
+    });
+    st.teamList=newTeamList;
+    return st;
+  });
+}
+
+/* ---------- 波数按钮排序（上移/下移/移至最顶/移至最底） ---------- */
+async function doWaveAction(action,fromWave){
+  pushHistory();
+  SYNC.writeStateLocal(st=>{
+    const is12=(st.raidMode||4)===12;
+    /* 按波数分组，保留出现顺序 */
+    const waves={};
+    const waveOrder=[];
+    st.teamList.forEach((t,i)=>{
+      const g=is12?(t.group||(Math.floor(i/3)+1)):(i+1);
+      if(!waves[g]){waves[g]=[];waveOrder.push(g);}
+      waves[g].push(t);
+    });
+    if(!waves[fromWave]) return st;
+    const fi=waveOrder.indexOf(fromWave);
+    if(fi===-1) return st;
+    /* 从顺序中移除源波数 */
+    waveOrder.splice(fi,1);
+    /* 根据操作类型插入到新位置 */
+    switch(action){
+      case 'top':
+        waveOrder.unshift(fromWave);
+        break;
+      case 'up':
+        /* 插入到原位置的前一位（已移除，所以 fi-1 就是前一位） */
+        waveOrder.splice(Math.max(0,fi-1),0,fromWave);
+        break;
+      case 'down':
+        /* 插入到原位置的后一位（已移除，所以 fi+1 就是后一位） */
+        waveOrder.splice(Math.min(waveOrder.length,fi+1),0,fromWave);
+        break;
+      case 'bottom':
+        waveOrder.push(fromWave);
+        break;
+    }
+    /* 按新顺序重编号并展平 */
+    const newTeamList=[];
+    waveOrder.forEach((oldG,newGIdx)=>{
+      const newGroup=newGIdx+1;
+      for(const t of waves[oldG]){
+        if(is12) t.group=newGroup;
+        newTeamList.push(t);
+      }
+    });
+    st.teamList=newTeamList;
     return st;
   });
 }
@@ -2884,14 +3420,59 @@ function bindLoginTabs(){
 async function doJoinRoom(){
   const rid=document.getElementById("joinRoomId").value.trim();
   const pwd=document.getElementById("joinRoomPwd").value;
+  const remember=document.getElementById("rememberRoom").checked;
   const msg=document.getElementById("loginMsg");
   if(!rid){ msg.textContent="请输入房间号"; return; }
   if(!pwd){ msg.textContent="请输入密码"; return; }
   msg.textContent = "验证中…";
   await SYNC.checkRoom(rid, pwd,
-    ()=>{ closeModal("loginModal"); msg.textContent=""; document.getElementById("joinRoomPwd").value=""; },
+    ()=>{
+      closeModal("loginModal"); msg.textContent=""; document.getElementById("joinRoomPwd").value="";
+      /* 记住房间：勾选则保存到本地 */
+      if(remember) saveRememberedRoom(rid, pwd);
+      else removeRememberedRoom(rid);
+    },
     (err)=>{ msg.textContent = "✗ "+err; }
   );
+}
+/* 记住房间：本地存储 */
+function getRememberedRooms(){ try{ return JSON.parse(localStorage.getItem(LS_REMEMBER))||{}; }catch(e){ return {}; } }
+function saveRememberedRoom(rid, pwd){
+  const rooms=getRememberedRooms();
+  rooms[rid]={pwd, ts:Date.now()};
+  /* 最多记住 20 个房间，超出按时间清理 */
+  const keys=Object.keys(rooms);
+  if(keys.length>20){
+    keys.sort((a,b)=>(rooms[a].ts||0)-(rooms[b].ts||0));
+    for(let i=0;i<keys.length-20;i++) delete rooms[keys[i]];
+  }
+  localStorage.setItem(LS_REMEMBER, JSON.stringify(rooms));
+}
+function removeRememberedRoom(rid){
+  const rooms=getRememberedRooms();
+  delete rooms[rid];
+  localStorage.setItem(LS_REMEMBER, JSON.stringify(rooms));
+}
+/* 自动填充已记住房间，或自动加入 */
+function tryAutoFillRememberedRoom(){
+  const rid=document.getElementById("joinRoomId").value.trim();
+  const rooms=getRememberedRooms();
+  /* 优先匹配已填写的房间号 */
+  if(rid && rooms[rid]){
+    document.getElementById("joinRoomPwd").value=rooms[rid].pwd;
+    document.getElementById("rememberRoom").checked=true;
+    return true;
+  }
+  /* 如果只有一个记住房间，直接填充 */
+  const keys=Object.keys(rooms);
+  if(keys.length===1){
+    const r=keys[0];
+    document.getElementById("joinRoomId").value=r;
+    document.getElementById("joinRoomPwd").value=rooms[r].pwd;
+    document.getElementById("rememberRoom").checked=true;
+    return true;
+  }
+  return false;
 }
 async function doCreateRoom(){
   const rid=document.getElementById("createRoomId").value.trim();
@@ -2979,7 +3560,7 @@ const ADMIN = {
     return false;
   },
   async fetchRooms(){
-    if(!SYNC.cfg || !SYNC.cfg.token) return [];
+    if(!hasSync(SYNC.cfg)) return [];
     try{
       const r=await fetch(SYNC.url("rooms")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
       if(!r.ok) return [];
@@ -3015,16 +3596,16 @@ const ADMIN = {
     }catch(e){ return []; }
   },
   async deleteRoom(roomId, sha){
-    if(!SYNC.cfg || !SYNC.cfg.token) return false;
+    if(!hasSync(SYNC.cfg)) return false;
     try{
-      const body={access_token:SYNC.cfg.token,message:"admin delete room "+roomId,sha,branch:SYNC.cfg.branch||"master"};
+      const body={access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token),message:"admin delete room "+roomId,sha,branch:SYNC.cfg.branch||"master"};
       const r=await fetch(SYNC.url("rooms/"+roomId+".json")+"?access_token="+SYNC.tok(),{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
       return r.ok;
     }catch(e){ return false; }
   },
   async enterRoom(roomId){
     // 管理员无密码进入房间
-    if(!SYNC.cfg || !SYNC.cfg.token){
+    if(!hasSync(SYNC.cfg)){
       SYNC.room={id:roomId,sha:null,dataVersion:0,presence:{},password:""};
       history.replaceState(null,"","#room="+roomId);
       SYNC.setStatus("本地模式（管理员）","off");
@@ -3054,7 +3635,7 @@ const ADMIN = {
     }catch(e){ alert("进入失败："+e.message); }
   },
   async renameRoom(oldId, newId, sha){
-    if(!SYNC.cfg || !SYNC.cfg.token) return false;
+    if(!hasSync(SYNC.cfg)) return false;
     if(!/^[A-Za-z0-9_-]{1,30}$/.test(newId)) return false;
     if(oldId===newId) return true;
     try{
@@ -3068,11 +3649,11 @@ const ADMIN = {
       const checkR=await fetch(SYNC.url("rooms/"+newId+".json")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
       if(checkR.status!==404) return "exists";
       // 3. 创建新房间
-      const body={access_token:SYNC.cfg.token,message:"admin rename "+oldId+" -> "+newId,content:b64enc(JSON.stringify(data)),branch:SYNC.cfg.branch||"master"};
+      const body={access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token),message:"admin rename "+oldId+" -> "+newId,content:b64enc(JSON.stringify(data)),branch:SYNC.cfg.branch||"master"};
       const pr=await fetch(SYNC.url("rooms/"+newId+".json")+"?access_token="+SYNC.tok(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
       if(!pr.ok) return false;
       // 4. 删除旧房间
-      const delBody={access_token:SYNC.cfg.token,message:"admin delete old room "+oldId,sha,branch:SYNC.cfg.branch||"master"};
+      const delBody={access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token),message:"admin delete old room "+oldId,sha,branch:SYNC.cfg.branch||"master"};
       await fetch(SYNC.url("rooms/"+oldId+".json")+"?access_token="+SYNC.tok(),{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(delBody)});
       return true;
     }catch(e){ return false; }
@@ -3129,7 +3710,7 @@ async function loadAdminRooms(){
     document.getElementById("adminTotalTeams").textContent="0";
     document.getElementById("adminOnline").textContent="0";
     document.getElementById("adminSelectedCount").textContent="0";
-    updateBatchDelBtn();
+    updateAdminBatchDel();
     return;
   }
   let totalChars=0,totalTeams=0,totalOnline=0;
@@ -3194,12 +3775,12 @@ async function loadAdminRooms(){
   });
   // 绑定复选框
   document.querySelectorAll("[data-admin-check]").forEach(cb=>{
-    cb.onchange=updateBatchDelBtn;
+    cb.onchange=updateAdminBatchDel;
   });
-  updateBatchDelBtn();
+  updateAdminBatchDel();
 }
 
-function updateBatchDelBtn(){
+function updateAdminBatchDel(){
   const checked=document.querySelectorAll("[data-admin-check]:checked");
   const btn=document.getElementById("adminBatchDel");
   const cnt=document.getElementById("adminSelectedCount");
@@ -3295,7 +3876,7 @@ function init(){
       el.addEventListener("change",async()=>{
         if(raidMode===12 && SYNC.room){
           const cfg=readRaid12Config();
-          await SYNC.writeState(st=>{ st.raid12Config=cfg; return st; });
+          SYNC.writeStateLocal(st=>{ st.raid12Config=cfg; return st; });
         }
       });
     }
@@ -3306,7 +3887,11 @@ function init(){
   document.getElementById("doImport").onclick=doImport;
 
   document.getElementById("exitRoom").onclick=exitRoom;
+  document.getElementById("saveBtn").onclick=()=>SYNC.flushToRemote();
   document.getElementById("copyLink").onclick=copyLink;
+  document.getElementById("openShengyan").onclick=()=>{
+    window.open("http://shengyan.xyz","_blank","noopener");
+  };
 
   // 登录弹窗
   bindAcctTabs();
@@ -3329,6 +3914,18 @@ function init(){
   };
   document.getElementById("doJoin").onclick=doJoinRoom;
   document.getElementById("doCreate").onclick=doCreateRoom;
+  /* 房间号输入变化时自动填充密码 */
+  document.getElementById("joinRoomId").addEventListener("input",function(){
+    const rid=this.value.trim();
+    const rooms=getRememberedRooms();
+    if(rid && rooms[rid]){
+      document.getElementById("joinRoomPwd").value=rooms[rid].pwd;
+      document.getElementById("rememberRoom").checked=true;
+    } else {
+      document.getElementById("joinRoomPwd").value="";
+      document.getElementById("rememberRoom").checked=false;
+    }
+  });
 
   // 引导弹窗
   document.getElementById("downloadTemplate").onclick=downloadTemplate;
@@ -3372,7 +3969,7 @@ function init(){
         if(cb) cb.checked=true;
       }
     });
-    updateBatchDelBtn();
+    updateAdminBatchDel();
   };
   document.getElementById("adminSelectNone").onclick=()=>{
     // 只取消当前可见的房间
@@ -3382,7 +3979,7 @@ function init(){
         if(cb) cb.checked=false;
       }
     });
-    updateBatchDelBtn();
+    updateAdminBatchDel();
   };
   document.getElementById("adminExit").onclick=()=>{
     ADMIN.active=false;
@@ -3409,6 +4006,51 @@ function init(){
   }
 }
 init();
+
+/* 未保存修改浮动提示条 / Toast 通知 */
+let _toastT=null;
+function showToast(msg){
+  const el=document.getElementById("toastNotify");
+  if(!el) return;
+  el.textContent=msg;
+  el.classList.add("show");
+  clearTimeout(_toastT);
+  _toastT=setTimeout(()=>el.classList.remove("show"),2500);
+}
+function showUnsavedBar(count){
+  const bar=document.getElementById("unsavedBar");
+  const cnt=document.getElementById("unsavedCount");
+  if(bar){ bar.classList.add("show"); }
+  if(cnt){ cnt.textContent=count||0; }
+}
+function hideUnsavedBar(){
+  const bar=document.getElementById("unsavedBar");
+  if(bar){ bar.classList.remove("show"); }
+}
+/* 未保存修改时，关闭/刷新/切换网页提醒用户 */
+window.addEventListener("beforeunload",function(e){
+  if(SYNC.dirty){
+    e.preventDefault();
+    e.returnValue="您有未保存的修改，确定要离开吗？";
+    return e.returnValue;
+  }
+});
+/* 切换标签页时提醒 */
+document.addEventListener("visibilitychange",function(){
+  if(document.visibilityState==="hidden" && SYNC.dirty){
+    /* beforeunload 已覆盖关闭场景；此处保持按钮高亮 + 弹出浮动提示条 */
+    const btn=document.getElementById("saveBtn");
+    if(btn){ btn.classList.add("dirty"); }
+    showUnsavedBar(SYNC.dirtyCount);
+  }
+});
+/* 浮动提示条按钮事件 */
+(function(){
+  const saveBtn=document.getElementById("unsavedSaveBtn");
+  const closeBtn=document.getElementById("unsavedClose");
+  if(saveBtn){ saveBtn.onclick=()=>SYNC.flushToRemote(); }
+  if(closeBtn){ closeBtn.onclick=()=>hideUnsavedBar(); }
+})();
 </script>
 </body>
 </html>
