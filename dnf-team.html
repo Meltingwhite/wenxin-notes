@@ -20,8 +20,8 @@
   --wave-bg:rgba(239,68,68,.15);
   --wave-badge-bg:#dc2626;
   /* 玩家高亮主题变量：pA=搜索高亮（金色系）· pB=点击高亮（主题色系），RGB 分量驱动呼吸灯光晕 */
-  --pA:234,179,8; --pA-bg:#3a3a15; --pA-stroke:#eab308;
-  --pB:96,165,250; --pB-bg:#1a2a3a; --pB-stroke:#60a5fa;
+  --pA:234,179,8; --pA-bg:#3a3a15; --pA-stroke:#eab308; --pA-text:#eab308;
+  --pB:96,165,250; --pB-bg:#1a2a3a; --pB-stroke:#60a5fa; --pB-text:#60a5fa;
 }
 /* B站粉主题 */
 [data-theme="bilibili"]{
@@ -31,8 +31,8 @@
   --radius:8px;
   --wg:242,93,67; --wave-stroke:#e04a31; --wave-bg:rgba(242,93,67,.13); --wave-badge-bg:#c1402a;
   /* 玩家高亮：粉系主题，点击高亮=B站粉 */
-  --pA:255,176,39; --pA-bg:#fff4d9; --pA-stroke:#f59e0b;
-  --pB:251,114,153; --pB-bg:#ffe9f0; --pB-stroke:#fb7299;
+  --pA:255,176,39; --pA-bg:#fff4d9; --pA-stroke:#f59e0b; --pA-text:#b45309;
+  --pB:251,114,153; --pB-bg:#ffe9f0; --pB-stroke:#fb7299; --pB-text:#be185d;
 }
 [data-theme="bilibili"] body{background:#f4f5f7}
 [data-theme="bilibili"] input,[data-theme="bilibili"] select,[data-theme="bilibili"] textarea{background:#f0f1f3;border-color:#e3e5e8}
@@ -50,8 +50,8 @@
   --radius:8px;
   --wg:220,53,69; --wave-stroke:#c92a3a; --wave-bg:rgba(220,53,69,.11); --wave-badge-bg:#a61e2b;
   /* 玩家高亮：白底主题加强对比，金色/宝蓝发光 */
-  --pA:255,193,7; --pA-bg:#fff3c2; --pA-stroke:#d99a06;
-  --pB:13,110,253; --pB-bg:#dbe8ff; --pB-stroke:#0d6efd;
+  --pA:255,193,7; --pA-bg:#fff3c2; --pA-stroke:#d99a06; --pA-text:#a16207;
+  --pB:13,110,253; --pB-bg:#dbe8ff; --pB-stroke:#0d6efd; --pB-text:#0a58ca;
 }
 [data-theme="light"] body{background:#f8f9fa}
 [data-theme="light"] input,[data-theme="light"] select,[data-theme="light"] textarea{background:#fff;border-color:#dee2e6}
@@ -64,8 +64,8 @@
   --radius:10px;
   --wg:239,68,68; --wave-stroke:#f87171; --wave-bg:rgba(239,68,68,.17); --wave-badge-bg:#dc2626;
   /* 玩家高亮：深夜紫主题，紫罗兰光晕 */
-  --pA:250,204,21; --pA-bg:#3a2f10; --pA-stroke:#facc15;
-  --pB:167,139,250; --pB-bg:#2a1f4a; --pB-stroke:#a78bfa;
+  --pA:250,204,21; --pA-bg:#3a2f10; --pA-stroke:#facc15; --pA-text:#facc15;
+  --pB:167,139,250; --pB-bg:#2a1f4a; --pB-stroke:#a78bfa; --pB-text:#a78bfa;
 }
 [data-theme="midnight"] body{background:#1a0f2e}
 [data-theme="midnight"] input,[data-theme="midnight"] select,[data-theme="midnight"] textarea{background:#1a0f2e;border-color:#3d2860}
@@ -149,8 +149,8 @@
   --radius:12px;
   --wg:255,107,122; --wave-stroke:#ff6b7a; --wave-bg:rgba(255,107,122,.19); --wave-badge-bg:#d6334a;
   /* 玩家高亮：星河主题，极光蓝紫光晕 */
-  --pA:255,209,102; --pA-bg:#3a301a; --pA-stroke:#ffd166;
-  --pB:165,176,255; --pB-bg:#1c2345; --pB-stroke:#a5b0ff;
+  --pA:255,209,102; --pA-bg:#3a301a; --pA-stroke:#ffd166; --pA-text:#ffd166;
+  --pB:165,176,255; --pB-bg:#1c2345; --pB-stroke:#a5b0ff; --pB-text:#a5b0ff;
   background:linear-gradient(-45deg,#0b1026 0%,#1b1b4d 25%,#0d2b52 50%,#241245 75%,#0b1026 100%);
   background-size:400% 400%;
   animation:galaxyFlow 24s ease-in-out infinite;
@@ -191,8 +191,8 @@
   --radius:10px;
   --wg:248,113,113; --wave-stroke:#f87171; --wave-bg:rgba(248,113,113,.19); --wave-badge-bg:#dc2626;
   /* 玩家高亮：墨玉主题，翡翠青光晕 */
-  --pA:251,191,36; --pA-bg:#3a3010; --pA-stroke:#fbbf24;
-  --pB:94,234,212; --pB-bg:#12302a; --pB-stroke:#5eead4;
+  --pA:251,191,36; --pA-bg:#3a3010; --pA-stroke:#fbbf24; --pA-text:#fbbf24;
+  --pB:94,234,212; --pB-bg:#12302a; --pB-stroke:#5eead4; --pB-text:#5eead4;
   background-color:#0c1f1a;
   background-image:
     linear-gradient(rgba(94,234,212,.055) 1px,transparent 1px),
@@ -224,8 +224,8 @@
   --radius:10px;
   --wg:214,48,49; --wave-stroke:#c02829; --wave-bg:rgba(214,48,49,.12); --wave-badge-bg:#9c2223;
   /* 玩家高亮：碧波主题，海蓝光晕 */
-  --pA:217,154,6; --pA-bg:#fff4d6; --pA-stroke:#d99a06;
-  --pB:14,122,196; --pB-bg:#ddf0ff; --pB-stroke:#0e7ac4;
+  --pA:217,154,6; --pA-bg:#fff4d6; --pA-stroke:#d99a06; --pA-text:#a16207;
+  --pB:14,122,196; --pB-bg:#ddf0ff; --pB-stroke:#0e7ac4; --pB-text:#0a5a94;
   background-color:#e9f4fc;
   background-image:
     radial-gradient(ellipse 300px 180px at 22% 28%,rgba(18,144,221,.13),transparent 70%),
@@ -261,8 +261,8 @@
   --radius:10px;
   --wg:220,38,38; --wave-stroke:#b91c1c; --wave-bg:rgba(220,38,38,.12); --wave-badge-bg:#8f1616;
   /* 玩家高亮：暖枫主题，枫橙光晕 */
-  --pA:217,119,6; --pA-bg:#fdeed3; --pA-stroke:#d97706;
-  --pB:234,88,12; --pB-bg:#fce8dc; --pB-stroke:#ea580c;
+  --pA:217,119,6; --pA-bg:#fdeed3; --pA-stroke:#d97706; --pA-text:#b45309;
+  --pB:234,88,12; --pB-bg:#fce8dc; --pB-stroke:#ea580c; --pB-text:#c2410c;
   background-color:#faf3ea;
   background-image:
     repeating-linear-gradient(45deg,rgba(234,88,12,.05) 0 14px,transparent 14px 34px),
@@ -297,8 +297,8 @@
   --radius:12px;
   --wg:224,49,49; --wave-stroke:#cf2f3f; --wave-bg:rgba(224,49,49,.12); --wave-badge-bg:#a61e2b;
   /* 玩家高亮：樱花主题，樱粉光晕 */
-  --pA:217,119,6; --pA-bg:#fff1d6; --pA-stroke:#d97706;
-  --pB:214,51,108; --pB-bg:#fddce9; --pB-stroke:#d6336c;
+  --pA:217,119,6; --pA-bg:#fff1d6; --pA-stroke:#d97706; --pA-text:#b45309;
+  --pB:214,51,108; --pB-bg:#fddce9; --pB-stroke:#d6336c; --pB-text:#a61e4f;
   background-color:#fdf0f4;
   background-image:
     radial-gradient(circle at 20% 22%,rgba(230,73,128,.16) 0 3px,transparent 4px),
@@ -452,92 +452,47 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
   .card{width:100%}
 }
 
-/* ═══ 玩家高亮：主题化加强 + 呼吸灯光晕（--pA 搜索高亮·金 / --pB 点击高亮·主题色）═══ */
+/* ═══ 玩家高亮：主题化底色强化 + 呼吸灯光晕（--pA 搜索高亮·金 / --pB 点击高亮·主题色）═══ */
 .slot.highlight,.card.highlight{
   border-color:var(--pA-stroke)!important;
-  background:var(--pA-bg)!important;
-  box-shadow:0 0 0 2px var(--pA-stroke),0 0 8px 2px rgba(var(--pA),.55);
+  background:linear-gradient(135deg,var(--pA-bg) 0%,var(--pA-bg) 55%,rgba(var(--pA),.32) 100%)!important;
+  box-shadow:0 0 0 2px var(--pA-stroke),inset 0 0 14px rgba(var(--pA),.28),0 0 8px 2px rgba(var(--pA),.55);
   animation:playerBreathA 1.9s ease-in-out infinite;
 }
 .slot.click-hl{
   border-color:var(--pB-stroke)!important;
-  background:var(--pB-bg)!important;
+  background:linear-gradient(135deg,var(--pB-bg) 0%,var(--pB-bg) 55%,rgba(var(--pB),.32) 100%)!important;
   cursor:pointer;
-  box-shadow:0 0 0 2px var(--pB-stroke),0 0 8px 2px rgba(var(--pB),.55);
+  box-shadow:0 0 0 2px var(--pB-stroke),inset 0 0 14px rgba(var(--pB),.28),0 0 8px 2px rgba(var(--pB),.55);
   animation:playerBreathB 1.9s ease-in-out infinite;
 }
-/* 呼吸灯：光晕半径与透明度在低亮与高亮间往复脉动 */
+/* 呼吸灯：外光晕与内侧底色光同步在低亮与高亮间往复脉动 */
 @keyframes playerBreathA{
-  0%,100%{box-shadow:0 0 0 2px var(--pA-stroke),0 0 5px 1px rgba(var(--pA),.45)}
-  50%{box-shadow:0 0 0 2.5px var(--pA-stroke),0 0 18px 5px rgba(var(--pA),.95)}
+  0%,100%{box-shadow:0 0 0 2px var(--pA-stroke),inset 0 0 8px rgba(var(--pA),.16),0 0 5px 1px rgba(var(--pA),.45)}
+  50%{box-shadow:0 0 0 2.5px var(--pA-stroke),inset 0 0 18px rgba(var(--pA),.38),0 0 18px 5px rgba(var(--pA),.95)}
 }
 @keyframes playerBreathB{
-  0%,100%{box-shadow:0 0 0 2px var(--pB-stroke),0 0 5px 1px rgba(var(--pB),.45)}
-  50%{box-shadow:0 0 0 2.5px var(--pB-stroke),0 0 18px 5px rgba(var(--pB),.95)}
+  0%,100%{box-shadow:0 0 0 2px var(--pB-stroke),inset 0 0 8px rgba(var(--pB),.16),0 0 5px 1px rgba(var(--pB),.45)}
+  50%{box-shadow:0 0 0 2.5px var(--pB-stroke),inset 0 0 18px rgba(var(--pB),.38),0 0 18px 5px rgba(var(--pB),.95)}
 }
-/* 系统"减少动态效果"时停用呼吸灯，保留静态强光晕 */
+/* 系统"减少动态效果"时停用呼吸灯，保留静态强光晕与强化底色 */
 @media (prefers-reduced-motion:reduce){
   .slot.highlight,.card.highlight,.slot.click-hl{animation:none}
 }
-/* ═══ 选中玩家文字复合特效：玩家名发光脉动 + 角色名流光渐变，与卡片呼吸灯同步（1.9s）═══ */
-/* 玩家名 .sn：主题色加发光，亮度随呼吸灯同步脉动 */
-.slot.highlight .sn{
-  color:var(--pA-stroke);
-  text-shadow:0 0 5px rgba(var(--pA),.85),0 0 12px rgba(var(--pA),.5);
-  animation:playerTextA 1.9s ease-in-out infinite;
+/* ═══ 选中玩家文字：主题专用高对比实色加粗（取消发光脉动与流光渐变；浅色主题自动加深文字色，在强化底色上保证清晰可读）═══ */
+.slot.highlight .sn,.card.highlight h4{
+  color:var(--pA-text,var(--pA-stroke))!important;
+  font-weight:800;
 }
-.slot.click-hl .sn{
-  color:var(--pB-stroke);
-  text-shadow:0 0 5px rgba(var(--pB),.85),0 0 12px rgba(var(--pB),.5);
-  animation:playerTextB 1.9s ease-in-out infinite;
+.slot.click-hl .sn,.card.click-hl h4{
+  color:var(--pB-text,var(--pB-stroke))!important;
+  font-weight:800;
 }
-/* 角色名 .cn：主题色流光渐变（shimmer 扫光），中段淡色高光扫过，深浅主题均安全 */
-.slot.highlight .cn{
-  background:linear-gradient(120deg,var(--pA-stroke) 20%,rgba(var(--pA),.35) 50%,var(--pA-stroke) 80%);
-  background-size:220% 100%;
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;color:var(--pA-stroke);
-  animation:playerTextGradA 1.9s ease-in-out infinite;
-}
-.slot.click-hl .cn{
-  background:linear-gradient(120deg,var(--pB-stroke) 20%,rgba(var(--pB),.35) 50%,var(--pB-stroke) 80%);
-  background-size:220% 100%;
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;color:var(--pB-stroke);
-  animation:playerTextGradB 1.9s ease-in-out infinite;
-}
-/* 角色管理一览卡：标题行同步发光（此前 .card.highlight 从未实际生效，一并补全） */
-.card.highlight h4{
-  color:var(--pA-stroke);
-  text-shadow:0 0 5px rgba(var(--pA),.85),0 0 12px rgba(var(--pA),.5);
-  animation:playerTextA 1.9s ease-in-out infinite;
-}
-.card.click-hl h4{
-  color:var(--pB-stroke);
-  text-shadow:0 0 5px rgba(var(--pB),.85),0 0 12px rgba(var(--pB),.5);
-  animation:playerTextB 1.9s ease-in-out infinite;
-}
-/* 文字发光脉动（与卡片呼吸灯同周期同相位） */
-@keyframes playerTextA{
-  0%,100%{text-shadow:0 0 4px rgba(var(--pA),.45),0 0 8px rgba(var(--pA),.2)}
-  50%{text-shadow:0 0 8px rgba(var(--pA),1),0 0 18px rgba(var(--pA),.75)}
-}
-@keyframes playerTextB{
-  0%,100%{text-shadow:0 0 4px rgba(var(--pB),.45),0 0 8px rgba(var(--pB),.2)}
-  50%{text-shadow:0 0 8px rgba(var(--pB),1),0 0 18px rgba(var(--pB),.75)}
-}
-/* 角色名流光：渐变高光位移动画 + drop-shadow 光晕脉动（对 background-clip:text 有效） */
-@keyframes playerTextGradA{
-  0%,100%{filter:drop-shadow(0 0 2px rgba(var(--pA),.55));background-position:0% 0}
-  50%{filter:drop-shadow(0 0 7px rgba(var(--pA),1));background-position:100% 0}
-}
-@keyframes playerTextGradB{
-  0%,100%{filter:drop-shadow(0 0 2px rgba(var(--pB),.55));background-position:0% 0}
-  50%{filter:drop-shadow(0 0 7px rgba(var(--pB),1));background-position:100% 0}
-}
-@media (prefers-reduced-motion:reduce){
-  .slot.highlight .sn,.slot.highlight .cn,.slot.click-hl .sn,.slot.click-hl .cn,.card.highlight h4,.card.click-hl h4{animation:none}
-}
+.slot.highlight .cn{color:var(--pA-text,var(--pA-stroke))!important;font-weight:700}
+.slot.click-hl .cn{color:var(--pB-text,var(--pB-stroke))!important;font-weight:700}
+/* 副文本（职业/等级行）：随主题提亮，避免灰色文字落在染色底色上发虚 */
+.slot.highlight .sp{color:var(--pA-text,var(--pA-stroke))!important;opacity:.85}
+.slot.click-hl .sp{color:var(--pB-text,var(--pB-stroke))!important;opacity:.85}
 
 /* 版本更新日志 */
 .changelog-content{font-size:14px}
@@ -965,6 +920,17 @@ body.captain-lock .team-block[data-team-drag]{border-style:dashed!important}
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.24.0</span>
+            <span class="ver-date">2026-08-20</span>
+          </div>
+          <ul class="changes-list">
+            <li>玩家名片高亮改为底色强化：取消玩家名发光脉动与角色名流光渐变特效，名片底色改为主题化渐变（基色向主题色加深过渡）并叠加内侧光晕，视觉更沉稳、染色感更强</li>
+            <li>高亮文字改为高对比实色：玩家名与角色名使用各主题专用文字色并加粗（800/700，浅色主题自动加深文字色保证对比度≥3:1），职业等级行副文本同步提亮，在强化底色上依然清晰可读</li>
+            <li>保留呼吸灯光效：外光晕与内侧底色光以 1.9 秒周期同步脉动，系统开启"减少动态效果"时自动退化为静态强光晕与静态强化底色</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.23.0</span>
