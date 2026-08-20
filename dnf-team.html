@@ -778,6 +778,16 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <div class="changelog-content" style="margin-top:15px">
         <div class="version-entry">
           <div class="version-header">
+            <span class="ver-tag">v1.18.0</span>
+            <span class="ver-date">2026-08-20</span>
+          </div>
+          <ul class="changes-list">
+            <li>版本记录规则修正：仅在手动点击「保存到云端」时记录一个版本，拖动排表、在线心跳、角色自动同步不再产生版本记录</li>
+            <li>历史版本弹窗新增「清空历史版本」按钮：二次确认后清空全部记录（影响房间所有成员，不可恢复），当前排表数据不受影响</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
             <span class="ver-tag">v1.17.0</span>
             <span class="ver-date">2026-08-20</span>
           </div>
@@ -1002,11 +1012,13 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
   <div class="modal" id="historyModal">
     <div class="modal-box" style="max-width:560px">
       <h3>🕘 房间历史版本</h3>
-      <p class="muted" style="font-size:12px;margin:6px 0 10px">每次保存到云端自动记录一个版本（最多保留最近 30 个）。点击「回溯」还原该版本的排表，<b>仍需点击「保存到云端」才会生效</b>。</p>
+      <p class="muted" style="font-size:12px;margin:6px 0 10px">仅在手动点击「<b>保存到云端</b>」时记录一个版本（最多保留最近 30 个），拖动排表、在线心跳等日常操作不会产生版本。点击「回溯」还原该版本的排表，<b>仍需点击「保存到云端」才会生效</b>。</p>
       <div id="historyList" style="border:1px solid var(--line);border-radius:8px;overflow:hidden;max-height:56vh;overflow-y:auto"></div>
-      <div style="margin-top:12px;display:flex;justify-content:flex-end">
+      <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+        <button class="danger" id="clearHistoryBtn" style="font-size:12px;padding:6px 12px">🗑 清空历史版本</button>
         <button class="secondary" id="closeHistory">关闭</button>
       </div>
+      <p class="muted" style="font-size:11px;margin:8px 0 0;color:var(--red)">⚠️ 清空历史将影响房间内所有成员，且不可恢复，请谨慎操作</p>
     </div>
   </div>
 
@@ -2385,7 +2397,8 @@ const SYNC = {
           createdBy: base.createdBy || ACCT.currentUser() || this.nick()
         };
         if(base.raid12Config) pushData.raid12Config = base.raid12Config;
-        pushData.history = this.appendHistory(base.history, pushData);
+        /* 版本记录规则：仅手动点击「保存到云端」才追加历史，自动同步仅原样携带 */
+        pushData.history = Array.isArray(base.history) ? base.history : [];
         const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"char-sync "+pushData.dataVersion, content:b64enc(JSON.stringify(pushData)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
@@ -2419,7 +2432,7 @@ const SYNC = {
     }
     finally{ this.writing--; }
   },
-  /* 追加历史版本记录（快照完整排表，最多保留 30 条） */
+  /* 追加历史版本记录（仅由手动保存 flushToRemote 调用；快照完整排表，最多保留 30 条） */
   appendHistory(prev, next){
     const list = Array.isArray(prev) ? prev.slice() : [];
     list.push({
@@ -2429,6 +2442,67 @@ const SYNC = {
     });
     while(list.length > 30) list.shift();
     return list;
+  },
+  /* 清空历史版本记录（高危操作：不可恢复，且会影响房间内所有成员） */
+  async clearHistory(){
+    if(!this.room){ showToast("⚠️ 未加入房间"); return; }
+    if(!hasSync(this.cfg)){ this.room.history=[]; renderHistory(); showToast("已清空本地历史记录"); return; }
+    if(this.writing>0){ showToast("⚠️ 正在同步中，请稍后再试"); return; }
+    const cnt=(this.room.history||[]).length;
+    if(!cnt){ showToast("当前没有历史版本"); return; }
+    if(!confirm(`确定清空全部 ${cnt} 条历史版本记录？\n\n清空后所有成员都无法再回溯到之前的排表，此操作不可恢复！`)) return;
+    if(!confirm(`再次确认：真的要清空全部 ${cnt} 条历史版本？\n（当前排表数据不受影响，仅删除历史记录）`)) return;
+    this.writing++;
+    this.setStatus("清空历史中…","off");
+    try{
+      for(let attempt=0; attempt<5; attempt++){
+        let base, sha;
+        const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+        if(r.status===404){ this.room.history=[]; renderHistory(); this.setStatus("已清空","on"); showToast("🗑 已清空历史版本记录"); return; }
+        else if(!r.ok) throw new Error("GET HTTP "+r.status);
+        else {
+          const j=await r.json();
+          if(!j || Array.isArray(j) || !j.content){ this.room.history=[]; renderHistory(); this.setStatus("已清空","on"); showToast("🗑 已清空历史版本记录"); return; }
+          sha=j.sha; base=JSON.parse(b64dec(j.content));
+        }
+        /* 以云端当前数据为准回写，仅清空 history 字段，不影响任何排表/角色数据 */
+        const next = {
+          charList: Array.isArray(base.charList) ? base.charList : charList,
+          teamList: Array.isArray(base.teamList) ? base.teamList : teamList,
+          raidMode: base.raidMode || raidMode,
+          presence: base.presence || {},
+          dataVersion: (base.dataVersion||0)+1,
+          editor: this.nick(),
+          room: this.room.id,
+          password: this.room.password || base.password || "",
+          createdBy: base.createdBy || ACCT.currentUser() || this.nick(),
+          history: []
+        };
+        if(base.raid12Config) next.raid12Config = base.raid12Config;
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"clear-history "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        if(sha) body.sha = sha;
+        const method = sha ? "PUT" : "POST";
+        const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+        if(!pr.ok){
+          const e=await pr.json().catch(()=>({})); const msg=e.message||"";
+          if(pr.status===409 || pr.status===422 || (method==="POST" && /exist|already|已存在|sha/i.test(msg))){ await sleep(350); continue; }
+          throw new Error(method+" HTTP "+pr.status+" "+msg);
+        }
+        const pj = await pr.json();
+        this.room.sha = (pj.content && pj.content.sha) || pj.sha;
+        this.room.dataVersion = next.dataVersion;
+        this.room.history = [];
+        this.room.presence = next.presence;
+        renderHistory();
+        this.setStatus("已清空","on");
+        showToast("🗑 已清空历史版本记录");
+        return;
+      }
+    }catch(e){
+      this.setStatus("清空失败："+e.message,"err");
+      showToast("⚠️ 清空失败："+e.message);
+    }
+    finally{ this.writing--; }
   },
   /* 更新保存按钮 UI */
   updateSaveBtn(){
@@ -2535,7 +2609,8 @@ const SYNC = {
         next.presence = Object.assign({}, base.presence||{}, next.presence||{}, {[this.nick()]:Date.now()});
         next.password = this.room.password || base.password || "";
         if(!next.createdBy) next.createdBy = base.createdBy || ACCT.currentUser() || this.nick();
-        next.history = this.appendHistory(base.history, next);
+        /* 版本记录规则：仅手动点击「保存到云端」才追加历史，心跳/后台同步仅原样携带 */
+        next.history = Array.isArray(base.history) ? base.history : [];
         const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"sync "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
@@ -4176,6 +4251,8 @@ function init(){
   // 历史版本
   document.getElementById("openHistory").onclick=()=>{ renderHistory(); openModal("historyModal"); };
   document.getElementById("closeHistory").onclick=()=>closeModal("historyModal");
+  const clrHistBtn=document.getElementById("clearHistoryBtn");
+  if(clrHistBtn){ clrHistBtn.onclick=()=>SYNC.clearHistory(); }
 
   // 主题切换
   const themeSelect=document.getElementById("themeSelect");
@@ -4279,7 +4356,7 @@ function renderHistory(){
   if(!box) return;
   const h=(SYNC.room && SYNC.room.history)||[];
   if(!h.length){
-    box.innerHTML='<div class="muted" style="padding:16px;text-align:center">暂无历史版本，保存到云端后自动记录</div>';
+    box.innerHTML='<div class="muted" style="padding:16px;text-align:center">暂无历史版本，手动点击「保存到云端」后才会记录版本</div>';
     return;
   }
   box.innerHTML=h.slice().reverse().map((e)=>{
