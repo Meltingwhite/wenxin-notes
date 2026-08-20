@@ -336,8 +336,8 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 [data-theme="maple"] .btn-shengyan{color:#7c4a03;border-color:rgba(180,120,0,.35)}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,200,0,.4)}50%{box-shadow:0 0 0 4px rgba(255,200,0,0)}}
 /* 未保存修改浮动提示条 */
-#unsavedBar{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#e8a700,#ffcc00);color:#1a1a1a;font-size:13px;font-weight:600;text-align:center;padding:7px 40px 7px 20px;box-shadow:0 2px 8px rgba(0,0,0,.3);transform:translateY(-100%);transition:transform .3s ease;display:flex;align-items:center;justify-content:center;gap:8px}
-#unsavedBar.show{transform:translateY(0)}
+#unsavedBar{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#e8a700,#ffcc00);color:#1a1a1a;font-size:13px;font-weight:600;text-align:center;padding:7px 40px 7px 20px;box-shadow:0 2px 8px rgba(0,0,0,.3);transform:translateY(-100%);visibility:hidden;transition:transform .3s ease,visibility 0s linear .3s;display:flex;align-items:center;justify-content:center;gap:8px}
+#unsavedBar.show{transform:translateY(0);visibility:visible;transition:transform .3s ease}
 #unsavedBar .ub-icon{font-size:16px}
 #unsavedBar .ub-text{flex:1}
 #unsavedBar .ub-btn{background:#1a1a1a;color:#ffcc00;border:none;border-radius:5px;padding:3px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
@@ -776,6 +776,17 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.18.1</span>
+            <span class="ver-date">2026-08-20</span>
+          </div>
+          <ul class="changes-list">
+            <li>切换4人/12人团本不再触发未保存提醒：模式切换自动即时同步到房间，与角色管理行为一致</li>
+            <li>修复12人门槛配置未随保存同步的问题：本地调整的红黄绿门槛现在会正确保存到房间</li>
+            <li>模式切换同步失败时自动回退为未保存状态，可手动保存兜底</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.18.0</span>
@@ -2340,7 +2351,11 @@ const SYNC = {
     const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
     const next = intent(st) || st;
     charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
-    if(this.room) this.room.presence = next.presence||{};
+    if(this.room){
+      this.room.presence = next.presence||{};
+      /* 门槛配置等扩展字段：暂存到房间，随下次保存/同步携带 */
+      if(next.raid12Config !== undefined) this.room.raid12Config = next.raid12Config;
+    }
     this.dirty = true;
     this.dirtyCount++;
     saveStorage(); renderAll(); updateModeBtns();
@@ -2396,7 +2411,8 @@ const SYNC = {
           password: this.room.password || base.password || "",
           createdBy: base.createdBy || ACCT.currentUser() || this.nick()
         };
-        if(base.raid12Config) pushData.raid12Config = base.raid12Config;
+        if(this.room && this.room.raid12Config) pushData.raid12Config = this.room.raid12Config;
+        else if(base.raid12Config) pushData.raid12Config = base.raid12Config;
         /* 版本记录规则：仅手动点击「保存到云端」才追加历史，自动同步仅原样携带 */
         pushData.history = Array.isArray(base.history) ? base.history : [];
         const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"char-sync "+pushData.dataVersion, content:b64enc(JSON.stringify(pushData)), branch:this.cfg.branch||"master" };
@@ -2545,7 +2561,8 @@ const SYNC = {
           password: this.room.password || base.password || "",
           createdBy: base.createdBy || ACCT.currentUser() || this.nick()
         };
-        if(base.raid12Config) next.raid12Config = base.raid12Config;
+        if(this.room && this.room.raid12Config) next.raid12Config = this.room.raid12Config;
+        else if(base.raid12Config) next.raid12Config = base.raid12Config;
         next.history = this.appendHistory(base.history, next);
         const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"save "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
@@ -2639,6 +2656,66 @@ const SYNC = {
         if(this.room) this.room.presence = next.presence||{};
         saveStorage(); renderAll(); updateModeBtns();
       }catch(e2){ console.error("local fallback failed:", e2); }
+    }
+    finally{ this.writing--; }
+  },
+  /* 模式切换即时同步：本地已切换完成，立即推送当前状态到房间（不追加历史版本、不触发未保存提醒） */
+  async syncModeSwitch(){
+    if(!this.room) return;
+    if(!hasSync(this.cfg)) return;
+    this.writing++;
+    this.setStatus("切换同步中…","off");
+    try{
+      for(let attempt=0; attempt<5; attempt++){
+        let base, sha;
+        const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+        if(r.status===404){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; }
+        else if(!r.ok) throw new Error("GET HTTP "+r.status);
+        else { const j=await r.json(); if(!j || Array.isArray(j) || !j.content){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; } else { sha=j.sha; base=JSON.parse(b64dec(j.content)); if(Array.isArray(base.charList)) base.charList=base.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }); } }
+        /* 本地切换后的状态为准（含重排后的队伍） */
+        const next = {
+          charList: charList,
+          teamList: teamList,
+          raidMode: raidMode,
+          presence: Object.assign({}, base.presence||{}, this.room.presence||{}, {[this.nick()]:Date.now()}),
+          dataVersion: (base.dataVersion||0)+1,
+          editor: this.nick(),
+          room: this.room.id,
+          password: this.room.password || base.password || "",
+          createdBy: base.createdBy || ACCT.currentUser() || this.nick()
+        };
+        /* 门槛配置：本地暂存的最新值优先，其次保留远端 */
+        if(this.room.raid12Config) next.raid12Config = this.room.raid12Config;
+        else if(base.raid12Config) next.raid12Config = base.raid12Config;
+        /* 版本记录规则：仅手动保存记录版本，模式切换即时同步不追加 */
+        next.history = Array.isArray(base.history) ? base.history : [];
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"mode-switch "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        if(sha) body.sha = sha;
+        const method = sha ? "PUT" : "POST";
+        const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+        if(!pr.ok){
+          const e=await pr.json().catch(()=>({})); const msg=e.message||"";
+          if(pr.status===409 || pr.status===422 || (method==="POST" && /exist|already|已存在|sha/i.test(msg))){ await sleep(350); continue; }
+          throw new Error(method+" HTTP "+pr.status+" "+msg);
+        }
+        const pj = await pr.json();
+        this.room.sha = (pj.content && pj.content.sha) || pj.sha;
+        this.room.dataVersion = next.dataVersion;
+        this.room.history = next.history || this.room.history || [];
+        this.room.presence = next.presence;
+        this.dirty = false;
+        this.dirtyCount = 0;
+        this.setStatus("已同步","on");
+        this.updateSaveBtn();
+        return;
+      }
+    }catch(e){
+      /* 失败兜底：标记未保存，由用户手动保存重试 */
+      this.dirty = true;
+      this.dirtyCount = (this.dirtyCount||0)+1;
+      this.updateSaveBtn();
+      this.setStatus("模式切换同步失败，请手动保存："+e.message,"err");
+      showToast("⚠️ 模式切换未能同步，请点击「保存到云端」重试");
     }
     finally{ this.writing--; }
   },
@@ -3388,15 +3465,15 @@ async function switchMode(m){
   if(m===raidMode) return;
   pushHistory();
   const wasEmpty = !teamList || teamList.length===0;
-  /* 切换到12人模式时，保存当前门槛配置到房间 */
+  /* 切换到12人模式时，读取当前门槛配置随模式一同同步到房间 */
   const cfg = m===12 ? readRaid12Config() : null;
-  SYNC.writeStateLocal(st=>{
-    st.raidMode=m; raidMode=m;
-    if(cfg) st.raid12Config=cfg;
-    /* 排表已清空时切换模式不自动重排，保持空状态由用户手动一键排表 */
-    if(!wasEmpty) st.teamList=arrange(st.charList);
-    return st;
-  });
+  if(cfg && SYNC.room) SYNC.room.raid12Config = cfg;
+  /* 本地即时切换：不标记未保存，模式切换自动同步 */
+  raidMode = m;
+  /* 排表已清空时切换模式不自动重排，保持空状态由用户手动一键排表 */
+  if(!wasEmpty) teamList = arrange(charList, m, cfg);
+  saveStorage(); renderAll(); updateModeBtns();
+  SYNC.syncModeSwitch();
   updateModeBtns();
 }
 function exportData(){
