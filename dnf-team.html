@@ -465,6 +465,12 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 .wave-label[draggable="true"]{cursor:grab;user-select:none}
 .wave-label.dragging{opacity:.5}
 .wave-label.drag-over .wnum{box-shadow:0 0 0 2px var(--blue)}
+/* 当前选中波次高亮（单击波次标签切换） */
+.wave-label.wave-active{border-radius:8px;padding:6px 10px;margin:8px 0 4px;border-bottom-color:var(--green);border-bottom-width:2px}
+.wave-label.wave-active .wnum{background:var(--green);box-shadow:0 0 0 2px rgba(34,197,94,.35)}
+.wave-label.wave-active .wline{background:var(--green);opacity:.4}
+.wave-label.wave-active .wave-btn{color:var(--green);border-color:var(--green)}
+.team-block.wave-active{box-shadow:0 0 0 2px var(--green);border-radius:8px}
 .wave-actions{display:flex;gap:2px;margin-left:auto}
 .wave-btn{background:var(--panel2);border:1px solid var(--line);color:var(--mut);cursor:pointer;font-size:11px;padding:2px 8px;border-radius:4px;line-height:1.4;transition:all .15s;white-space:nowrap}
 .wave-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--bg)}
@@ -551,6 +557,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     <div class="grp" style="margin-left:auto">
       <span class="badge" id="syncStatus">未登录</span>
       <button class="sm" id="saveBtn" disabled style="opacity:.5">✓ 已保存</button>
+      <button class="sm secondary" id="openNotice">📢 公告<b id="noticeDot" style="display:none;width:8px;height:8px;border-radius:50%;background:#ff4d4f;margin-left:4px;vertical-align:middle"></b></button>
       <button class="sm secondary" id="openHistory">🕘 历史版本</button>
       <button class="sm secondary btn-shengyan" id="openShengyan">⚔️ 米歇尔练习</button>
       <button class="sm danger" id="exitRoom">退出房间</button>
@@ -613,6 +620,19 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <label style="font-size:13px;font-weight:bold;color:var(--text);cursor:pointer;white-space:nowrap" title="开启后，战力较低且没有C编队的奶会整合到其他队伍中，支持单队伍两个奶">
         <input type="checkbox" id="dualHealer" style="vertical-align:middle"> 允许双奶（2C2N配置）
       </label>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px">
+      <span style="font-size:13px;font-weight:bold;color:var(--text);white-space:nowrap" title="配置后一键排表时，所有波次的对应颜色队伍都会包含该玩家的角色">固定队长：</span>
+      <label style="font-size:12px;color:var(--mut);white-space:nowrap;display:flex;align-items:center;gap:4px">
+        红队<select id="captainRed" title="红队固定队长"></select>
+      </label>
+      <label style="font-size:12px;color:var(--mut);white-space:nowrap;display:flex;align-items:center;gap:4px">
+        黄队<select id="captainYellow" title="黄队固定队长"></select>
+      </label>
+      <label style="font-size:12px;color:var(--mut);white-space:nowrap;display:flex;align-items:center;gap:4px">
+        绿队<select id="captainGreen" title="绿队固定队长"></select>
+      </label>
+      <span style="font-size:11px;color:var(--mut);white-space:nowrap">一键排表时，各波次对应颜色队伍固定包含该玩家角色</span>
     </div>
   </div>
 
@@ -776,6 +796,26 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.21.0</span>
+            <span class="ver-date">2026-08-20</span>
+          </div>
+          <ul class="changes-list">
+            <li>4人/12人团本模式新增波次高亮：单击波次标签可标记为「当前波次」，该波标签与所有队伍框体高亮显示（绿色边框），再次点击取消</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.20.0</span>
+            <span class="ver-date">2026-08-20</span>
+          </div>
+          <ul class="changes-list">
+            <li>12人模式新增「固定队长」配置：可指定红/黄/绿各队队长玩家，一键排表时所有波次的对应颜色队伍强制包含该玩家角色（同波同玩家冲突规则不变，角色数不足时优先保证前面的波）</li>
+            <li>新增「📢 房间公告」入口：支持编辑公告/攻略玩法，可插入表情、贴图（自动压缩上传到房间仓库）与图片链接，保存即同步全房间，未读显示红点提醒</li>
+            <li>公告为房间级共享数据：自动同步、手动保存、清空历史等所有写入路径均不覆盖公告</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.19.0</span>
@@ -1048,6 +1088,35 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     </div>
   </div>
 
+  <!-- 房间公告弹窗 -->
+  <div class="modal" id="noticeModal">
+    <div class="modal-box" style="max-width:660px">
+      <h3>📢 房间公告</h3>
+      <div id="noticeMeta" class="muted" style="font-size:12px;margin:4px 0 8px"></div>
+      <div id="noticeView" style="border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-height:120px;max-height:50vh;overflow-y:auto;font-size:14px;line-height:1.75;background:var(--panel2);word-break:break-word"></div>
+      <div id="noticeEditWrap" style="display:none">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 6px;align-items:center">
+          <button class="sm" id="noticeEmojiBtn" type="button">😀 表情</button>
+          <button class="sm" id="noticeImgBtn" type="button">🖼️ 贴图</button>
+          <button class="sm" id="noticeImgUrl" type="button">🔗 图片链接</button>
+          <input type="file" id="noticeImgFile" accept="image/*" style="display:none">
+          <span id="noticeUploading" class="muted" style="font-size:12px;display:none">上传中…</span>
+        </div>
+        <div id="noticeEmojiPanel" style="display:none;flex-wrap:wrap;gap:2px;border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;max-height:110px;overflow-y:auto"></div>
+        <textarea id="noticeText" rows="8" placeholder="填写房间公告、攻略玩法…&#10;支持贴图与表情，图片语法：![说明](图片链接)" style="width:100%;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;padding:10px;box-sizing:border-box;resize:vertical;font-family:inherit"></textarea>
+        <p class="muted" style="font-size:11px;margin:6px 0 0">贴图会自动压缩（长边≤900px）后上传到房间仓库；本地模式直接内嵌保存。支持表情、图片、链接与 **加粗** 语法，公告对所有房间成员可见，保存即同步。</p>
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+        <button class="sm" id="noticeEditBtn">✏️ 编辑</button>
+        <div style="display:flex;gap:8px">
+          <button class="sm secondary" id="noticeCancelEdit" style="display:none">取消</button>
+          <button class="sm" id="noticeSave" style="display:none;background:var(--blue);color:#fff;border:none">💾 保存公告</button>
+          <button class="secondary" id="closeNotice">关闭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 登录弹窗 -->
   <div class="modal show" id="loginModal">
     <div class="modal-box" style="max-width:420px">
@@ -1197,12 +1266,15 @@ const LS_BACK = "busha_backup";
 const LS_ACCT = "busha_acct_v1"; /* 注册用户列表 */
 const LS_SESSION = "busha_session_v1"; /* 当前登录会话 */
 const LS_REMEMBER = "busha_remember_rooms"; /* 记住房间 */
+const LS_NOTICE_LOCAL = "busha_notice_local_v1"; /* 房间公告（本地模式/离线缓存） */
+const LS_NOTICE_SEEN = "busha_notice_seen_v1"; /* 公告已读标记（房间id→updatedAt） */
 let charList = [];
 let teamList = [];
 let editTargetId = null;
 let raidMode = 4; /* 4=四人次本, 12=十二人团本(3队红黄绿) */
 let viewMode = "normal"; /* normal=标准, compact=紧凑, ultra=一览 */
 let clickHL = ""; /* 点击高亮的玩家名，空=无 */
+let currentWaveHL = null; /* 当前选中波次（单击波次标签高亮），null=无 */
 
 /* ---------- 撤销/重做 ---------- */
 const HISTORY_SIZE = 50;
@@ -1624,6 +1696,7 @@ function arrange(chars, mode, opts){
    6. 最终输出前强制验证：扫描所有波，移除任何同波重复玩家
    7. 可选门槛：opts.thresholdRed/Yellow/Green 按用户填写值分配各色C
    8. 可选双奶：opts.dualHealer 开启后，剩余奶可整合到队伍中作为第二奶
+   9. 可选固定队长：opts.captains.red/yellow/green 配置玩家名后，各波对应颜色队伍强制包含该玩家角色
 */
 function arrange12(chars, opts){
   opts = opts || {};
@@ -2145,6 +2218,144 @@ function arrange12(chars, opts){
     }
   }
 
+  /* ---- Phase 5.6: 固定队长——按配置将队长玩家的角色钉入各波对应颜色队伍 ---- */
+  /* 规则（绝对优先于战力均衡，同波同玩家约束保持不变，全部为同类型互换不破坏奶/C结构）：
+     0. 目标队已有队长角色 → 该波锁定
+     1. 队长角色在同波其他队伍 → 与目标队同类型角色互换（战力最接近优先，被换者owner不得出现在源队）
+     2. 队长有未入队角色 → 直接替换目标队同类型角色（被替换者回未配置池）
+     3. 跨波交换：从其他未锁定波取队长角色，与目标队同类型角色互换（被换者填入队长原波原位）
+     4. 以上均不可行（如该波无此颜色队伍/队长角色数不足）→ 跳过该波
+     同一玩家被配置为多个颜色队长时：按波轮转分配（各颜色锁定数最少者优先），避免互相拆台 */
+  (function fixCaptains(){
+    const caps = opts.captains || {};
+    const capColors = ["red","yellow","green"];
+    if(!capColors.some(cl=>caps[cl])) return;
+    const groups = [];
+    allTeams.forEach(t=>{ if(!groups.includes(t.group)) groups.push(t.group); });
+    groups.sort((a,b)=>a-b);
+    /* 工具：玩家是否在某波（可排除某队） */
+    function ownerInGroup(group, owner, skipTeam){
+      for(const t of allTeams){
+        if(t.group!==group || t===skipTeam) continue;
+        for(const s of t.slots){
+          const c=charMap[s.charId];
+          if(c && c.owner===owner) return true;
+        }
+      }
+      return false;
+    }
+    /* 按队长玩家分组（同一玩家多个颜色 → 该波轮转分配） */
+    const ownerColors={};
+    capColors.forEach(cl=>{ const o=caps[cl]; if(o) (ownerColors[o]=ownerColors[o]||[]).push(cl); });
+    /* 全局已锁定角色：已被固定的队长角色，后续处理不得再挪用 */
+    const lockedCharIds=new Set();
+    for(const capOwner in ownerColors){
+      const cols=ownerColors[capOwner];
+      const capChars=chars.filter(c=>c.owner===capOwner);
+      if(!capChars.length) continue;
+      const lockedCount={}; cols.forEach(cl=>lockedCount[cl]=0);
+      const lockedWaves=new Set(); /* 该玩家任一颜色已锁定的波 */
+      for(const g of groups){
+        /* 该波存在该玩家哪些颜色队伍 */
+        const cands=cols.filter(cl=>allTeams.some(t=>t.group===g&&t.raidColor===cl));
+        if(!cands.length) continue;
+        /* 规则0：队长角色已在该玩家某颜色队 → 锁定该颜色，处理下一波 */
+        let hit=false;
+        for(const color of cands){
+          const target=allTeams.find(t=>t.group===g&&t.raidColor===color);
+          const capSlot=target.slots.find(s=>{ const c=charMap[s.charId]; return c&&c.owner===capOwner; });
+          if(capSlot){ lockedWaves.add(g); lockedCharIds.add(capSlot.charId); lockedCount[color]++; hit=true; break; }
+        }
+        if(hit) continue;
+        /* 轮转：锁定数最少的颜色优先（并列按红黄绿顺序） */
+        cands.sort((a,b)=>lockedCount[a]-lockedCount[b]);
+        for(const color of cands){
+          const target=allTeams.find(t=>t.group===g&&t.raidColor===color);
+          let done=false;
+          /* 规则1：同波其他队伍中的队长角色 → 同类型互换 */
+          for(const src of allTeams){
+            if(done) break;
+            if(src===target || src.group!==g) continue;
+            for(const sCap of src.slots){
+              const capC=charMap[sCap.charId];
+              if(!capC || capC.owner!==capOwner) continue;
+              if(lockedCharIds.has(sCap.charId)) continue; /* 已被锁定 */
+              let bestSlot=null, bestDiff=Infinity;
+              for(const sT of target.slots){
+                const tc=charMap[sT.charId];
+                if(!tc || tc.owner===capOwner) continue;
+                if(tc.type!==capC.type) continue; /* 同类型互换保持奶/C结构 */
+                const ownerInSrc = src.slots.some(sx=>{ const x=charMap[sx.charId]; return x&&x.owner===tc.owner; });
+                if(ownerInSrc) continue;
+                const diff=Math.abs(tc.power-capC.power);
+                if(diff<bestDiff){ bestDiff=diff; bestSlot=sT; }
+              }
+              if(bestSlot){
+                const tc=charMap[bestSlot.charId];
+                sCap.charId=tc.id;
+                bestSlot.charId=capC.id;
+                lockedCharIds.add(capC.id);
+                done=true; break;
+              }
+            }
+          }
+          /* 规则2：未入队的队长角色 → 直接替换目标队同类型角色 */
+          if(!done){
+            const usedIds=new Set();
+            allTeams.forEach(t=>t.slots.forEach(s=>s.charId&&usedIds.add(s.charId)));
+            const poolChar=capChars.find(c=>!usedIds.has(c.id));
+            if(poolChar){
+              let bestSlot=null, bestDiff=Infinity;
+              for(const sT of target.slots){
+                const tc=charMap[sT.charId];
+                if(!tc || tc.owner===capOwner) continue;
+                if(tc.type!==poolChar.type) continue;
+                const diff=Math.abs(tc.power-poolChar.power);
+                if(diff<bestDiff){ bestDiff=diff; bestSlot=sT; }
+              }
+              if(bestSlot){
+                bestSlot.charId=poolChar.id;
+                lockedCharIds.add(poolChar.id);
+                done=true;
+              }
+            }
+          }
+          /* 规则3：跨波交换——从其他未锁定波取队长角色（被换者填入队长原位） */
+          if(!done){
+            for(const src of allTeams){
+              if(done) break;
+              if(src===target || src.group===g) continue;
+              if(lockedWaves.has(src.group)) continue; /* 不动已锁定的波 */
+              for(const sCap of src.slots){
+                const capC=charMap[sCap.charId];
+                if(!capC || capC.owner!==capOwner) continue;
+                if(lockedCharIds.has(sCap.charId)) continue; /* 已被锁定 */
+                let bestSlot=null, bestDiff=Infinity;
+                for(const sT of target.slots){
+                  const tc=charMap[sT.charId];
+                  if(!tc || tc.owner===capOwner) continue;
+                  if(tc.type!==capC.type) continue;
+                  /* 被换者放入 src 所在波，不得与该波其他队伍玩家重复 */
+                  if(ownerInGroup(src.group, tc.owner, src)) continue;
+                  const diff=Math.abs(tc.power-capC.power);
+                  if(diff<bestDiff){ bestDiff=diff; bestSlot=sT; }
+                }
+                if(bestSlot){
+                  const tc=charMap[bestSlot.charId];
+                  sCap.charId=tc.id;
+                  bestSlot.charId=capC.id;
+                  lockedCharIds.add(capC.id);
+                  done=true; break;
+                }
+              }
+            }
+          }
+          if(done){ lockedWaves.add(g); lockedCount[color]++; break; }
+        }
+      }
+    }
+  })();
+
   /* ---- Phase 6: 最终验证——强制移除任何同波重复玩家 ---- */
   /* 按 group 分组，同 group 内同一 owner 只保留第一次出现的角色 */
   const groupMap={};
@@ -2296,9 +2507,10 @@ const SYNC = {
   async checkRoom(roomId, password, onOk, onErr){
     if(!hasSync(this.cfg)){
       // 无同步配置：本地模式直接进入
-      this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password };
+      this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password, notice:noticeGetLocal(roomId)||null };
       history.replaceState(null,"","#room="+roomId);
       this.setStatus("本地模式","off");
+      renderNotice();
       onOk();
       return;
     }
@@ -2311,7 +2523,7 @@ const SYNC = {
       const data = JSON.parse(b64dec(j.content));
       if(data.password && data.password !== password){ onErr("密码错误"); return; }
       // 验证通过
-      this.room = { id:roomId, sha:j.sha, dataVersion:data.dataVersion||0, presence:data.presence||{}, password };
+      this.room = { id:roomId, sha:j.sha, dataVersion:data.dataVersion||0, presence:data.presence||{}, password, notice:data.notice||null };
       history.replaceState(null,"","#room="+roomId);
       // 应用远端数据
       charList = Array.isArray(data.charList)?data.charList:charList;
@@ -2319,6 +2531,7 @@ const SYNC = {
       teamList = Array.isArray(data.teamList)?data.teamList:arrange(charList);
       if(data.raid12Config) applyRaid12Config(data.raid12Config);
       saveStorage(); renderAll(); updateModeBtns();
+      renderNotice();
       this.start();
       onOk();
     }catch(e){ onErr("连接失败："+e.message); }
@@ -2326,11 +2539,11 @@ const SYNC = {
   // 创建新房间
   async createRoom(roomId, password, onOk, onErr){
     if(!hasSync(this.cfg)){
-      this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password };
+      this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password, notice:null };
       history.replaceState(null,"","#room="+roomId);
       charList = []; teamList = []; saveStorage();
       this.setStatus("本地模式（新房间）","off");
-      renderAll();
+      renderAll(); renderNotice();
       onOk();
       return;
     }
@@ -2363,10 +2576,10 @@ const SYNC = {
         throw new Error("HTTP "+pr.status+" "+msg);
       }
       const pj = await pr.json();
-      this.room = { id:roomId, sha:(pj.content&&pj.content.sha)||pj.sha, dataVersion:1, presence:{}, password };
+      this.room = { id:roomId, sha:(pj.content&&pj.content.sha)||pj.sha, dataVersion:1, presence:{}, password, notice:null };
       history.replaceState(null,"","#room="+roomId);
       charList = []; teamList = []; raidMode = 4;
-      saveStorage(); renderAll(); updateModeBtns();
+      saveStorage(); renderAll(); updateModeBtns(); renderNotice();
       this.start();
       onOk();
     }catch(e){ onErr("创建失败："+e.message); }
@@ -2402,6 +2615,9 @@ const SYNC = {
       this.room.sha = j.sha;
       const data = JSON.parse(b64dec(j.content));
       this.room.history = Array.isArray(data.history) ? data.history : [];
+      /* 公告为房间级独立数据：无论版本是否更新都刷新（红点提示） */
+      this.room.notice = (data.notice!=null) ? data.notice : null;
+      renderNotice();
       const dv = data.dataVersion||0;
       if(dv > this.room.dataVersion){
         this.room.dataVersion = dv;
@@ -2489,6 +2705,8 @@ const SYNC = {
         else if(base.raid12Config) pushData.raid12Config = base.raid12Config;
         /* 版本记录规则：仅手动点击「保存到云端」才追加历史，自动同步仅原样携带 */
         pushData.history = Array.isArray(base.history) ? base.history : [];
+        /* 公告为房间级共享数据：所有写入路径原样携带，不覆盖 */
+        pushData.notice = (base.notice!=null) ? base.notice : ((this.room&&this.room.notice)||null);
         const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"char-sync "+pushData.dataVersion, content:b64enc(JSON.stringify(pushData)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
@@ -2569,6 +2787,8 @@ const SYNC = {
           history: []
         };
         if(base.raid12Config) next.raid12Config = base.raid12Config;
+        /* 公告为房间级共享数据：清空历史不得连带清空公告 */
+        next.notice = (base.notice!=null) ? base.notice : ((this.room&&this.room.notice)||null);
         const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"clear-history "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
@@ -2593,6 +2813,68 @@ const SYNC = {
       showToast("⚠️ 清空失败："+e.message);
     }
     finally{ this.writing--; }
+  },
+  /* 保存房间公告：房间级共享数据，保存即同步（不影响排表手动保存语义） */
+  async saveNotice(text){
+    const notice={text:String(text||"").trim(), updatedAt:Date.now(), updatedBy:this.nick()};
+    if(!this.room || !hasSync(this.cfg)){
+      noticeSetLocal(notice);
+      if(this.room) this.room.notice=notice;
+      renderNotice(); noticeMarkSeen();
+      showToast("✅ 公告已保存（本地）");
+      return true;
+    }
+    if(this.writing>0){ showToast("⚠️ 正在同步中，请稍后再试"); return false; }
+    this.writing++;
+    this.setStatus("保存公告中…","off");
+    try{
+      for(let attempt=0; attempt<5; attempt++){
+        let base, sha;
+        const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
+        if(r.status===404){ base={charList,teamList,presence:this.room.presence,dataVersion:this.room.dataVersion}; sha=null; }
+        else if(!r.ok) throw new Error("GET HTTP "+r.status);
+        else { const j=await r.json(); if(!j || Array.isArray(j) || !j.content){ base={charList,teamList,presence:this.room.presence,dataVersion:this.room.dataVersion}; sha=null; } else { sha=j.sha; base=JSON.parse(b64dec(j.content)); } }
+        /* 公告写入以云端当前数据为准，仅更新 notice 字段，不触碰排表/角色 */
+        const next = {
+          charList: Array.isArray(base.charList)?base.charList:charList,
+          teamList: Array.isArray(base.teamList)?base.teamList:teamList,
+          raidMode: base.raidMode||raidMode,
+          presence: base.presence||{},
+          dataVersion: (base.dataVersion||0)+1,
+          editor: this.nick(),
+          room: this.room.id,
+          password: this.room.password || base.password || "",
+          createdBy: base.createdBy || ACCT.currentUser() || this.nick(),
+          history: Array.isArray(base.history)?base.history:[],
+          notice
+        };
+        if(base.raid12Config) next.raid12Config = base.raid12Config;
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"notice "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        if(sha) body.sha = sha;
+        const method = sha ? "PUT" : "POST";
+        const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+        if(!pr.ok){
+          const e=await pr.json().catch(()=>({})); const msg=e.message||"";
+          if(pr.status===409 || pr.status===422 || (method==="POST" && /exist|already|已存在|sha/i.test(msg))){ await sleep(350); continue; }
+          throw new Error(method+" HTTP "+pr.status+" "+msg);
+        }
+        const pj = await pr.json();
+        this.room.sha = (pj.content && pj.content.sha) || pj.sha;
+        this.room.dataVersion = next.dataVersion;
+        this.room.history = next.history;
+        this.room.notice = notice;
+        renderNotice(); noticeMarkSeen();
+        this.setStatus("已保存","on");
+        showToast("✅ 公告已保存并同步到房间");
+        return true;
+      }
+    }catch(e){
+      this.setStatus("公告保存失败："+e.message,"err");
+      showToast("⚠️ 公告保存失败："+e.message);
+      return false;
+    }
+    finally{ this.writing--; }
+    return false;
   },
   /* 更新保存按钮 UI */
   updateSaveBtn(){
@@ -2645,6 +2927,8 @@ const SYNC = {
         if(this.room && this.room.raid12Config) next.raid12Config = this.room.raid12Config;
         else if(base.raid12Config) next.raid12Config = base.raid12Config;
         next.history = this.appendHistory(base.history, next);
+        /* 公告为房间级共享数据：手动保存原样携带，不覆盖 */
+        next.notice = (base.notice!=null) ? base.notice : ((this.room&&this.room.notice)||null);
         const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"save "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
@@ -2946,6 +3230,8 @@ function renderCharList(){
     };
   }
   updateGlobalBatchUI();
+  /* 固定队长选项随角色列表联动 */
+  updateCaptainOptions();
 }
 function updateBatchDelBtn(owner){
   const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]:checked`);
@@ -3049,6 +3335,17 @@ function renderTeamTable(){
       const owner=this.dataset.owner;
       if(clickHL && clickHL===owner){ clickHL=""; }
       else { clickHL=owner; }
+      renderTeamTable();
+    });
+  });
+  // 绑定波次标签单击高亮：点击波次标签，高亮该波所有队伍；再次点击取消
+  document.querySelectorAll(".wave-label[data-wave-drag]").forEach(wl=>{
+    wl.addEventListener("click",function(e){
+      if(e.target.closest(".wave-btn")) return; /* 排序按钮已自行处理 */
+      if(window._dragging) return; /* 拖拽进行中，忽略点击 */
+      const wave=Number(this.dataset.waveDrag);
+      if(currentWaveHL!==null && currentWaveHL===wave){ currentWaveHL=null; }
+      else { currentWaveHL=wave; }
       renderTeamTable();
     });
   });
@@ -3204,7 +3501,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
         container.appendChild(addBtn);
       }
       const wl=document.createElement("div");
-      wl.className="wave-label";
+      wl.className="wave-label"+(currentWaveHL===curGroup?" wave-active":"");
       wl.draggable=true;
       wl.dataset.waveDrag=curGroup;
       wl.innerHTML=`<span class="wnum">第 ${curGroup} 波</span><span class="wline"></span>
@@ -3219,7 +3516,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       curWaveColors=[];
     } else if(!isRaid12 && !isUltra){
       const wl=document.createElement("div");
-      wl.className="wave-label";
+      wl.className="wave-label"+(currentWaveHL===(tIdx+1)?" wave-active":"");
       wl.draggable=true;
       wl.dataset.waveDrag=tIdx+1;
       wl.innerHTML=`<span class="wnum">第 ${tIdx+1} 波</span><span class="wline"></span>
@@ -3234,9 +3531,10 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     const rColor = team.raidColor || (isRaid12 ? raidColors[tIdx%3] : null);
     if(isRaid12 && rColor){ curWaveColors.push(rColor); }
     const block=document.createElement("div");
-    block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass;
+    block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass + (currentWaveHL===curGroup ? " wave-active" : "");
     block.draggable=true;
     block.dataset.teamDrag=tIdx;
+    block.dataset.waveNum=curGroup;
     const owners=new Set(); let csum=0, hmax=0, hcount=0;
     team.slots.forEach(s=>{ if(s.charId){ const c=charList.find(x=>x.id===s.charId); if(c){ owners.add(c.owner); if(c.type==="c") csum+=c.power; else { hmax=Math.max(hmax,c.power); hcount++; } } } });
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
@@ -3486,6 +3784,15 @@ function readRaid12Config(){
   if(!isNaN(ty)) opts.thresholdYellow=ty;
   if(!isNaN(tg)) opts.thresholdGreen=tg;
   opts.dualHealer=document.getElementById("dualHealer").checked;
+  /* 固定队长配置（玩家名，空=不指定） */
+  const caps={};
+  const cr=document.getElementById("captainRed").value;
+  const cy=document.getElementById("captainYellow").value;
+  const cg=document.getElementById("captainGreen").value;
+  if(cr) caps.red=cr;
+  if(cy) caps.yellow=cy;
+  if(cg) caps.green=cg;
+  if(Object.keys(caps).length) opts.captains=caps;
   return opts;
 }
 /* 将12人模式配置写回DOM */
@@ -3495,6 +3802,21 @@ function applyRaid12Config(cfg){
   document.getElementById("thresholdYellow").value=(cfg.thresholdYellow!=null)?cfg.thresholdYellow:"";
   document.getElementById("thresholdGreen").value=(cfg.thresholdGreen!=null)?cfg.thresholdGreen:"";
   document.getElementById("dualHealer").checked=!!cfg.dualHealer;
+  const caps=cfg.captains||{};
+  document.getElementById("captainRed").value=caps.red||"";
+  document.getElementById("captainYellow").value=caps.yellow||"";
+  document.getElementById("captainGreen").value=caps.green||"";
+}
+/* 刷新固定队长下拉选项（保留当前选择） */
+function updateCaptainOptions(){
+  const owners=[...new Set(charList.map(c=>c.owner).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"zh"));
+  ["captainRed","captainYellow","captainGreen"].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel) return;
+    const cur=sel.value;
+    sel.innerHTML='<option value="">不指定</option>'+owners.map(o=>'<option value="'+escapeHtml(o)+'">'+escapeHtml(o)+'</option>').join("");
+    if(cur && owners.includes(cur)) sel.value=cur;
+  });
 }
 async function doAutoArrange(){
   if(teamList && teamList.length>0){
@@ -3824,7 +4146,7 @@ function exitRoom(){
   charList = []; teamList = []; saveStorage();
   document.getElementById("syncStatus").textContent = "未登录";
   document.getElementById("syncDot").className = "dot off";
-  renderAll();
+  renderAll(); renderNotice();
   openModal("loginModal");
   document.getElementById("loginMsg").textContent = "";
 }
@@ -4032,11 +4354,11 @@ const ADMIN = {
   async enterRoom(roomId){
     // 管理员无密码进入房间
     if(!hasSync(SYNC.cfg)){
-      SYNC.room={id:roomId,sha:null,dataVersion:0,presence:{},password:""};
+      SYNC.room={id:roomId,sha:null,dataVersion:0,presence:{},password:"",notice:noticeGetLocal(roomId)||null};
       history.replaceState(null,"","#room="+roomId);
       SYNC.setStatus("本地模式（管理员）","off");
       document.getElementById("adminPanel").classList.remove("show");
-      renderAll();
+      renderAll(); renderNotice();
       return;
     }
     try{
@@ -4046,12 +4368,13 @@ const ADMIN = {
       const j=await r.json();
       if(!j || !j.content){ alert("房间数据异常"); return; }
       const data=JSON.parse(b64dec(j.content));
-      SYNC.room={id:roomId,sha:j.sha,dataVersion:data.dataVersion||0,presence:data.presence||{},password:data.password||""};
+      SYNC.room={id:roomId,sha:j.sha,dataVersion:data.dataVersion||0,presence:data.presence||{},password:data.password||"",notice:data.notice||null};
       history.replaceState(null,"","#room="+roomId);
       charList=Array.isArray(data.charList)?data.charList.map(c=>{if(c.type==="healer")c.type="N";return c;}):charList;
       raidMode=data.raidMode||4;
       teamList=Array.isArray(data.teamList)?data.teamList:arrange(charList);
-      saveStorage();renderAll();updateModeBtns();
+      if(data.raid12Config) applyRaid12Config(data.raid12Config);
+      saveStorage();renderAll();updateModeBtns();renderNotice();
       SYNC.start();
       document.getElementById("adminPanel").classList.remove("show");
       // 显示状态标识
@@ -4295,8 +4618,8 @@ function init(){
   document.getElementById("modalSaveChar").onclick=saveModalChar;
   document.getElementById("closeEditChar").onclick=()=>closeModal("editCharModal");
 
-  /* 12人模式门槛配置持久化：修改即同步到房间 */
-  ["thresholdRed","thresholdYellow","thresholdGreen","dualHealer"].forEach(id=>{
+  /* 12人模式门槛/固定队长配置持久化：修改即同步到房间 */
+  ["thresholdRed","thresholdYellow","thresholdGreen","dualHealer","captainRed","captainYellow","captainGreen"].forEach(id=>{
     const el=document.getElementById(id);
     if(el){
       el.addEventListener("change",async()=>{
@@ -4315,6 +4638,27 @@ function init(){
   document.getElementById("exitRoom").onclick=exitRoom;
   document.getElementById("saveBtn").onclick=()=>SYNC.flushToRemote();
   document.getElementById("copyLink").onclick=copyLink;
+
+  /* 房间公告：入口 / 弹窗 / 编辑 / 表情 / 贴图 */
+  document.getElementById("openNotice").onclick=openNotice;
+  document.getElementById("closeNotice").onclick=()=>closeModal("noticeModal");
+  document.getElementById("noticeEditBtn").onclick=noticeEnterEdit;
+  document.getElementById("noticeCancelEdit").onclick=noticeExitEdit;
+  document.getElementById("noticeSave").onclick=noticeSaveNow;
+  document.getElementById("noticeEmojiBtn").onclick=()=>{
+    const p=document.getElementById("noticeEmojiPanel");
+    if(!p) return;
+    const show=p.style.display!=="flex";
+    if(show && !p.childElementCount) noticeBuildEmojiPanel();
+    p.style.display=show?"flex":"none";
+  };
+  document.getElementById("noticeImgBtn").onclick=()=>document.getElementById("noticeImgFile").click();
+  document.getElementById("noticeImgUrl").onclick=noticeInsertImageLink;
+  document.getElementById("noticeImgFile").onchange=function(){
+    const f=this.files&&this.files[0];
+    this.value="";
+    if(f) noticeUploadImage(f);
+  };
   document.getElementById("openShengyan").onclick=()=>{
     window.open("http://shengyan.xyz","_blank","noopener");
   };
@@ -4438,6 +4782,170 @@ function init(){
   }
 }
 init();
+
+/* ═══ 房间公告：本地存储 / 渲染 / 编辑 / 表情 / 贴图 ═══ */
+function noticeGetLocal(roomId){
+  try{ const m=JSON.parse(localStorage.getItem(LS_NOTICE_LOCAL)||"{}"); return m[roomId]||null; }catch(e){ return null; }
+}
+function noticeSetLocal(notice){
+  if(!SYNC.room) return;
+  try{
+    const m=JSON.parse(localStorage.getItem(LS_NOTICE_LOCAL)||"{}");
+    if(notice) m[SYNC.room.id]=notice; else delete m[SYNC.room.id];
+    localStorage.setItem(LS_NOTICE_LOCAL, JSON.stringify(m));
+  }catch(e){}
+}
+function noticeSeenMap(){ try{ return JSON.parse(localStorage.getItem(LS_NOTICE_SEEN)||"{}"); }catch(e){ return {}; } }
+function noticeMarkSeen(){
+  const dot=document.getElementById("noticeDot");
+  const n=SYNC.room&&SYNC.room.notice;
+  if(!n||!n.text){ if(dot) dot.style.display="none"; return; }
+  try{
+    const m=noticeSeenMap();
+    m[SYNC.room.id]=n.updatedAt||0;
+    localStorage.setItem(LS_NOTICE_SEEN, JSON.stringify(m));
+  }catch(e){}
+  if(dot) dot.style.display="none";
+}
+function noticeTime(t){
+  if(!t) return "";
+  const d=new Date(t), pad=x=>String(x).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+/* 公告渲染：XSS 安全的轻量 Markdown（图片/链接/加粗/换行），表情即普通字符 */
+function noticeRenderMd(text){
+  let s=escapeHtml(String(text||""));
+  s=s.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g, (m,alt,src)=>`<img src="${src}" alt="${alt}" title="${alt}" style="max-width:100%;border-radius:6px;margin:6px 0;border:1px solid var(--line)" loading="lazy">`);
+  s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--blue)">$1</a>');
+  s=s.replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>");
+  return s.replace(/\r?\n/g,"<br>");
+}
+/* 渲染公告视图 + 顶栏红点（未读提示），编辑态互不影响 */
+function renderNotice(){
+  const dot=document.getElementById("noticeDot");
+  const n=SYNC.room&&SYNC.room.notice;
+  if(dot){
+    let unseen=false;
+    if(n && n.text){
+      const m=noticeSeenMap();
+      unseen=(m[SYNC.room.id]||0) < (n.updatedAt||0);
+    }
+    dot.style.display=unseen?"inline-block":"none";
+  }
+  const view=document.getElementById("noticeView");
+  const meta=document.getElementById("noticeMeta");
+  if(!view) return;
+  if(n && n.text){
+    view.innerHTML=noticeRenderMd(n.text);
+    if(meta) meta.textContent="最近更新："+noticeTime(n.updatedAt)+(n.updatedBy?(" · by "+n.updatedBy):"");
+  }else{
+    view.innerHTML='<span class="muted">暂无公告，点击「✏️ 编辑」发布第一条公告 / 攻略玩法</span>';
+    if(meta) meta.textContent="";
+  }
+}
+function openNotice(){
+  renderNotice();
+  noticeExitEdit();
+  openModal("noticeModal");
+  noticeMarkSeen();
+}
+function noticeEnterEdit(){
+  if(!SYNC.room){ showToast("⚠️ 请先加入房间再编辑公告"); return; }
+  const n=SYNC.room&&SYNC.room.notice;
+  document.getElementById("noticeText").value=(n&&n.text)||"";
+  document.getElementById("noticeEditWrap").style.display="block";
+  document.getElementById("noticeView").style.display="none";
+  document.getElementById("noticeEditBtn").style.display="none";
+  document.getElementById("noticeSave").style.display="inline-block";
+  document.getElementById("noticeCancelEdit").style.display="inline-block";
+  document.getElementById("noticeText").focus();
+}
+function noticeExitEdit(){
+  document.getElementById("noticeEditWrap").style.display="none";
+  document.getElementById("noticeView").style.display="block";
+  document.getElementById("noticeEditBtn").style.display="inline-block";
+  document.getElementById("noticeSave").style.display="none";
+  document.getElementById("noticeCancelEdit").style.display="none";
+  document.getElementById("noticeEmojiPanel").style.display="none";
+}
+async function noticeSaveNow(){
+  const txt=document.getElementById("noticeText").value;
+  const ok=await SYNC.saveNotice(txt);
+  if(ok){ noticeExitEdit(); }
+}
+/* 在光标处插入文本（表情/图片语法） */
+function noticeInsert(txt){
+  const ta=document.getElementById("noticeText");
+  if(!ta) return;
+  const st=ta.selectionStart||0, en=ta.selectionEnd||0;
+  ta.value=ta.value.slice(0,st)+txt+ta.value.slice(en);
+  const pos=st+txt.length;
+  ta.focus();
+  ta.setSelectionRange(pos,pos);
+}
+/* 表情面板（含红黄绿队伍色标） */
+const NOTICE_EMOJIS=Array.from("😀😁😂🤣😃😄😅😆😉😊😋😎🤩😍🥰😘🤗🤔😐😴😪😢😭😤😡🤬😱🥶🥵🤢🥴👻💀🤡👽🤖🎃😺😹😻🙈🙉🙊🐶🐱🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🐔🐧🦅🦉🐺🐴🦄🐝🦋🐢🐍🐙🦀🐠🐟🐬🐳🦈🐊🐘🌵🌲🌳🌱🌿🍀💐🌷🌹🌺🌸🌼🌻🌞🌙⭐🌟✨⚡🔥💥🌈☀⛅🌧❄☃💧💦🕹🎮🎲🎯🎁🎉🎊🏆🥇⚽🏀🏓🏸🎱🎽🏅❗❓💯❌⭕✅✔️🚫⚠️🆕🆒🆗1️⃣2️⃣3️⃣🔴🟡🟢🔵🟣⚫⚪🟥🟨🟩🚩🏴");
+function noticeBuildEmojiPanel(){
+  const p=document.getElementById("noticeEmojiPanel");
+  if(!p) return;
+  p.innerHTML=NOTICE_EMOJIS.map(e=>`<button type="button" style="background:transparent;border:none;font-size:20px;cursor:pointer;padding:2px 4px;line-height:1.4">${e}</button>`).join("");
+  p.querySelectorAll("button").forEach(b=>{ b.onclick=()=>noticeInsert(b.textContent); });
+}
+function noticeInsertImageLink(){
+  const url=prompt("输入图片链接（https://… 或其他可访问的图片地址）：");
+  if(!url) return;
+  const u=url.trim();
+  if(!/^(https?:\/\/|data:image\/)/i.test(u)){ showToast("⚠️ 链接需以 http(s):// 开头"); return; }
+  noticeInsert("\n![贴图]("+u+")\n");
+}
+/* 贴图压缩：长边 ≤900px，JPEG 82%，避免超出仓库单文件体积限制 */
+function noticeCompressImage(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      try{
+        const MAX=900;
+        let w=img.width||1,h=img.height||1;
+        const scale=Math.min(1,MAX/Math.max(w,h));
+        w=Math.max(1,Math.round(w*scale)); h=Math.max(1,Math.round(h*scale));
+        const cv=document.createElement("canvas");
+        cv.width=w; cv.height=h;
+        cv.getContext("2d").drawImage(img,0,0,w,h);
+        const data=cv.toDataURL("image/jpeg",0.82);
+        URL.revokeObjectURL(url);
+        resolve(data);
+      }catch(e){ URL.revokeObjectURL(url); reject(e); }
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error("图片读取失败")); };
+    img.src=url;
+  });
+}
+/* 贴图上传：云端模式上传到房间仓库 assets 目录；本地模式直接内嵌压缩图 */
+async function noticeUploadImage(file){
+  const tip=document.getElementById("noticeUploading");
+  try{
+    const dataUrl=await noticeCompressImage(file);
+    if(!hasSync(SYNC.cfg) || !SYNC.room){
+      noticeInsert("\n![贴图]("+dataUrl+")\n");
+      showToast("✅ 贴图已压缩插入（本地模式内嵌保存）");
+      return;
+    }
+    if(tip) tip.style.display="inline";
+    const b64=dataUrl.split(",")[1];
+    const path="assets/"+SYNC.room.id+"/"+Date.now()+".jpg";
+    const body={ access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token), message:"notice-img "+path, content:b64, branch:SYNC.cfg.branch||"master" };
+    const pr=await fetch(SYNC.url(path)+"?access_token="+SYNC.tok(), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+    if(!pr.ok){ const e=await pr.json().catch(()=>({})); throw new Error("HTTP "+pr.status+" "+(e.message||"")); }
+    const raw=`https://gitee.com/${SYNC.cfg.owner}/${SYNC.cfg.repo}/raw/${encodeURIComponent(SYNC.cfg.branch||"master")}/${path}`;
+    noticeInsert("\n![攻略配图]("+raw+")\n");
+    showToast("✅ 贴图已上传并插入");
+  }catch(e){
+    showToast("⚠️ 贴图上传失败："+e.message+"，可改用「图片链接」");
+  }finally{
+    if(tip) tip.style.display="none";
+  }
+}
 
 /* 未保存修改浮动提示条 / Toast 通知 */
 let _toastT=null;
