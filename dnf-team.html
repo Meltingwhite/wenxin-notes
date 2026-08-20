@@ -778,6 +778,21 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <div class="changelog-content" style="margin-top:15px">
         <div class="version-entry">
           <div class="version-header">
+            <span class="ver-tag">v1.19.0</span>
+            <span class="ver-date">2026-08-20</span>
+          </div>
+          <ul class="changes-list">
+            <li>角色管理增删改、批量删除恢复自动同步（多用户协作填写角色），且绝不触发排表重排</li>
+            <li>新增角色智能入队：自动加入有空位、战力均衡且无同波同玩家冲突的队伍，现有队伍顺序与波数保持不变</li>
+            <li>删除角色仅清空其在队伍中的占位，其余队伍不动；修改角色名字/战力等即时反映到队伍中</li>
+            <li>4人/12人模式切换改为无感视图切换：不重排队伍、不同步云端、不触发未保存提示，仅本地生效</li>
+            <li>队伍排表操作（拖拽/换人/删队/门槛/回溯/一键排表）保持手动保存，点击「保存到云端」才上传</li>
+            <li>Excel导入、重置改为手动保存，需点击「保存到云端」后生效</li>
+            <li>在线心跳仅同步在线状态，不再把远端数据回灌本地；撤销/重做与远端轮询不再改变本地查看模式</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
             <span class="ver-tag">v1.18.1</span>
             <span class="ver-date">2026-08-20</span>
           </div>
@@ -1121,7 +1136,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
           <span style="color:var(--mut)">示例行：鸟 | 缪斯 | 40328 | N | 黄金乡 |</span>
         </div>
         <p style="margin-top:10px"><b>第3步：导入填好的 Excel</b></p>
-        <p>保存 Excel 文件后，点击页面顶部的「导入Excel」按钮上传即可。系统会自动排表并同步到房间。</p>
+        <p>保存 Excel 文件后，点击页面顶部的「导入Excel」按钮上传即可。系统会自动排表，点击「保存到云端」后同步到房间。</p>
       </div>
       <div style="display:flex;gap:8px;margin-top:14px">
         <button id="downloadTemplate">下载 Excel 模板</button>
@@ -1207,7 +1222,8 @@ async function doUndo(){
   if(!undoStack.length) return;
   redoStack.push(snapshot());
   const prev = undoStack.pop();
-  charList = prev.charList; teamList = prev.teamList; raidMode = prev.raidMode;
+  /* 模式为本地视图偏好，撤销/重做不改变它 */
+  charList = prev.charList; teamList = prev.teamList;
   saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
   SYNC.writeStateLocal(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
 }
@@ -1215,7 +1231,8 @@ async function doRedo(){
   if(!redoStack.length) return;
   undoStack.push(snapshot());
   const next = redoStack.pop();
-  charList = next.charList; teamList = next.teamList; raidMode = next.raidMode;
+  /* 模式为本地视图偏好，撤销/重做不改变它 */
+  charList = next.charList; teamList = next.teamList;
   saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
   SYNC.writeStateLocal(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
 }
@@ -2205,6 +2222,61 @@ function arrange4(chars){
   return teams.map(t=>({slots:t.slots}));
 }
 
+/* 新增角色智能入队：在不动任何现有队伍顺序/波数的前提下，
+   将新角色放入"有空位且无同玩家冲突"的最均衡队伍。
+   规则：C 优先加入 C 总战力最低的队伍（均衡）；奶优先加入无奶队伍，其次总战力最低。
+   找不到合规队伍则不入队（角色保持未配置，由用户手动调整或一键排表）。
+   返回 {teamIdx,label} 或 null */
+function placeCharIntoTeams(chars, teams, charId){
+  const c=chars.find(x=>Number(x.id)===Number(charId));
+  if(!c || !Array.isArray(teams) || !teams.length) return null;
+  const charMap={}; chars.forEach(x=>charMap[Number(x.id)]=x);
+  const cands=[];
+  teams.forEach((t,ti)=>{
+    const emptyIdxs=[], owners=new Set();
+    let hasN=false, cTotal=0, filled=0;
+    (t.slots||[]).forEach((s,si)=>{
+      const sc=s.charId?charMap[Number(s.charId)]:null;
+      if(!sc){ emptyIdxs.push(si); return; }
+      owners.add(sc.owner); filled++;
+      if(sc.type==="N") hasN=true; else cTotal+=sc.power;
+    });
+    if(owners.has(c.owner)) return; /* 同波禁止同一玩家 */
+    /* 空位判定：已有空槽，或未满 4 槽可追加 */
+    let slotIdx=null;
+    if(c.type==="N"){
+      slotIdx = emptyIdxs.includes(0) ? 0
+        : (emptyIdxs.length ? emptyIdxs[0]
+        : ((t.slots||[]).length<4 ? (t.slots||[]).length : null));
+    } else {
+      const nz=emptyIdxs.find(i=>i>0);
+      slotIdx = nz!==undefined ? nz
+        : (emptyIdxs.length ? emptyIdxs[0]
+        : ((t.slots||[]).length<4 ? (t.slots||[]).length : null));
+    }
+    if(slotIdx===null) return;
+    cands.push({ti, slotIdx, hasN, cTotal, filled});
+  });
+  if(!cands.length) return null;
+  cands.sort((a,b)=>{
+    if(c.type==="N"){
+      if(a.hasN!==b.hasN) return a.hasN?1:-1; /* 无奶队优先 */
+      return a.cTotal-b.cTotal;
+    }
+    if(a.cTotal!==b.cTotal) return a.cTotal-b.cTotal; /* C 总最低优先 */
+    return a.filled-b.filled;
+  });
+  const best=cands[0], t=teams[best.ti];
+  while((t.slots||[]).length<=best.slotIdx) t.slots.push({charId:null});
+  t.slots[best.slotIdx].charId=c.id;
+  let label="第"+(best.ti+1)+"队";
+  if(raidMode===12){
+    const colorMap={red:"红队",yellow:"黄队",green:"绿队"};
+    label="第"+(t.group||Math.floor(best.ti/3)+1)+"波"+(colorMap[t.raidColor]||"队");
+  }
+  return {teamIdx:best.ti, label};
+}
+
 /* ---------- 同步模块（Gitee Contents API） ---------- */
 const SYNC = {
   cfg:null, room:null, pollT:null, presenceT:null, writing:0, dirty:false, dirtyCount:0,
@@ -2336,7 +2408,8 @@ const SYNC = {
         // 备份本地后应用远端
         try{ localStorage.setItem(LS_BACK, JSON.stringify({charList,teamList,raidMode})); }catch(e){}
         charList = Array.isArray(data.charList)?data.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }):charList;
-        raidMode = data.raidMode||4;
+        /* 查看模式为本地偏好：仅进入房间时应用远端模式，后续轮询不覆盖本地切换 */
+        if(initial) raidMode = data.raidMode||4;
         teamList = Array.isArray(data.teamList)?data.teamList:arrange(charList);
         if(data.raid12Config) applyRaid12Config(data.raid12Config);
         saveStorage(); renderAll(); updateModeBtns();
@@ -2363,7 +2436,7 @@ const SYNC = {
     this.setStatus("未保存","warn");
     showToast("⚠️ 修改未保存，记得点击「保存到云端」");
   },
-  /* 立即同步：更新本地状态并立即推送到远端（用于角色管理，支持多用户同时操作） */
+  /* 立即同步：更新本地状态并立即推送到远端（角色管理专用：多用户同时填写角色，增删改自动同步且不触发排表重排） */
   async writeStateRemote(intent){
     /* 1. 先更新本地状态，UI 即时响应 */
     const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
@@ -2390,13 +2463,14 @@ const SYNC = {
         for(const rc of remoteChars){
           if(rc.id && !localIds.has(rc.id)) mergedChars.push(rc);
         }
-        /* 排表：远端有排表则保留远端，本地有排表则保留本地，都无则自动排表 */
+        /* 排表：本地排表优先（含新增角色的智能入队占位），本地为空则保留远端，都无则自动排表。
+           角色自动同步绝不触发一键排表式的重排，仅原样携带本地排表 */
         let mergedTeamList;
         const remoteTL = Array.isArray(base.teamList) ? base.teamList : [];
-        if(remoteTL.length > 0){
-          mergedTeamList = remoteTL;
-        } else if(teamList.length > 0){
+        if(teamList.length > 0){
           mergedTeamList = teamList;
+        } else if(remoteTL.length > 0){
+          mergedTeamList = remoteTL;
         } else {
           mergedTeamList = arrange(mergedChars, raidMode, base.raid12Config);
         }
@@ -2549,9 +2623,16 @@ const SYNC = {
         if(r.status===404){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; }
         else if(!r.ok) throw new Error("GET HTTP "+r.status);
         else { const j=await r.json(); if(!j || Array.isArray(j) || !j.content){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; } else { sha=j.sha; base=JSON.parse(b64dec(j.content)); if(Array.isArray(base.charList)) base.charList=base.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }); } }
+        /* 合并角色：本地为准，补充远端中本地没有的角色（其他用户新增的），避免互相覆盖 */
+        const remoteChars = Array.isArray(base.charList) ? base.charList : [];
+        const localIds = new Set(charList.map(c=>c.id));
+        const mergedChars = [...charList];
+        for(const rc of remoteChars){
+          if(rc.id && !localIds.has(rc.id)) mergedChars.push(rc);
+        }
         /* 合并：以本地编辑为准，但保留远端的 presence 和其他用户上线状态 */
         const next = {
-          charList: charList,
+          charList: mergedChars,
           teamList: teamList,
           raidMode: raidMode,
           presence: Object.assign({}, base.presence||{}, this.room.presence||{}, {[this.nick()]:Date.now()}),
@@ -2580,7 +2661,9 @@ const SYNC = {
         this.room.presence = next.presence;
         this.dirty = false;
         this.dirtyCount = 0;
-        saveStorage();
+        /* 应用合并后的角色列表（含其他用户新增的），排表保持本地 */
+        charList = mergedChars;
+        saveStorage(); renderAll();
         this.setStatus("已保存","on");
         this.updateSaveBtn();
         showToast("✅ 已保存到云端");
@@ -2641,8 +2724,9 @@ const SYNC = {
         this.room.sha = (pj.content && pj.content.sha) || pj.sha;
         this.room.dataVersion = next.dataVersion;
         this.room.history = next.history || this.room.history || [];
-        charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; this.room.presence = next.presence;
-        saveStorage(); renderAll(); updateModeBtns();
+        this.room.presence = next.presence;
+        /* 心跳仅同步在线状态：绝不把远端数据回灌本地（防止覆盖本地查看模式与编辑中状态） */
+        this.renderPresence();
         this.setStatus("已同步","on");
         return;
       }
@@ -2656,66 +2740,6 @@ const SYNC = {
         if(this.room) this.room.presence = next.presence||{};
         saveStorage(); renderAll(); updateModeBtns();
       }catch(e2){ console.error("local fallback failed:", e2); }
-    }
-    finally{ this.writing--; }
-  },
-  /* 模式切换即时同步：本地已切换完成，立即推送当前状态到房间（不追加历史版本、不触发未保存提醒） */
-  async syncModeSwitch(){
-    if(!this.room) return;
-    if(!hasSync(this.cfg)) return;
-    this.writing++;
-    this.setStatus("切换同步中…","off");
-    try{
-      for(let attempt=0; attempt<5; attempt++){
-        let base, sha;
-        const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
-        if(r.status===404){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; }
-        else if(!r.ok) throw new Error("GET HTTP "+r.status);
-        else { const j=await r.json(); if(!j || Array.isArray(j) || !j.content){ base = {charList, teamList, presence:this.room.presence, dataVersion:this.room.dataVersion}; sha=null; } else { sha=j.sha; base=JSON.parse(b64dec(j.content)); if(Array.isArray(base.charList)) base.charList=base.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }); } }
-        /* 本地切换后的状态为准（含重排后的队伍） */
-        const next = {
-          charList: charList,
-          teamList: teamList,
-          raidMode: raidMode,
-          presence: Object.assign({}, base.presence||{}, this.room.presence||{}, {[this.nick()]:Date.now()}),
-          dataVersion: (base.dataVersion||0)+1,
-          editor: this.nick(),
-          room: this.room.id,
-          password: this.room.password || base.password || "",
-          createdBy: base.createdBy || ACCT.currentUser() || this.nick()
-        };
-        /* 门槛配置：本地暂存的最新值优先，其次保留远端 */
-        if(this.room.raid12Config) next.raid12Config = this.room.raid12Config;
-        else if(base.raid12Config) next.raid12Config = base.raid12Config;
-        /* 版本记录规则：仅手动保存记录版本，模式切换即时同步不追加 */
-        next.history = Array.isArray(base.history) ? base.history : [];
-        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"mode-switch "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
-        if(sha) body.sha = sha;
-        const method = sha ? "PUT" : "POST";
-        const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
-        if(!pr.ok){
-          const e=await pr.json().catch(()=>({})); const msg=e.message||"";
-          if(pr.status===409 || pr.status===422 || (method==="POST" && /exist|already|已存在|sha/i.test(msg))){ await sleep(350); continue; }
-          throw new Error(method+" HTTP "+pr.status+" "+msg);
-        }
-        const pj = await pr.json();
-        this.room.sha = (pj.content && pj.content.sha) || pj.sha;
-        this.room.dataVersion = next.dataVersion;
-        this.room.history = next.history || this.room.history || [];
-        this.room.presence = next.presence;
-        this.dirty = false;
-        this.dirtyCount = 0;
-        this.setStatus("已同步","on");
-        this.updateSaveBtn();
-        return;
-      }
-    }catch(e){
-      /* 失败兜底：标记未保存，由用户手动保存重试 */
-      this.dirty = true;
-      this.dirtyCount = (this.dirtyCount||0)+1;
-      this.updateSaveBtn();
-      this.setStatus("模式切换同步失败，请手动保存："+e.message,"err");
-      showToast("⚠️ 模式切换未能同步，请点击「保存到云端」重试");
     }
     finally{ this.writing--; }
   },
@@ -2875,6 +2899,7 @@ function renderCharList(){
       SYNC.writeStateRemote(st=>{
         st.charList=st.charList.filter(c=>!ids.includes(Number(c.id)));
         if(st.teamList && st.teamList.length>0){
+          /* 已有排表：仅清空占位，不改动其他队伍顺序与波数 */
           st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId && ids.includes(Number(s.charId))) s.charId=null; }));
         } else {
           st.teamList=arrange(st.charList);
@@ -2911,6 +2936,7 @@ function renderCharList(){
       SYNC.writeStateRemote(st=>{
         st.charList=st.charList.filter(c=>!ids.includes(Number(c.id)));
         if(st.teamList && st.teamList.length>0){
+          /* 已有排表：仅清空占位，不改动其他队伍顺序与波数 */
           st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId && ids.includes(Number(s.charId))) s.charId=null; }));
         } else {
           st.teamList=arrange(st.charList);
@@ -3369,15 +3395,24 @@ async function saveModalChar(){
   if(!o){alert("请填写归属玩家");return;}
   if(!n){alert("角色名称不能为空");return;}
   pushHistory();
-  SYNC.writeStateLocal(st=>{
+  let placed=null, isNew=false;
+  SYNC.writeStateRemote(st=>{
     const draft={owner:o,name:n,power:p,type:tp,a,b};
     const idx=st.charList.findIndex(x=>Number(x.id)===target);
-    if(idx>=0) st.charList[idx]=Object.assign({id:target},draft);
-    else st.charList.push(Object.assign({id:target},draft));
-    /* 已有排表时不覆盖，仅空表时自动排表 */
-    if(!st.teamList || st.teamList.length===0) st.teamList=arrange(st.charList);
+    if(idx>=0){
+      /* 编辑已有角色：按 charId 引用自动反映到队伍，无需改动排表 */
+      st.charList[idx]=Object.assign({id:target},draft);
+    }else{
+      /* 新增角色：空表时自动排表；已有排表时智能加入有空位的均衡队伍 */
+      isNew=true;
+      st.charList.push(Object.assign({id:target},draft));
+      if(!st.teamList || st.teamList.length===0) st.teamList=arrange(st.charList);
+      else placed=placeCharIntoTeams(st.charList, st.teamList, target);
+    }
     return st;
   });
+  if(placed) showToast("✅ 新角色已自动加入「"+placed.label+"」");
+  else if(isNew && teamList.length) showToast("ℹ️ 暂无可入队伍（无空位或同波同玩家冲突），角色未配置");
   closeModal("editCharModal");
 }
 function clearEdit(){
@@ -3396,20 +3431,32 @@ async function saveChar(){
   if(!n){alert("角色名称不能为空");return;}
   const target=editTargetId;
   pushHistory();
+  let placed=null, isNew=!target;
   SYNC.writeStateRemote(st=>{
     const draft={owner:o,name:n,power:p,type:tp,a,b};
     if(target){
+      /* 编辑已有角色：按 charId 引用自动反映到队伍，无需改动排表 */
       const idx=st.charList.findIndex(x=>Number(x.id)===Number(target));
       if(idx>=0) st.charList[idx]=Object.assign({id:Number(target)},draft);
-      else st.charList.push(Object.assign({id:Number(target)},draft));
+      else{
+        /* 目标不存在（数据异常）：按新增处理 */
+        isNew=true;
+        st.charList.push(Object.assign({id:Number(target)},draft));
+        if(!st.teamList || st.teamList.length===0) st.teamList=arrange(st.charList);
+        else placed=placeCharIntoTeams(st.charList, st.teamList, Number(target));
+      }
     }else{
+      /* 新增角色：空表时自动排表；已有排表时智能加入有空位的均衡队伍 */
       const newId=Math.max(0,...st.charList.map(x=>Number(x.id)||0))+1;
       st.charList.push(Object.assign({id:newId},draft));
+      isNew=true;
+      if(!st.teamList || st.teamList.length===0) st.teamList=arrange(st.charList);
+      else placed=placeCharIntoTeams(st.charList, st.teamList, newId);
     }
-    /* 已有排表时不覆盖，仅空表时自动排表 */
-    if(!st.teamList || st.teamList.length===0) st.teamList=arrange(st.charList);
     return st;
   });
+  if(placed) showToast("✅ 新角色已自动加入「"+placed.label+"」");
+  else if(isNew && teamList.length) showToast("ℹ️ 暂无可入队伍（无空位或同波同玩家冲突），角色未配置");
   clearEdit();
 }
 async function delChar(id){
@@ -3419,7 +3466,7 @@ async function delChar(id){
   SYNC.writeStateRemote(st=>{
     st.charList=st.charList.filter(x=>Number(x.id)!==numId);
     if(st.teamList && st.teamList.length>0){
-      /* 已有排表：清空该角色在队伍中的占用，不重新排表 */
+      /* 已有排表：仅清空该角色的占位，不改动其他队伍顺序与波数 */
       st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId===numId) s.charId=null; }));
     } else {
       st.teamList=arrange(st.charList);
@@ -3463,18 +3510,10 @@ async function doAutoArrange(){
 }
 async function switchMode(m){
   if(m===raidMode) return;
-  pushHistory();
-  const wasEmpty = !teamList || teamList.length===0;
-  /* 切换到12人模式时，读取当前门槛配置随模式一同同步到房间 */
-  const cfg = m===12 ? readRaid12Config() : null;
-  if(cfg && SYNC.room) SYNC.room.raid12Config = cfg;
-  /* 本地即时切换：不标记未保存，模式切换自动同步 */
+  /* 模式切换为无感视图切换：不重排队伍、不同步云端、不触发未保存提示 */
   raidMode = m;
-  /* 排表已清空时切换模式不自动重排，保持空状态由用户手动一键排表 */
-  if(!wasEmpty) teamList = arrange(charList, m, cfg);
-  saveStorage(); renderAll(); updateModeBtns();
-  SYNC.syncModeSwitch();
-  updateModeBtns();
+  saveStorage();
+  renderAll(); updateModeBtns();
 }
 function exportData(){
   if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
@@ -3563,14 +3602,14 @@ async function doImport(){
     // 分配ID
     let maxId=0; arr.forEach((c,i)=>{ c.id=i+1; });
     pushHistory();
-    SYNC.writeStateRemote(st=>{ st.charList=arr; st.teamList=arrange(st.charList); return st; });
-    closeModal("importModal"); fileInput.value=""; alert("导入成功，共"+arr.length+"个角色");
+    SYNC.writeStateLocal(st=>{ st.charList=arr; st.teamList=arrange(st.charList); return st; });
+    closeModal("importModal"); fileInput.value=""; alert("导入成功，共"+arr.length+"个角色，点击「保存到云端」后生效");
   }catch(e){ alert("Excel解析失败："+e.message); }
 }
 async function doReset(){
-  if(!confirm("确认重置为导入状态？所有修改将被覆盖并同步到房间。"))return;
+  if(!confirm("确认重置为导入状态？所有修改将被覆盖，点击「保存到云端」后才同步到房间。"))return;
   pushHistory();
-  SYNC.writeStateRemote(st=>{ st.charList=getInitData(); st.teamList=arrange(st.charList); return st; });
+  SYNC.writeStateLocal(st=>{ st.charList=getInitData(); st.teamList=arrange(st.charList); return st; });
   clearEdit();
 }
 async function doClearTeams(){
