@@ -123,8 +123,186 @@
 [data-theme="midnight"] .modal{background:rgba(10,5,20,.8)}
 [data-theme="midnight"] .help code{background:var(--panel2);color:var(--blue2)}
 [data-theme="midnight"] .notice{background:#2a2418;border-color:var(--yellow);color:#fde68a}
+
+/* ═══════════ 新增花纹/动画主题（5种） ═══════════ */
+/* ✨ 星河（深色·极光流动动画+星点背景） */
+[data-theme="galaxy"]{
+  --bg:#0b1026; --panel:rgba(26,32,60,.9); --panel2:rgba(38,46,82,.92); --line:#4a5590;
+  --txt:#eef1ff; --mut:#aab4e0; --blue:#4e5fd0; --blue2:#a5b0ff;
+  --orange:#ff9e64; --green:#3ddc97; --red:#ff6b7a; --yellow:#ffd166;
+  --radius:12px;
+  background:linear-gradient(-45deg,#0b1026 0%,#1b1b4d 25%,#0d2b52 50%,#241245 75%,#0b1026 100%);
+  background-size:400% 400%;
+  animation:galaxyFlow 24s ease-in-out infinite;
+}
+@keyframes galaxyFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+[data-theme="galaxy"] body{
+  background:transparent;background-attachment:fixed;
+  background-image:
+    radial-gradient(1.6px 1.6px at 12% 18%,rgba(255,255,255,.75) 50%,transparent 51%),
+    radial-gradient(1px 1px at 38% 8%,rgba(255,255,255,.5) 50%,transparent 51%),
+    radial-gradient(1.6px 1.6px at 64% 34%,rgba(255,255,255,.6) 50%,transparent 51%),
+    radial-gradient(1px 1px at 86% 12%,rgba(255,255,255,.55) 50%,transparent 51%),
+    radial-gradient(1.6px 1.6px at 22% 66%,rgba(255,255,255,.45) 50%,transparent 51%),
+    radial-gradient(1px 1px at 52% 84%,rgba(255,255,255,.5) 50%,transparent 51%),
+    radial-gradient(1.6px 1.6px at 78% 60%,rgba(255,255,255,.5) 50%,transparent 51%),
+    radial-gradient(1px 1px at 93% 88%,rgba(255,255,255,.55) 50%,transparent 51%);
+  background-size:230px 230px,180px 180px,270px 270px,200px 200px,250px 250px,190px 190px,290px 290px,215px 215px;
+}
+[data-theme="galaxy"] input,[data-theme="galaxy"] select,[data-theme="galaxy"] textarea{background:rgba(15,19,40,.85);border-color:var(--line)}
+[data-theme="galaxy"] .card,[data-theme="galaxy"] .team-block,[data-theme="galaxy"] .slot{background:var(--panel2);border-color:var(--line)}
+[data-theme="galaxy"] .card.c{border-left-color:var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
+[data-theme="galaxy"] .card.N{border-left-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}
+[data-theme="galaxy"] .slot.c{background:#34203c;border-color:var(--orange)}
+[data-theme="galaxy"] .slot.N{background:#1a2e2a;border-color:var(--green)}
+[data-theme="galaxy"] .slot-empty{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="galaxy"] .team-block.raid-red{background:#3a1a2e;border-color:var(--red)}
+[data-theme="galaxy"] .team-block.raid-yellow{background:#38301c;border-color:var(--yellow)}
+[data-theme="galaxy"] .team-block.raid-green{background:#16302a;border-color:var(--green)}
+[data-theme="galaxy"] .badge{background:var(--panel2);color:var(--txt)}
+[data-theme="galaxy"] .modal{background:rgba(5,8,20,.78)}
+[data-theme="galaxy"] .help code{background:var(--panel2);color:var(--blue2)}
+
+/* 💎 墨玉格（深色·几何网格花纹） */
+[data-theme="jade"]{
+  --bg:#0c1f1a; --panel:rgba(21,41,35,.9); --panel2:rgba(27,50,43,.92); --line:#2e5a4c;
+  --txt:#e3f5ee; --mut:#8fb8ac; --blue:#0f766e; --blue2:#5eead4;
+  --orange:#fb923c; --green:#4ade80; --red:#f87171; --yellow:#fbbf24;
+  --radius:10px;
+  background-color:#0c1f1a;
+  background-image:
+    linear-gradient(rgba(94,234,212,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(94,234,212,.055) 1px,transparent 1px),
+    radial-gradient(ellipse 420px 260px at 78% 10%,rgba(20,184,166,.12),transparent 70%);
+  background-size:38px 38px,38px 38px,620px 620px;
+  background-attachment:fixed;
+}
+[data-theme="jade"] body{background:transparent}
+[data-theme="jade"] input,[data-theme="jade"] select,[data-theme="jade"] textarea{background:rgba(14,32,27,.85);border-color:var(--line)}
+[data-theme="jade"] .card,[data-theme="jade"] .team-block,[data-theme="jade"] .slot{background:var(--panel2);border-color:var(--line)}
+[data-theme="jade"] .card.c{border-left-color:var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
+[data-theme="jade"] .card.N{border-left-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}
+[data-theme="jade"] .slot.c{background:#3a2f1c;border-color:var(--orange)}
+[data-theme="jade"] .slot.N{background:#1c3a2c;border-color:var(--green)}
+[data-theme="jade"] .slot-empty{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="jade"] .team-block.raid-red{background:#3a1c1c;border-color:var(--red)}
+[data-theme="jade"] .team-block.raid-yellow{background:#33301a;border-color:var(--yellow)}
+[data-theme="jade"] .team-block.raid-green{background:#143024;border-color:var(--green)}
+[data-theme="jade"] .badge{background:var(--panel2);color:var(--txt)}
+[data-theme="jade"] .modal{background:rgba(4,16,12,.78)}
+[data-theme="jade"] .help code{background:var(--panel2);color:var(--blue2)}
+
+/* 🌊 碧波（浅色·波纹光斑漂移动画+斜纹水纹） */
+[data-theme="ocean"]{
+  --bg:#e9f4fc; --panel:rgba(255,255,255,.93); --panel2:rgba(240,248,254,.96); --line:#b8d8ef;
+  --txt:#0a3a5c; --mut:#41748f; --blue:#0e7ac4; --blue2:#0c6aa8;
+  --orange:#d95f02; --green:#0a8f56; --red:#d63031; --yellow:#d99a06;
+  --radius:10px;
+  background-color:#e9f4fc;
+  background-image:
+    radial-gradient(ellipse 300px 180px at 22% 28%,rgba(18,144,221,.13),transparent 70%),
+    radial-gradient(ellipse 260px 160px at 78% 72%,rgba(13,115,183,.11),transparent 70%),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.5) 0 2px,transparent 2px 18px);
+  background-size:560px 560px,520px 520px,auto;
+  animation:oceanDrift 30s ease-in-out infinite alternate;
+}
+@keyframes oceanDrift{from{background-position:0 0,0 0,0 0}to{background-position:560px 280px,-520px 260px,0 0}}
+[data-theme="ocean"] body{background:transparent}
+[data-theme="ocean"] input,[data-theme="ocean"] select,[data-theme="ocean"] textarea{background:rgba(255,255,255,.92);border-color:var(--line);color:var(--txt)}
+[data-theme="ocean"] .card,[data-theme="ocean"] .team-block,[data-theme="ocean"] .slot{background:var(--panel);border-color:var(--line)}
+[data-theme="ocean"] .card.c{border-left-color:var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
+[data-theme="ocean"] .card.N{border-left-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}
+[data-theme="ocean"] .slot.c{background:#fff3ea;border-color:var(--orange)}
+[data-theme="ocean"] .slot.N{background:#eafaf2;border-color:var(--green)}
+[data-theme="ocean"] .slot-empty{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="ocean"] .team-block.raid-red{background:#fff5f5;border-color:var(--red)}
+[data-theme="ocean"] .team-block.raid-yellow{background:#fffdf5;border-color:var(--yellow)}
+[data-theme="ocean"] .team-block.raid-green{background:#f5fff8;border-color:var(--green)}
+[data-theme="ocean"] .badge{background:var(--panel2);color:var(--txt)}
+[data-theme="ocean"] .modal{background:rgba(10,40,70,.42)}
+[data-theme="ocean"] .modal-box{background:var(--panel);color:var(--txt)}
+[data-theme="ocean"] .notice{background:#fffbe6;border-color:var(--yellow);color:#8a6d00}
+[data-theme="ocean"] .slot.highlight{background:#fffde6!important;border-color:var(--yellow)!important}
+[data-theme="ocean"] .slot.click-hl{background:#eef5ff!important;border-color:var(--blue)!important}
+[data-theme="ocean"] .help code{background:var(--panel2);color:var(--blue)}
+[data-theme="ocean"] .tab.active{color:#fff}
+
+/* 🍁 暖枫纹（浅色·斜纹枫叶花纹） */
+[data-theme="maple"]{
+  --bg:#faf3ea; --panel:rgba(255,255,255,.94); --panel2:rgba(248,238,225,.96); --line:#e5d2ba;
+  --txt:#4a2c14; --mut:#8d6d4a; --blue:#c2410c; --blue2:#b45309;
+  --orange:#ea580c; --green:#15803d; --red:#dc2626; --yellow:#b45309;
+  --radius:10px;
+  background-color:#faf3ea;
+  background-image:
+    repeating-linear-gradient(45deg,rgba(234,88,12,.05) 0 14px,transparent 14px 34px),
+    radial-gradient(circle at 18% 22%,rgba(217,119,6,.09) 0 3px,transparent 4px),
+    radial-gradient(circle at 66% 74%,rgba(194,65,12,.07) 0 3px,transparent 4px);
+  background-size:auto,140px 140px,190px 190px;
+  background-attachment:fixed;
+}
+[data-theme="maple"] body{background:transparent}
+[data-theme="maple"] input,[data-theme="maple"] select,[data-theme="maple"] textarea{background:rgba(255,255,255,.92);border-color:var(--line);color:var(--txt)}
+[data-theme="maple"] .card,[data-theme="maple"] .team-block,[data-theme="maple"] .slot{background:var(--panel);border-color:var(--line)}
+[data-theme="maple"] .card.c{border-left-color:var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
+[data-theme="maple"] .card.N{border-left-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}
+[data-theme="maple"] .slot.c{background:#fdeee0;border-color:var(--orange)}
+[data-theme="maple"] .slot.N{background:#ecf7ee;border-color:var(--green)}
+[data-theme="maple"] .slot-empty{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="maple"] .team-block.raid-red{background:#fff5f5;border-color:var(--red)}
+[data-theme="maple"] .team-block.raid-yellow{background:#fffdf5;border-color:var(--yellow)}
+[data-theme="maple"] .team-block.raid-green{background:#f5fff8;border-color:var(--green)}
+[data-theme="maple"] .badge{background:var(--panel2);color:var(--txt)}
+[data-theme="maple"] .modal{background:rgba(60,35,10,.42)}
+[data-theme="maple"] .modal-box{background:var(--panel);color:var(--txt)}
+[data-theme="maple"] .notice{background:#fffbe6;border-color:#d9a509;color:#8a6d00}
+[data-theme="maple"] .slot.highlight{background:#fffde6!important;border-color:var(--yellow)!important}
+[data-theme="maple"] .slot.click-hl{background:#fdf1e6!important;border-color:var(--blue)!important}
+[data-theme="maple"] .help code{background:var(--panel2);color:var(--blue)}
+[data-theme="maple"] .tab.active{color:#fff}
+
+/* 🌸 樱花雪（浅色·圆点花纹+飘移动画） */
+[data-theme="sakura"]{
+  --bg:#fdf0f4; --panel:rgba(255,255,255,.93); --panel2:rgba(250,232,240,.96); --line:#f0c2d6;
+  --txt:#5c1a38; --mut:#a0668a; --blue:#d6336c; --blue2:#c2255c;
+  --orange:#e8590c; --green:#2f9e44; --red:#e03131; --yellow:#d97706;
+  --radius:12px;
+  background-color:#fdf0f4;
+  background-image:
+    radial-gradient(circle at 20% 22%,rgba(230,73,128,.16) 0 3px,transparent 4px),
+    radial-gradient(circle at 68% 64%,rgba(214,51,108,.11) 0 2px,transparent 3px),
+    radial-gradient(ellipse 320px 200px at 82% 14%,rgba(255,182,213,.38),transparent 70%);
+  background-size:130px 130px,95px 95px,460px 460px;
+  animation:sakuraDrift 26s linear infinite;
+}
+@keyframes sakuraDrift{from{background-position:0 0,0 0,0 0}to{background-position:130px 0,-95px 0,460px 230px}}
+[data-theme="sakura"] body{background:transparent}
+[data-theme="sakura"] input,[data-theme="sakura"] select,[data-theme="sakura"] textarea{background:rgba(255,255,255,.92);border-color:var(--line);color:var(--txt)}
+[data-theme="sakura"] .card,[data-theme="sakura"] .team-block,[data-theme="sakura"] .slot{background:var(--panel);border-color:var(--line)}
+[data-theme="sakura"] .card.c{border-left-color:var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
+[data-theme="sakura"] .card.N{border-left-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}
+[data-theme="sakura"] .slot.c{background:#fff0e8;border-color:var(--orange)}
+[data-theme="sakura"] .slot.N{background:#edf9f0;border-color:var(--green)}
+[data-theme="sakura"] .slot-empty{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="sakura"] .team-block.raid-red{background:#fff5f5;border-color:var(--red)}
+[data-theme="sakura"] .team-block.raid-yellow{background:#fffdf5;border-color:var(--yellow)}
+[data-theme="sakura"] .team-block.raid-green{background:#f5fff8;border-color:var(--green)}
+[data-theme="sakura"] .badge{background:var(--panel2);color:var(--txt)}
+[data-theme="sakura"] .modal{background:rgba(90,20,50,.4)}
+[data-theme="sakura"] .modal-box{background:var(--panel);color:var(--txt)}
+[data-theme="sakura"] .notice{background:#fff0f6;border-color:var(--yellow);color:#8a5a00}
+[data-theme="sakura"] .slot.highlight{background:#fffde6!important;border-color:var(--yellow)!important}
+[data-theme="sakura"] .slot.click-hl{background:#fdeef5!important;border-color:var(--blue)!important}
+[data-theme="sakura"] .help code{background:var(--panel2);color:var(--blue)}
+[data-theme="sakura"] .tab.active{color:#fff}
+
+/* 系统开启"减少动态效果"时停用背景动画 */
+@media (prefers-reduced-motion:reduce){
+  [data-theme="galaxy"],[data-theme="ocean"],[data-theme="sakura"]{animation:none!important}
+}
+
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,"Microsoft YaHei",sans-serif}
-body{background:var(--bg);color:var(--txt);padding:12px;min-height:100vh;font-size:14px}
+body{background:var(--bg);color:var(--txt);padding:12px;min-height:100vh;font-size:14px;transition:padding-top .3s ease}
 .container{max-width:1640px;margin:0 auto}
 button{background:var(--blue);color:#fff;border:none;padding:8px 14px;border-radius:7px;cursor:pointer;font-size:13px;transition:.15s}
 button:hover{filter:brightness(1.1)}
@@ -149,6 +327,13 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .dot.warn{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
 #saveBtn.dirty{background:var(--yellow);color:#000;font-weight:bold;opacity:1!important;animation:pulse 1.5s ease-in-out infinite}
 #saveBtn:not(:disabled){cursor:pointer}
+/* 米歇尔练习按钮：深色主题亮黄字、浅色主题深琥珀字，保证各主题对比清晰 */
+.btn-shengyan{background:var(--panel2);border:1px solid rgba(201,162,39,.45);color:#ffd43b;font-weight:600}
+[data-theme="bilibili"] .btn-shengyan,
+[data-theme="light"] .btn-shengyan,
+[data-theme="ocean"] .btn-shengyan,
+[data-theme="sakura"] .btn-shengyan{color:#8a5a00;border-color:rgba(180,120,0,.35)}
+[data-theme="maple"] .btn-shengyan{color:#7c4a03;border-color:rgba(180,120,0,.35)}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,200,0,.4)}50%{box-shadow:0 0 0 4px rgba(255,200,0,0)}}
 /* 未保存修改浮动提示条 */
 #unsavedBar{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#e8a700,#ffcc00);color:#1a1a1a;font-size:13px;font-weight:600;text-align:center;padding:7px 40px 7px 20px;box-shadow:0 2px 8px rgba(0,0,0,.3);transform:translateY(-100%);transition:transform .3s ease;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -366,7 +551,8 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
     <div class="grp" style="margin-left:auto">
       <span class="badge" id="syncStatus">未登录</span>
       <button class="sm" id="saveBtn" disabled style="opacity:.5">✓ 已保存</button>
-      <button class="sm secondary" id="openShengyan" style="background:var(--panel2);border:1px solid rgba(201,162,39,0.4);color:var(--yellow)">⚔️ 米歇尔练习</button>
+      <button class="sm secondary" id="openHistory">🕘 历史版本</button>
+      <button class="sm secondary btn-shengyan" id="openShengyan">⚔️ 米歇尔练习</button>
       <button class="sm danger" id="exitRoom">退出房间</button>
       <button class="sm secondary" id="openChangelog">📋 版本日志</button>
       <button class="sm secondary" id="openHelp">❓</button>
@@ -375,6 +561,11 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
         <option value="bilibili">🌸 B站粉</option>
         <option value="light">☀️ 极简白</option>
         <option value="midnight">🌌 深夜紫</option>
+        <option value="galaxy">✨ 星河(动画)</option>
+        <option value="jade">💎 墨玉格</option>
+        <option value="ocean">🌊 碧波(动画)</option>
+        <option value="maple">🍁 暖枫纹</option>
+        <option value="sakura">🌸 樱花雪(动画)</option>
       </select>
     </div>
   </div>
@@ -587,6 +778,20 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       <div class="changelog-content" style="margin-top:15px">
         <div class="version-entry">
           <div class="version-header">
+            <span class="ver-tag">v1.17.0</span>
+            <span class="ver-date">2026-08-20</span>
+          </div>
+          <ul class="changes-list">
+            <li>新增5种主题：✨星河（极光流动+星点动画）、💎墨玉格（几何网格花纹）、🌊碧波（波纹漂移动画）、🍁暖枫纹（斜纹花纹）、🌸樱花雪（圆点飘落动画）</li>
+            <li>新主题文字对比度全部优化，面板半透明磨砂质感，花纹仅作背景不干扰阅读</li>
+            <li>新增房间历史版本：每次保存自动记录（最多30个），可查看版本列表并一键回溯排表，回溯后仍需手动保存生效</li>
+            <li>修复未保存提示条遮挡顶部内容：改为插入顶部空间推送内容下移，不再覆盖</li>
+            <li>米歇尔练习按钮文字颜色按主题自适应：浅色主题改深琥珀色，各主题下对比清晰</li>
+            <li>系统开启"减少动态效果"时自动停用背景动画</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
             <span class="ver-tag">v1.16.0</span>
             <span class="ver-date">2026-08-20</span>
           </div>
@@ -789,6 +994,18 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
       </div>
       <div style="margin-top:20px;display:flex;justify-content:flex-end">
         <button class="secondary" id="closeChangelog">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 历史版本弹窗 -->
+  <div class="modal" id="historyModal">
+    <div class="modal-box" style="max-width:560px">
+      <h3>🕘 房间历史版本</h3>
+      <p class="muted" style="font-size:12px;margin:6px 0 10px">每次保存到云端自动记录一个版本（最多保留最近 30 个）。点击「回溯」还原该版本的排表，<b>仍需点击「保存到云端」才会生效</b>。</p>
+      <div id="historyList" style="border:1px solid var(--line);border-radius:8px;overflow:hidden;max-height:56vh;overflow-y:auto"></div>
+      <div style="margin-top:12px;display:flex;justify-content:flex-end">
+        <button class="secondary" id="closeHistory">关闭</button>
       </div>
     </div>
   </div>
@@ -2089,6 +2306,7 @@ const SYNC = {
       if(!j || Array.isArray(j) || !j.content){ this.setStatus(initial?"房间未同步，编辑后自动创建":"房间未同步","off"); this.renderPresence(); return; }
       this.room.sha = j.sha;
       const data = JSON.parse(b64dec(j.content));
+      this.room.history = Array.isArray(data.history) ? data.history : [];
       const dv = data.dataVersion||0;
       if(dv > this.room.dataVersion){
         this.room.dataVersion = dv;
@@ -2167,6 +2385,7 @@ const SYNC = {
           createdBy: base.createdBy || ACCT.currentUser() || this.nick()
         };
         if(base.raid12Config) pushData.raid12Config = base.raid12Config;
+        pushData.history = this.appendHistory(base.history, pushData);
         const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"char-sync "+pushData.dataVersion, content:b64enc(JSON.stringify(pushData)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
@@ -2179,6 +2398,7 @@ const SYNC = {
         const pj = await pr.json();
         this.room.sha = (pj.content && pj.content.sha) || pj.sha;
         this.room.dataVersion = pushData.dataVersion;
+        this.room.history = pushData.history || this.room.history || [];
         this.room.presence = pushData.presence;
         /* 更新本地为合并后的最终状态 */
         charList = mergedChars; teamList = mergedTeamList;
@@ -2198,6 +2418,17 @@ const SYNC = {
       showToast("⚠️ 保存失败，请点击「保存到云端」重试");
     }
     finally{ this.writing--; }
+  },
+  /* 追加历史版本记录（快照完整排表，最多保留 30 条） */
+  appendHistory(prev, next){
+    const list = Array.isArray(prev) ? prev.slice() : [];
+    list.push({
+      v: next.dataVersion, t: Date.now(), by: next.editor || this.nick(),
+      raid: next.raidMode, teams: (next.teamList||[]).length, chars: (next.charList||[]).length,
+      snap: { charList: next.charList, teamList: next.teamList, raidMode: next.raidMode }
+    });
+    while(list.length > 30) list.shift();
+    return list;
   },
   /* 更新保存按钮 UI */
   updateSaveBtn(){
@@ -2241,6 +2472,7 @@ const SYNC = {
           createdBy: base.createdBy || ACCT.currentUser() || this.nick()
         };
         if(base.raid12Config) next.raid12Config = base.raid12Config;
+        next.history = this.appendHistory(base.history, next);
         const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"save "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
@@ -2253,6 +2485,7 @@ const SYNC = {
         const pj = await pr.json();
         this.room.sha = (pj.content && pj.content.sha) || pj.sha;
         this.room.dataVersion = next.dataVersion;
+        this.room.history = next.history || this.room.history || [];
         this.room.presence = next.presence;
         this.dirty = false;
         this.dirtyCount = 0;
@@ -2302,6 +2535,7 @@ const SYNC = {
         next.presence = Object.assign({}, base.presence||{}, next.presence||{}, {[this.nick()]:Date.now()});
         next.password = this.room.password || base.password || "";
         if(!next.createdBy) next.createdBy = base.createdBy || ACCT.currentUser() || this.nick();
+        next.history = this.appendHistory(base.history, next);
         const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"sync "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
@@ -2314,6 +2548,7 @@ const SYNC = {
         const pj = await pr.json();
         this.room.sha = (pj.content && pj.content.sha) || pj.sha;
         this.room.dataVersion = next.dataVersion;
+        this.room.history = next.history || this.room.history || [];
         charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; this.room.presence = next.presence;
         saveStorage(); renderAll(); updateModeBtns();
         this.setStatus("已同步","on");
@@ -3938,6 +4173,10 @@ function init(){
   document.getElementById("openChangelog").onclick=()=>openModal("changelogModal");
   document.getElementById("closeChangelog").onclick=()=>closeModal("changelogModal");
 
+  // 历史版本
+  document.getElementById("openHistory").onclick=()=>{ renderHistory(); openModal("historyModal"); };
+  document.getElementById("closeHistory").onclick=()=>closeModal("historyModal");
+
   // 主题切换
   const themeSelect=document.getElementById("themeSelect");
   const savedTheme=localStorage.getItem("busha_theme")||"dark";
@@ -4020,12 +4259,60 @@ function showToast(msg){
 function showUnsavedBar(count){
   const bar=document.getElementById("unsavedBar");
   const cnt=document.getElementById("unsavedCount");
-  if(bar){ bar.classList.add("show"); }
+  if(bar){
+    bar.classList.add("show");
+    /* 提示条出现时为 body 顶部插入等高空间，推送内容下移而不遮挡 */
+    requestAnimationFrame(()=>{
+      document.body.style.paddingTop=(12+bar.offsetHeight)+"px";
+    });
+  }
   if(cnt){ cnt.textContent=count||0; }
 }
 function hideUnsavedBar(){
   const bar=document.getElementById("unsavedBar");
   if(bar){ bar.classList.remove("show"); }
+  document.body.style.paddingTop="";
+}
+/* ═══ 历史版本：渲染列表 + 回溯 ═══ */
+function renderHistory(){
+  const box=document.getElementById("historyList");
+  if(!box) return;
+  const h=(SYNC.room && SYNC.room.history)||[];
+  if(!h.length){
+    box.innerHTML='<div class="muted" style="padding:16px;text-align:center">暂无历史版本，保存到云端后自动记录</div>';
+    return;
+  }
+  box.innerHTML=h.slice().reverse().map((e)=>{
+    const d=new Date(e.t||0);
+    const pad=n=>String(n).padStart(2,"0");
+    const time=`${d.getMonth()+1}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const isCur=(SYNC.room.dataVersion===e.v);
+    const curTag=isCur?' <span class="badge" style="padding:1px 7px;font-size:11px;color:var(--green);border-color:var(--green)">当前</span>':'';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap">
+      <span style="min-width:42px;font-weight:700;color:var(--blue2)">v${e.v}</span>
+      <span style="flex:1;font-size:12px">${time} · ${escapeHtml(e.by||"-")} · ${(e.raid===12)?"12人":"4人"} · ${e.teams||0}队/${e.chars||0}角色${curTag}</span>
+      <button class="sm secondary" onclick="doRollback(${h.indexOf(e)})">↩ 回溯</button>
+    </div>`;
+  }).join("");
+}
+function doRollback(idx){
+  const h=SYNC.room && SYNC.room.history;
+  if(!h || !h[idx]){ showToast("⚠️ 该历史版本不存在"); return; }
+  const e=h[idx], snap=e.snap||{};
+  if(!Array.isArray(snap.teamList)){ showToast("⚠️ 该版本缺少排表快照，无法回溯"); return; }
+  /* 回溯到本地：还原角色与排表，标记未保存，需手动保存后才生效 */
+  if(Array.isArray(snap.charList)){
+    charList=snap.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; });
+  }
+  teamList=snap.teamList;
+  if(snap.raidMode===4||snap.raidMode===12){ raidMode=snap.raidMode; }
+  SYNC.dirty=true;
+  SYNC.dirtyCount=(SYNC.dirtyCount||0)+1;
+  saveStorage(); renderAll(); updateModeBtns();
+  SYNC.updateSaveBtn();
+  SYNC.setStatus("未保存","warn");
+  showToast(`🕘 已回溯到 v${e.v}，点击「保存到云端」后才会生效`);
+  closeModal("historyModal");
 }
 /* 未保存修改时，关闭/刷新/切换网页提醒用户 */
 window.addEventListener("beforeunload",function(e){
