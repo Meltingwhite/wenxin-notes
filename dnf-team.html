@@ -14,6 +14,11 @@
   --txt:#e8eaf0; --mut:#9aa3b2; --blue:#3b82f6; --blue2:#60a5fa;
   --orange:#f97316; --green:#22c55e; --red:#ef4444; --yellow:#eab308;
   --radius:10px;
+  /* 波次高亮主题变量：RGB 分量 + 描边/底色（深色主题用亮绿发光） */
+  --wg:34,197,94;
+  --wave-stroke:#22c55e;
+  --wave-bg:rgba(34,197,94,.16);
+  --wave-badge-bg:#16a34a;
 }
 /* B站粉主题 */
 [data-theme="bilibili"]{
@@ -21,6 +26,7 @@
   --txt:#18191c; --mut:#9499a0; --blue:#fb7299; --blue2:#fc8bab;
   --orange:#ff6633; --green:#02b340; --red:#f25d43; --yellow:#ffb027;
   --radius:8px;
+  --wg:2,179,64; --wave-stroke:#028a32; --wave-bg:rgba(2,179,64,.14); --wave-badge-bg:#028a32;
 }
 [data-theme="bilibili"] body{background:#f4f5f7}
 [data-theme="bilibili"] input,[data-theme="bilibili"] select,[data-theme="bilibili"] textarea{background:#f0f1f3;border-color:#e3e5e8}
@@ -36,6 +42,7 @@
   --txt:#212529; --mut:#6c757d; --blue:#0d6efd; --blue2:#3d8bfd;
   --orange:#fd7e14; --green:#20c997; --red:#dc3545; --yellow:#ffc107;
   --radius:8px;
+  --wg:12,168,120; --wave-stroke:#0ca678; --wave-bg:rgba(12,166,120,.16); --wave-badge-bg:#087f5b;
 }
 [data-theme="light"] body{background:#f8f9fa}
 [data-theme="light"] input,[data-theme="light"] select,[data-theme="light"] textarea{background:#fff;border-color:#dee2e6}
@@ -46,6 +53,7 @@
   --txt:#e8d9f5; --mut:#a78bc4; --blue:#8b5cf6; --blue2:#a78bfa;
   --orange:#f97316; --green:#10b981; --red:#ef4444; --yellow:#eab308;
   --radius:10px;
+  --wg:16,185,129; --wave-stroke:#34d399; --wave-bg:rgba(16,185,129,.18); --wave-badge-bg:#059669;
 }
 [data-theme="midnight"] body{background:#1a0f2e}
 [data-theme="midnight"] input,[data-theme="midnight"] select,[data-theme="midnight"] textarea{background:#1a0f2e;border-color:#3d2860}
@@ -131,6 +139,7 @@
   --txt:#eef1ff; --mut:#aab4e0; --blue:#4e5fd0; --blue2:#a5b0ff;
   --orange:#ff9e64; --green:#3ddc97; --red:#ff6b7a; --yellow:#ffd166;
   --radius:12px;
+  --wg:61,220,151; --wave-stroke:#3ddc97; --wave-bg:rgba(61,220,151,.20); --wave-badge-bg:#0d9e66;
   background:linear-gradient(-45deg,#0b1026 0%,#1b1b4d 25%,#0d2b52 50%,#241245 75%,#0b1026 100%);
   background-size:400% 400%;
   animation:galaxyFlow 24s ease-in-out infinite;
@@ -169,6 +178,7 @@
   --txt:#e3f5ee; --mut:#8fb8ac; --blue:#0f766e; --blue2:#5eead4;
   --orange:#fb923c; --green:#4ade80; --red:#f87171; --yellow:#fbbf24;
   --radius:10px;
+  --wg:74,222,128; --wave-stroke:#4ade80; --wave-bg:rgba(74,222,128,.20); --wave-badge-bg:#16a34a;
   background-color:#0c1f1a;
   background-image:
     linear-gradient(rgba(94,234,212,.055) 1px,transparent 1px),
@@ -198,6 +208,7 @@
   --txt:#0a3a5c; --mut:#41748f; --blue:#0e7ac4; --blue2:#0c6aa8;
   --orange:#d95f02; --green:#0a8f56; --red:#d63031; --yellow:#d99a06;
   --radius:10px;
+  --wg:10,143,86; --wave-stroke:#0a8f56; --wave-bg:rgba(10,143,86,.16); --wave-badge-bg:#076b40;
   background-color:#e9f4fc;
   background-image:
     radial-gradient(ellipse 300px 180px at 22% 28%,rgba(18,144,221,.13),transparent 70%),
@@ -233,6 +244,7 @@
   --txt:#4a2c14; --mut:#8d6d4a; --blue:#c2410c; --blue2:#b45309;
   --orange:#ea580c; --green:#15803d; --red:#dc2626; --yellow:#b45309;
   --radius:10px;
+  --wg:21,128,61; --wave-stroke:#15803d; --wave-bg:rgba(21,128,61,.16); --wave-badge-bg:#14532d;
   background-color:#faf3ea;
   background-image:
     repeating-linear-gradient(45deg,rgba(234,88,12,.05) 0 14px,transparent 14px 34px),
@@ -267,6 +279,7 @@
   --txt:#5c1a38; --mut:#a0668a; --blue:#d6336c; --blue2:#c2255c;
   --orange:#e8590c; --green:#2f9e44; --red:#e03131; --yellow:#d97706;
   --radius:12px;
+  --wg:47,158,68; --wave-stroke:#2b8a3e; --wave-bg:rgba(47,158,68,.16); --wave-badge-bg:#237032;
   background-color:#fdf0f4;
   background-image:
     radial-gradient(circle at 20% 22%,rgba(230,73,128,.16) 0 3px,transparent 4px),
@@ -465,16 +478,26 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 .wave-label[draggable="true"]{cursor:grab;user-select:none}
 .wave-label.dragging{opacity:.5}
 .wave-label.drag-over .wnum{box-shadow:0 0 0 2px var(--blue)}
-/* 当前选中波次高亮（单击波次标签或队伍卡片框体切换） */
-.wave-label.wave-active{border-radius:8px;padding:6px 10px;margin:8px 0 4px;border-bottom:2px solid var(--green);background:rgba(34,197,94,.10)}
-.wave-label.wave-active .wnum{background:var(--green);box-shadow:0 0 0 2px rgba(34,197,94,.35)}
-.wave-label.wave-active .wline{background:var(--green);opacity:.4}
-.wave-label.wave-active .wave-btn{color:var(--green);border-color:var(--green)}
-.team-block.wave-active{box-shadow:0 0 0 3px var(--green),0 2px 14px rgba(34,197,94,.45);border-radius:8px;outline:1px solid var(--green)}
-.team-block.wave-active .team-title{border-bottom:1px solid var(--green)}
+/* 当前选中波次高亮（单击波次标签或队伍卡片框体切换）——主题化增强：粗描边+光晕+呼吸动画 */
+@keyframes wavePulse{
+  0%,100%{box-shadow:0 0 0 4px var(--wave-stroke),0 0 0 7px rgba(var(--wg),.30),0 0 26px 6px rgba(var(--wg),.55)}
+  50%{box-shadow:0 0 0 4px var(--wave-stroke),0 0 0 9px rgba(var(--wg),.45),0 0 38px 10px rgba(var(--wg),.75)}
+}
+.wave-label.wave-active{border-radius:8px;padding:7px 10px;margin:8px 0 6px;background:var(--wave-bg);border:1px solid var(--wave-stroke);box-shadow:0 0 0 1px var(--wave-stroke),0 0 14px rgba(var(--wg),.5)}
+.wave-label.wave-active .wnum{background:var(--wave-badge-bg);color:#fff;font-weight:bold;box-shadow:0 0 0 2px rgba(255,255,255,.6),0 0 12px rgba(var(--wg),.85);transform:scale(1.08)}
+.wave-label.wave-active .wline{background:var(--wave-stroke);opacity:.65}
+.wave-label.wave-active .wave-btn{color:var(--wave-stroke);border-color:var(--wave-stroke);font-weight:bold}
+.team-block.wave-active{background:var(--wave-bg);box-shadow:0 0 0 4px var(--wave-stroke),0 0 0 7px rgba(var(--wg),.28),0 0 26px 6px rgba(var(--wg),.5);animation:wavePulse 2.2s ease-in-out infinite;z-index:1}
+.team-block.wave-active .team-title{border-bottom:2px solid var(--wave-stroke)}
+.team-block.wave-active .raid-tag{box-shadow:0 0 0 1.5px var(--wave-stroke)}
+/* 其他波次压暗反衬，令当前波一眼可辨 */
+.team-block.wave-dim{opacity:.38;filter:saturate(.55) contrast(.92);transition:opacity .25s,filter .25s}
+.wave-label.wave-dim{opacity:.45;filter:saturate(.6);transition:opacity .25s}
 .team-block[data-wave-num]{cursor:pointer}
 .team-block[data-wave-num] .slot{cursor:default}
 .team-block[data-wave-num] .slot[data-owner]{cursor:pointer}
+.wave-label{cursor:pointer}
+@media (prefers-reduced-motion:reduce){.team-block.wave-active{animation:none}}
 .wave-actions{display:flex;gap:2px;margin-left:auto}
 .wave-btn{background:var(--panel2);border:1px solid var(--line);color:var(--mut);cursor:pointer;font-size:11px;padding:2px 8px;border-radius:4px;line-height:1.4;transition:all .15s;white-space:nowrap}
 .wave-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--bg)}
@@ -806,7 +829,7 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
             <span class="ver-date">2026-08-20</span>
           </div>
           <ul class="changes-list">
-            <li>4人/12人团本模式新增波次高亮：单击波次标签或队伍卡片框体可标记为「当前波次」，该波标签与所有队伍框体高亮显示（绿色描边），再次点击取消</li>
+            <li>4人/12人团本模式新增波次高亮：单击波次标签或队伍卡片框体可标记为「当前波次」，该波粗绿描边+光晕+呼吸动画高亮，其余波次自动压暗反衬，适配全部9套主题，再次点击取消</li>
           </ul>
         </div>
         <div class="version-entry">
@@ -3518,7 +3541,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
         container.appendChild(addBtn);
       }
       const wl=document.createElement("div");
-      wl.className="wave-label"+(currentWaveHL===curGroup?" wave-active":"");
+      wl.className="wave-label"+(currentWaveHL===curGroup?" wave-active":(currentWaveHL!==null?" wave-dim":""));
       wl.draggable=true;
       wl.dataset.waveDrag=curGroup;
       wl.innerHTML=`<span class="wnum">第 ${curGroup} 波</span><span class="wline"></span>
@@ -3533,7 +3556,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       curWaveColors=[];
     } else if(!isRaid12 && !isUltra){
       const wl=document.createElement("div");
-      wl.className="wave-label"+(currentWaveHL===(tIdx+1)?" wave-active":"");
+      wl.className="wave-label"+(currentWaveHL===(tIdx+1)?" wave-active":(currentWaveHL!==null?" wave-dim":""));
       wl.draggable=true;
       wl.dataset.waveDrag=tIdx+1;
       wl.innerHTML=`<span class="wnum">第 ${tIdx+1} 波</span><span class="wline"></span>
@@ -3548,7 +3571,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     const rColor = team.raidColor || (isRaid12 ? raidColors[tIdx%3] : null);
     if(isRaid12 && rColor){ curWaveColors.push(rColor); }
     const block=document.createElement("div");
-    block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass + (currentWaveHL===curGroup ? " wave-active" : "");
+    block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass + (currentWaveHL===curGroup ? " wave-active" : (currentWaveHL!==null ? " wave-dim" : ""));
     block.draggable=true;
     block.dataset.teamDrag=tIdx;
     block.dataset.waveNum=curGroup;
