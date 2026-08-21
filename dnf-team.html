@@ -512,22 +512,22 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 .captain-toggle.on{border-color:#f5a623;color:#f5a623;background:rgba(245,166,35,.14);box-shadow:0 0 0 1px rgba(245,166,35,.25),0 2px 10px rgba(245,166,35,.15)}
 .captain-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:8px;border:1px solid #f5a623;color:#f5a623;background:rgba(245,166,35,.12);font-size:12px;font-weight:bold;white-space:nowrap;animation:capPulse 2.2s ease-in-out infinite}
 @keyframes capPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.35)}50%{box-shadow:0 0 0 5px rgba(245,166,35,0)}}
-/* 非团长锁定：编辑控件置灰（点击仍可触发提示） */
+/* 非团长锁定：仅置灰编辑控件（点击仍可触发提示）；玩家名片/波次标签保持与团长完全一致的视觉，不暗沉 */
 body.captain-lock .del-team-btn,
 body.captain-lock .add-team-inline,
 body.captain-lock .add-wave-btn,
 body.captain-lock .wave-btn[data-wave-act],
-body.captain-lock .team-grid select,
 body.captain-lock #autoArrange,
 body.captain-lock #clearTeams,
 body.captain-lock #addTeam,
 body.captain-lock #resetAll,
 body.captain-lock #importData,
 body.captain-lock #undoBtn,
-body.captain-lock #redoBtn,
-body.captain-lock .team-block[data-team-drag],
-body.captain-lock .wave-label[data-wave-drag]{opacity:.32;filter:grayscale(.55);cursor:not-allowed}
-body.captain-lock .team-block[data-team-drag]{border-style:dashed!important}
+body.captain-lock #redoBtn{opacity:.32;filter:grayscale(.55);cursor:not-allowed}
+/* 锁定下放开的能力：玩家名片可点击高亮（本地视图，不改动队伍数据），指针提示可点 */
+body.captain-lock .slot[data-owner]{cursor:pointer}
+body.captain-lock .slot[data-owner] .sn,
+body.captain-lock .slot[data-owner] .cn{cursor:pointer}
 /* 锁定横幅提示 */
 #captainLockBar{display:none;align-items:center;gap:8px;padding:6px 14px;border:1px solid rgba(245,166,35,.55);border-radius:9px;background:rgba(245,166,35,.1);color:#f5a623;font-size:12.5px;font-weight:bold;margin-bottom:8px}
 #captainLockBar.show{display:flex}
@@ -642,7 +642,7 @@ body.captain-lock .team-block[data-team-drag]{border-style:dashed!important}
   <!-- 团长模式锁定横幅（非团长时显示） -->
   <div id="captainLockBar">
     <span>👑 团长模式已开启</span>
-    <span class="muted" id="captainLockBarText">当前团长：-（波次选中与队伍编辑权限归团长所有，其他成员仅可查看）</span>
+    <span class="muted" id="captainLockBarText">当前团长：-（仅团长可编辑队伍与选择波次；你可点击玩家名片高亮查看，画面与团长一致）</span>
   </div>
 
   <!-- 顶栏 -->
@@ -864,6 +864,17 @@ body.captain-lock .team-block[data-team-drag]{border-style:dashed!important}
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.27.0</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li>团长模式视觉优化：非团长不再暗沉——取消队伍卡片、波次标签与卡内下拉框的整体置灰（透明度32%+灰度）与虚线边框，所有名片与团长画面完全一致</li>
+            <li>放开点击高亮：团长模式下其他成员可点击玩家名片高亮该玩家全部角色（纯本地视图，不改动队伍数据，再次点击取消），名片指针提示可点</li>
+            <li>编辑权限保持锁定：拖拽队伍/波次、删除新建、角色分配、波次排序、一键排表、撤销重做等仍仅团长可操作，非团长操作弹提示；置灰范围收窄至纯编辑按钮</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.26.0</span>
@@ -3306,7 +3317,7 @@ function updateCaptainUI(){
     if(badge){ badge.style.display=""; badge.textContent="👑 团长："+captainState.user; badge.title="团长模式已被占用，勾选👑团长可抢夺权限"; }
     wrap.title="团长模式已被「"+captainState.user+"」占用，勾选可抢夺权限（对方会收到通知）";
     if(bar){ bar.classList.add("show"); }
-    if(barText){ barText.textContent="当前团长："+captainState.user+"（波次选中与队伍编辑权限归团长所有，其他成员仅可查看；勾选👑团长可抢夺权限）"; }
+    if(barText){ barText.textContent="当前团长："+captainState.user+"（仅团长可编辑队伍与选择波次；你可点击玩家名片高亮查看，画面与团长一致）"; }
   } else {
     if(badge){ badge.style.display="none"; }
     wrap.title = isMe ? "团长模式已开启：波次选中与队伍编辑权限归你，点击可关闭" : "团长模式：占用波次选中权限，团长模式下仅团长可编辑队伍";
