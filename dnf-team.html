@@ -299,28 +299,54 @@
 [data-theme="sakura"] .help code{background:var(--panel2);color:var(--blue)}
 [data-theme="sakura"] .tab.active{color:#fff}
 
-/* 🌸 樱花下落层（樱花粉主题试点：真实花瓣飘落+左右摇摆+自旋，叠加于原圆点波澜背景之上；
-   三层结构分工：pw=垂直下落 / sw=水平摇摆 / pt=花瓣本体自旋，互不干扰可组合）
+/* ═══ 主题粒子层（全主题下落/上浮粒子，樱花试点推广而来）
+   三层结构分工：pw=垂直位移 / sw=水平摇摆 / pt=粒子本体自旋，互不干扰可组合；
+   四种粒子形态：petal=花瓣（樱花/B站粉/暖枫）/ dot=微光圆点（暗色/极简白/深夜紫/墨玉）/
+   star=四角星光（星河）/ bubble=气泡（碧波，上浮）；
+   颜色/形状/大小/数量/透明度由 JS 按主题配置驱动（setupThemeFall）；
    z-index:40 落在页面内容之上营造沉浸感，但低于弹窗(50)/管理面板(100)/通知，不干扰操作 */
-.sakura-fall{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:40}
-.sakura-fall .pw{position:absolute;top:-6vh;left:var(--x);animation:skFall var(--dur) linear var(--delay) infinite;will-change:transform}
-.sakura-fall .sw{display:block;animation:skSway var(--sdur) ease-in-out var(--delay) infinite alternate;will-change:transform}
-.sakura-fall .pt{display:block;position:relative;width:14px;height:14px;
-  background:linear-gradient(135deg,#ffe3ee,var(--pc,#ff9ec4) 78%,#f783ac);
-  border-radius:100% 0 100% 0;
-  box-shadow:inset -1px -2px 3px rgba(214,51,108,.28),0 0 6px rgba(255,158,196,.35);
+.theme-fall{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:40}
+.theme-fall .pw{position:absolute;top:-6vh;left:var(--x);animation:skFall var(--dur) linear var(--delay) infinite;will-change:transform}
+.theme-fall.dir-up .pw{top:auto;bottom:-6vh;animation-name:skRise}
+.theme-fall .sw{display:block;animation:skSway var(--sdur) ease-in-out var(--delay) infinite alternate;will-change:transform}
+.theme-fall .pt{display:block;position:relative;width:14px;height:14px;
   animation:skSpin var(--dur) linear var(--delay) infinite;will-change:transform}
-/* 内层小花瓣：双层花瓣更立体 */
-.sakura-fall .pt::after{content:"";position:absolute;left:16%;top:16%;width:68%;height:68%;
-  background:linear-gradient(135deg,#fff5f9,#ffb3d1);border-radius:100% 0 100% 0;opacity:.78}
+/* 花瓣形态：樱粉/枫叶/B站粉，双层花瓣立体感 */
+.theme-fall .pt.petal{
+  background:linear-gradient(135deg,var(--pl1,#ffe3ee),var(--pc,#ff9ec4) 78%,var(--pl2,#f783ac));
+  border-radius:100% 0 100% 0;
+  box-shadow:inset -1px -2px 3px rgba(0,0,0,.14),0 0 6px var(--pg,rgba(255,158,196,.35))}
+.theme-fall .pt.petal::after{content:"";position:absolute;left:16%;top:16%;width:68%;height:68%;
+  background:linear-gradient(135deg,var(--pl3,rgba(255,255,255,.9)),var(--pl4,rgba(255,179,209,.85)));border-radius:100% 0 100% 0;opacity:.78}
+/* 微光圆点形态：暗色蓝尘/极简白淡蓝/深夜紫星尘/墨玉翠光，柔光内芯+外发光 */
+.theme-fall .pt.dot{
+  border-radius:50%;
+  background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.9),var(--pc) 62%,var(--pl2,transparent) 100%);
+  box-shadow:0 0 7px 1px var(--pg,transparent),inset 0 0 2px rgba(255,255,255,.5)}
+/* 四角星光形态：星河流星尘，clip-path 星形+强光晕+呼吸闪烁（自旋长周期，闪烁短周期） */
+.theme-fall .pt.star{
+  background:linear-gradient(135deg,#fff,var(--pc));
+  clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);
+  box-shadow:0 0 9px 2px var(--pg,transparent);
+  animation-name:skSpin,skTwinkle;
+  animation-duration:var(--dur),var(--tdur,2.6s);
+  animation-timing-function:linear,ease-in-out}
+/* 气泡形态：碧波上浮气泡，深蓝描边+高光内芯（浅色背景需明显描边才可辨识） */
+.theme-fall .pt.bubble{
+  border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.9),rgba(255,255,255,.15) 45%,var(--pc) 100%);
+  border:2px solid var(--pg,rgba(255,255,255,.45));
+  box-shadow:inset 0 0 4px rgba(255,255,255,.5),0 0 5px var(--pg,transparent)}
 @keyframes skFall{from{transform:translateY(0)}to{transform:translateY(112vh)}}
+@keyframes skRise{from{transform:translateY(0)}to{transform:translateY(-112vh)}}
 @keyframes skSway{from{transform:translateX(calc(var(--amp) * -1))}to{transform:translateX(var(--amp))}}
 @keyframes skSpin{from{transform:rotate(0deg)}to{transform:rotate(var(--spin))}}
+@keyframes skTwinkle{0%,100%{opacity:var(--o,.6);filter:brightness(.85)}50%{opacity:1;filter:brightness(1.35)}}
 
-/* 系统开启"减少动态效果"时停用背景动画 */
+/* 系统开启"减少动态效果"时停用背景动画与粒子层 */
 @media (prefers-reduced-motion:reduce){
   [data-theme="galaxy"],[data-theme="ocean"],[data-theme="sakura"]{animation:none!important}
-  .sakura-fall{display:none!important}
+  .theme-fall{display:none!important}
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,"Microsoft YaHei",sans-serif}
@@ -644,16 +670,16 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
       <button class="sm danger" id="exitRoom">退出房间</button>
       <button class="sm secondary" id="openChangelog">📋 版本日志</button>
       <button class="sm secondary" id="openHelp">❓</button>
-      <select id="themeSelect" class="sm" style="width:auto;padding:4px 8px;font-size:12px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);cursor:pointer">
-        <option value="dark">🌙 暗色</option>
-        <option value="bilibili">🌸 B站粉</option>
-        <option value="light">☀️ 极简白</option>
-        <option value="midnight">🌌 深夜紫</option>
-        <option value="galaxy">✨ 星河(动画)</option>
-        <option value="jade">💎 墨玉格</option>
-        <option value="ocean">🌊 碧波(动画)</option>
-        <option value="maple">🍁 暖枫纹</option>
-        <option value="sakura">🌸 樱花雪(动画)</option>
+      <select id="themeSelect" class="sm" style="width:auto;padding:4px 8px;font-size:12px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);cursor:pointer" title="所有主题均带专属粒子动态效果：花瓣/微尘/星光/气泡随主题切换">
+        <option value="dark">🌙 暗色(蓝尘)</option>
+        <option value="bilibili">🌸 B站粉(花瓣)</option>
+        <option value="light">☀️ 极简白(微尘)</option>
+        <option value="midnight">🌌 深夜紫(星尘)</option>
+        <option value="galaxy">✨ 星河(流星)</option>
+        <option value="jade">💎 墨玉格(翠光)</option>
+        <option value="ocean">🌊 碧波(气泡)</option>
+        <option value="maple">🍁 暖枫纹(枫叶)</option>
+        <option value="sakura">🌸 樱花雪(樱花)</option>
       </select>
     </div>
   </div>
@@ -883,6 +909,17 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.30.0</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li>主题粒子特效推广到全部9个主题（樱花粉试点反馈良好）：每套主题专属粒子——🌙暗色=蓝色微尘、🌸B站粉=粉花瓣、☀️极简白=淡蓝微尘（极简克制）、🌌深夜紫=紫色星尘、✨星河=四角流星（自旋+呼吸闪烁）、💎墨玉格=翡翠光点、🌊碧波=蓝色气泡（改为<b>上浮</b>更贴水感）、🍁暖枫纹=橙红枫叶、🌸樱花雪=樱花瓣</li>
+            <li>粒子引擎升级为配置驱动（形状/数量/大小/速度/自旋/配色/透明度/方向按主题定制），四种粒子形态共用一套位移+摇摆+自旋三层动画架构；切换主题自动重建对应粒子层</li>
+            <li>主题下拉选项标注各自粒子类型；粒子层低于弹窗/管理面板层级不干扰操作，系统开启"减少动态效果"时全部自动关闭</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.29.0</span>
@@ -5150,47 +5187,78 @@ async function doBatchDelete(){
   await loadAdminRooms();
 }
 
-/* ---------- 🌸 樱花下落层（樱花粉主题试点） ----------
-   主题为 sakura 时创建固定定位花瓣层：16片花瓣随机位置/大小/速度/延迟/自旋，负延迟让开场即铺满屏幕；
-   三层动画分工（下落/摇摆/自旋）由 CSS 变量驱动；切走主题或系统开启减少动态时移除 */
-let _sakuraLayer=null;
-function setupSakuraFall(){
-  const want = document.documentElement.getAttribute("data-theme")==="sakura";
+/* ---------- 🌸 主题粒子层（全主题动态效果） ----------
+   按当前主题创建固定定位粒子层：粒子形状/数量/大小/速度/延迟/自旋/配色由 THEME_FALL 配置驱动，
+   负延迟让开场即铺满屏幕；三层动画分工（位移/摇摆/自旋）由 CSS 变量驱动；
+   切换主题自动重建对应粒子，系统开启减少动态或主题未配置时移除 */
+let _themeFallLayer=null;
+/* ═══ 主题粒子配置表 ═══
+   shape: petal=花瓣 / dot=微光圆点 / star=四角星光 / bubble=气泡
+   n: 粒子数量  size: 尺寸范围px  op: 透明度范围  dur: 单程时长s
+   spin: 自旋幅度deg（bubble 用 0） dir: up=上浮（默认下落）
+   palette: 主体色数组；petal 另有 pl1~pl4 渐变端点；glow: 光晕色 */
+const THEME_FALL={
+  dark:     {shape:"dot",   n:12, size:[4,9],   op:[.16,.36], dur:[12,22], spin:[120,420], palette:["#5b8def","#8fb0ff","#7ea2f2"], glow:"rgba(91,141,239,.4)"},
+  bilibili: {shape:"petal", n:14, size:[9,17],  op:[.35,.65], dur:[9,19],  spin:[160,540], palette:["#fb7299","#fc8bab","#ff9ec4","#f25d8e"], pl1:"#ffe4ee", pl2:"#f25d8e", pl3:"rgba(255,255,255,.92)", pl4:"rgba(252,139,171,.85)", glow:"rgba(251,114,153,.4)"},
+  light:    {shape:"dot",   n:10, size:[4,8],   op:[.14,.3],  dur:[13,24], spin:[100,360], palette:["#8db8ff","#b9d4ff","#a3c6f5"], glow:"rgba(141,184,255,.35)"},
+  midnight: {shape:"dot",   n:14, size:[4,10],  op:[.22,.48], dur:[11,21], spin:[120,420], palette:["#9d6bff","#c4b0ff","#7c5cd6","#b18aff"], glow:"rgba(157,107,255,.45)"},
+  galaxy:   {shape:"star",  n:16, size:[6.5,13],op:[.35,.8],  dur:[8,18],  spin:[180,540], palette:["#ffffff","#a5b0ff","#7ee8fa","#ffd166"], glow:"rgba(165,176,255,.55)"},
+  jade:     {shape:"dot",   n:12, size:[4,9],   op:[.2,.44],  dur:[12,22], spin:[120,420], palette:["#5eead4","#2dd4bf","#94f5e2"], glow:"rgba(94,234,212,.45)"},
+  ocean:    {shape:"bubble",n:14, size:[6,15],  op:[.55,.85], dur:[10,20], spin:[0,0],      dir:"up", palette:["#0e7ac4","#1a8fd0","#0c6aa8"], glow:"rgba(12,106,168,.55)"},
+  maple:    {shape:"petal", n:16, size:[9,19],  op:[.6,.9],   dur:[9,19],  spin:[160,540], palette:["#ea580c","#c2410c","#d97706","#b91c1c"], pl1:"#ffe8cc", pl2:"#b91c1c", pl3:"rgba(255,255,255,.85)", pl4:"rgba(245,158,11,.8)", glow:"rgba(234,88,12,.4)"},
+  sakura:   {shape:"petal", n:16, size:[9,19],  op:[.38,.8],  dur:[9,19],  spin:[160,540], palette:["#ff9ec4","#f783ac","#ffc9de","#fa5c8d"], pl1:"#ffe3ee", pl2:"#f783ac", pl3:"rgba(255,255,255,.9)", pl4:"rgba(255,179,209,.85)", glow:"rgba(255,158,196,.35)"}
+};
+function setupThemeFall(){
+  const theme=document.documentElement.getAttribute("data-theme")||"dark";
+  const cfg=THEME_FALL[theme];
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches;
-  if(!want || reduced){
-    if(_sakuraLayer){ _sakuraLayer.remove(); _sakuraLayer=null; }
+  /* 主题未配置粒子或系统要求减少动态：移除粒子层 */
+  if(!cfg || reduced){
+    if(_themeFallLayer){ _themeFallLayer.remove(); _themeFallLayer=null; }
     return;
   }
-  if(_sakuraLayer) return; /* 已存在，避免重复创建 */
+  /* 主题切换时重建（形状/配色/方向不同），同主题已存在则跳过 */
+  if(_themeFallLayer && _themeFallLayer.dataset.theme===theme) return;
+  if(_themeFallLayer){ _themeFallLayer.remove(); _themeFallLayer=null; }
   const layer=document.createElement("div");
-  layer.className="sakura-fall";
+  layer.className="theme-fall"+(cfg.dir==="up"?" dir-up":"");
+  layer.dataset.theme=theme;
   layer.setAttribute("aria-hidden","true");
-  const N=16;
-  const palette=["#ff9ec4","#f783ac","#ffc9de","#fa5c8d"]; /* 中粉/深粉/浅粉/艳粉：深浅搭配保证任何背景区域都有花瓣可见 */
-  for(let i=0;i<N;i++){
+  const rr=(a,b)=>a+Math.random()*(b-a); /* 范围随机 */
+  for(let i=0;i<cfg.n;i++){
     const pw=document.createElement("i"); pw.className="pw";
     const sw=document.createElement("i"); sw.className="sw";
-    const pt=document.createElement("i"); pt.className="pt";
-    const dur=(9+Math.random()*10).toFixed(2);          /* 单片下落总时长 9~19s */
-    const delay=(-Math.random()*20).toFixed(2);          /* 负延迟：打开页面即有花瓣在途中 */
-    const sdur=(2.2+Math.random()*2.8).toFixed(2);       /* 摇摆半周期 2.2~5s */
-    const amp=(14+Math.random()*30).toFixed(1);          /* 摇摆幅度 14~44px */
-    const size=(9+Math.random()*10).toFixed(1);          /* 花瓣尺寸 9~19px */
-    const spin=((Math.random()<.5?-1:1)*(160+Math.random()*380))|0; /* 自旋 ±160~540deg */
+    const pt=document.createElement("i"); pt.className="pt "+cfg.shape;
+    const dur=rr(cfg.dur[0],cfg.dur[1]).toFixed(2);       /* 单程时长 */
+    const delay=(-Math.random()*cfg.dur[1]*1.2).toFixed(2);/* 负延迟：打开页面即有粒子在途中 */
+    const sdur=rr(2.2,5).toFixed(2);                       /* 摇摆半周期 2.2~5s */
+    const amp=rr(14,44).toFixed(1);                        /* 摇摆幅度 14~44px */
+    const size=rr(cfg.size[0],cfg.size[1]).toFixed(1);     /* 尺寸 */
+    const spinDir=Math.random()<.5?-1:1;
+    const spin=cfg.spin[1]>0 ? (spinDir*rr(cfg.spin[0],cfg.spin[1]))|0 : 0; /* 自旋幅度 */
     pw.style.setProperty("--x",(Math.random()*100).toFixed(2)+"vw");
     pw.style.setProperty("--dur",dur+"s");
     pw.style.setProperty("--delay",delay+"s");
     sw.style.setProperty("--sdur",sdur+"s");
     sw.style.setProperty("--amp",amp+"px");
     pt.style.setProperty("--spin",spin+"deg");
-    pt.style.setProperty("--pc",palette[(Math.random()*palette.length)|0]);
+    pt.style.setProperty("--pc",cfg.palette[(Math.random()*cfg.palette.length)|0]);
+    if(cfg.glow) pt.style.setProperty("--pg",cfg.glow);
+    if(cfg.shape==="petal"){ /* 花瓣渐变端点（petal 专属） */
+      pt.style.setProperty("--pl1",cfg.pl1); pt.style.setProperty("--pl2",cfg.pl2);
+      pt.style.setProperty("--pl3",cfg.pl3); pt.style.setProperty("--pl4",cfg.pl4);
+    }
+    if(cfg.shape==="star"){ /* 星光专属：闪烁基准透明度+闪烁短周期 */
+      pt.style.setProperty("--o",rr(.5,.8).toFixed(2));
+      pt.style.setProperty("--tdur",rr(1.6,3.6).toFixed(2)+"s");
+    }
     pt.style.width=size+"px";
     pt.style.height=size+"px";
-    pt.style.opacity=(.38+Math.random()*.42).toFixed(2); /* 透明度 .38~.80 */
+    pt.style.opacity=rr(cfg.op[0],cfg.op[1]).toFixed(2);
     sw.appendChild(pt); pw.appendChild(sw); layer.appendChild(pw);
   }
   document.body.appendChild(layer);
-  _sakuraLayer=layer;
+  _themeFallLayer=layer;
 }
 
 /* ---------- 初始化 ---------- */
@@ -5391,12 +5459,12 @@ function init(){
   const savedTheme=localStorage.getItem("busha_theme")||"dark";
   document.documentElement.setAttribute("data-theme", savedTheme);
   themeSelect.value=savedTheme;
-  setupSakuraFall();
+  setupThemeFall();
   themeSelect.onchange=()=>{
     const v=themeSelect.value;
     document.documentElement.setAttribute("data-theme", v);
     localStorage.setItem("busha_theme", v);
-    setupSakuraFall();
+    setupThemeFall();
   };
 
   // 管理员
