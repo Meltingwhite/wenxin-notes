@@ -352,6 +352,16 @@
   .theme-fall{display:none!important}
 }
 
+/* ═══ 动画开关（主题选择器旁）═══
+   开启态高亮蓝框；关闭后 html 挂 anim-off 类：
+   暂停所有元素的 animation（粒子飘落/背景流动/呼吸灯/脉动等全部停帧在当前画面），
+   过渡保留（开关切换/悬停等即时反馈不受影响，避免界面卡死感） */
+.anim-toggle{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--line);background:var(--panel2);color:var(--mut);user-select:none;transition:all .15s;white-space:nowrap}
+.anim-toggle:hover{border-color:var(--blue);color:var(--blue)}
+.anim-toggle input{width:14px;height:14px;cursor:pointer;margin:0;accent-color:var(--blue)}
+html.anim-off *{animation-play-state:paused!important}
+html.anim-off .theme-fall{display:none!important}
+
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,"Microsoft YaHei",sans-serif}
 body{background:var(--bg);color:var(--txt);padding:12px;min-height:100vh;font-size:14px;transition:padding-top .3s ease}
 .container{max-width:1640px;margin:0 auto}
@@ -684,6 +694,10 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
         <option value="maple">🍁 暖枫纹(枫叶)</option>
         <option value="sakura">🌸 樱花雪(樱花)</option>
       </select>
+      <label class="anim-toggle" id="animToggle" title="关闭后暂停全部动画（粒子飘落/背景流动/呼吸灯等），仅保留静态画面，适合低性能设备或录屏讲解">
+        <input type="checkbox" id="animSwitch">
+        <span>🎬 动画</span>
+      </label>
     </div>
   </div>
 
@@ -912,6 +926,16 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.31.0</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li>主题选择器旁新增「🎬 动画」开关：关闭后暂停全部动画（粒子飘落/背景流动/呼吸灯/脉动等停帧），粒子层整体隐藏更省性能，适合低性能设备与录屏讲解；开关状态持久化记忆，与系统"减少动态效果"设置叠加生效</li>
+            <li>公告编辑支持 <b>Ctrl+V</b> 直接粘贴图片：截图或复制图片后在编辑框内直接粘贴，自动走贴图管道（压缩→上传房间仓库→插入 Markdown），无需先保存为文件；纯文本粘贴不受影响，编辑框内有快捷方式提示</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.30.1</span>
@@ -1333,6 +1357,7 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
         <div id="noticeEmojiPanel" style="display:none;flex-wrap:wrap;gap:2px;border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;max-height:110px;overflow-y:auto"></div>
         <textarea id="noticeText" rows="8" placeholder="填写房间公告、攻略玩法…&#10;支持贴图与表情，图片语法：![说明](图片链接)" style="width:100%;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;padding:10px;box-sizing:border-box;resize:vertical;font-family:inherit"></textarea>
         <p class="muted" style="font-size:11px;margin:6px 0 0">贴图会自动压缩（长边≤900px）后上传到房间仓库；本地模式直接内嵌保存。支持表情、图片、链接与 **加粗** 语法，公告对所有房间成员可见，保存即同步。</p>
+        <p class="muted" style="font-size:11px;margin:4px 0 0">💡 快捷方式：编辑框内直接 <b>Ctrl+V</b> 粘贴截图/复制的图片，自动压缩上传插入，无需先保存文件</p>
       </div>
       <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
         <button class="sm" id="noticeEditBtn">✏️ 编辑</button>
@@ -5225,8 +5250,9 @@ function setupThemeFall(){
   const theme=document.documentElement.getAttribute("data-theme")||"dark";
   const cfg=THEME_FALL[theme];
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches;
-  /* 主题未配置粒子或系统要求减少动态：移除粒子层 */
-  if(!cfg || reduced){
+  const animOff = document.documentElement.classList.contains("anim-off");
+  /* 主题未配置粒子/系统要求减少动态/动画开关关闭：移除粒子层 */
+  if(!cfg || reduced || animOff){
     if(_themeFallLayer){ _themeFallLayer.remove(); _themeFallLayer=null; }
     return;
   }
@@ -5415,6 +5441,25 @@ function init(){
     this.value="";
     if(f) noticeUploadImage(f);
   };
+  /* 公告编辑支持 Ctrl+V 直接粘贴剪贴板图片：截图后无需保存文件，
+     拦截剪贴板里的图片项（跳过纯文本，文字粘贴不受影响），
+     复用贴图管道（自动压缩→上传房间仓库→插入 Markdown 语法） */
+  const noticeTextEl=document.getElementById("noticeText");
+  if(noticeTextEl){
+    noticeTextEl.addEventListener("paste",function(e){
+      const items=e.clipboardData&&e.clipboardData.items;
+      if(!items) return;
+      for(let i=0;i<items.length;i++){
+        const it=items[i];
+        if(it.kind==="file" && it.type && it.type.indexOf("image/")===0){
+          e.preventDefault();
+          const f=it.getAsFile();
+          if(f){ showToast("📋 已捕获粘贴图片，处理中…"); noticeUploadImage(f); }
+          return;
+        }
+      }
+    });
+  }
   document.getElementById("openShengyan").onclick=()=>{
     window.open("http://shengyan.xyz","_blank","noopener");
   };
@@ -5475,6 +5520,22 @@ function init(){
   const savedTheme=localStorage.getItem("busha_theme")||"dark";
   document.documentElement.setAttribute("data-theme", savedTheme);
   themeSelect.value=savedTheme;
+  /* 动画开关：状态持久化，须在 setupThemeFall 之前挂类（否则首帧粒子层先建后被隐藏） */
+  const animSwitch=document.getElementById("animSwitch");
+  const applyAnimOff=(off)=>{
+    document.documentElement.classList.toggle("anim-off", off);
+    localStorage.setItem("busha_anim_off", off?"1":"0");
+  };
+  const savedAnimOff=localStorage.getItem("busha_anim_off")==="1";
+  applyAnimOff(savedAnimOff);
+  if(animSwitch){
+    animSwitch.checked=!savedAnimOff;
+    animSwitch.onchange=()=>{
+      applyAnimOff(!animSwitch.checked);
+      setupThemeFall(); /* 开关变化时重建/移除粒子层 */
+      showToast(animSwitch.checked?"🎬 动画已开启":"⏸️ 动画已暂停");
+    };
+  }
   setupThemeFall();
   themeSelect.onchange=()=>{
     const v=themeSelect.value;
