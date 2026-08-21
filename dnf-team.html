@@ -305,7 +305,10 @@
    star=四角星光（星河）/ bubble=气泡（碧波，上浮）；
    颜色/形状/大小/数量/透明度由 JS 按主题配置驱动（setupThemeFall）；
    z-index:40 落在页面内容之上营造沉浸感，但低于弹窗(50)/管理面板(100)/通知，不干扰操作 */
-.theme-fall{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:40}
+.theme-fall{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:40;
+  /* 防御性保险：粒子层是全屏覆盖层，任何情况下都不允许自带背景/背景动画，
+     防止再次被主题背景规则（如 [data-theme] 后代/属性选择器误命中）刷成不透明遮罩盖住页面 */
+  background:none!important;background-image:none!important;animation:none!important}
 .theme-fall .pw{position:absolute;top:-6vh;left:var(--x);animation:skFall var(--dur) linear var(--delay) infinite;will-change:transform}
 .theme-fall.dir-up .pw{top:auto;bottom:-6vh;animation-name:skRise}
 .theme-fall .sw{display:block;animation:skSway var(--sdur) ease-in-out var(--delay) infinite alternate;will-change:transform}
@@ -909,6 +912,16 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.30.1</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li>🚨 修复 v1.30.0 严重显示问题：星河/墨玉格/碧波/暖枫纹/樱花雪五个花纹主题下进入房间后只见动画背景、页面内容全部被盖住。根因是粒子层误携带 <code>data-theme</code> 属性，被五套主题的 <code>[data-theme="X"]{background:...}</code> 背景规则命中，整个全屏粒子层被刷上不透明主题背景形成遮罩（弹窗层级更高所以侥幸可见）。v1.29 樱花层未设该属性故不受影响</li>
+            <li>粒子层标记属性更名为 <code>data-fall-theme</code>，与主题背景选择器彻底隔离；新增防御性规则强制粒子层无背景/无背景动画，杜绝同类问题复发</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.30.0</span>
@@ -5217,12 +5230,15 @@ function setupThemeFall(){
     if(_themeFallLayer){ _themeFallLayer.remove(); _themeFallLayer=null; }
     return;
   }
-  /* 主题切换时重建（形状/配色/方向不同），同主题已存在则跳过 */
-  if(_themeFallLayer && _themeFallLayer.dataset.theme===theme) return;
+  /* 主题切换时重建（形状/配色/方向不同），同主题已存在则跳过
+     注意：标记属性用 data-fall-theme，绝不能用 data-theme——
+     galaxy/jade/ocean/maple/sakura 五套主题的背景规则是 [data-theme="X"]{background:...}
+     该选择器匹配任意元素，若粒子层带 data-theme 会整层刷上不透明主题背景盖住页面 */
+  if(_themeFallLayer && _themeFallLayer.dataset.fallTheme===theme) return;
   if(_themeFallLayer){ _themeFallLayer.remove(); _themeFallLayer=null; }
   const layer=document.createElement("div");
   layer.className="theme-fall"+(cfg.dir==="up"?" dir-up":"");
-  layer.dataset.theme=theme;
+  layer.dataset.fallTheme=theme;
   layer.setAttribute("aria-hidden","true");
   const rr=(a,b)=>a+Math.random()*(b-a); /* 范围随机 */
   for(let i=0;i<cfg.n;i++){
