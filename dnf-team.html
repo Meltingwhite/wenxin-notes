@@ -362,6 +362,16 @@
 html.anim-off *{animation-play-state:paused!important}
 html.anim-off .theme-fall{display:none!important}
 
+/* ═══ 公告图片：编辑态缩略预览网格 + 查看态大图/失败占位 ═══ */
+.notice-img-grid{display:flex;flex-wrap:wrap;gap:8px}
+.notice-img-grid img{width:110px;height:82px;object-fit:cover;border-radius:6px;border:1px solid var(--line);cursor:zoom-in;transition:transform .15s,box-shadow .15s;background:var(--panel2)}
+.notice-img-grid img:hover{transform:scale(1.06);box-shadow:0 3px 12px rgba(0,0,0,.3)}
+/* 查看区公告图片：可点放大 */
+#noticeView img{cursor:zoom-in;transition:opacity .15s}
+#noticeView img:hover{opacity:.92}
+/* 图片加载失败占位（避免裂图） */
+.notice-img-broken{display:inline-block;max-width:100%;margin:6px 0;padding:10px 14px;border:1px dashed var(--red);border-radius:6px;color:var(--red);font-size:12px;background:rgba(255,80,80,.06)}
+
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,"Microsoft YaHei",sans-serif}
 body{background:var(--bg);color:var(--txt);padding:12px;min-height:100vh;font-size:14px;transition:padding-top .3s ease}
 .container{max-width:1640px;margin:0 auto}
@@ -928,6 +938,18 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
       <div class="changelog-content" style="margin-top:15px">
         <div class="version-entry">
           <div class="version-header">
+            <span class="ver-tag">v1.31.1</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li>公告贴图升级为「所见即所得」：Ctrl+V 粘贴或点贴图按钮后，编辑框下方立即显示图片缩略预览网格（直接看到图片内容，不再只是一串链接文本），点击缩略图可放大查看</li>
+            <li>公告查看区图片支持点击放大查看原图（攻略细节一目了然），长按/右键可保存</li>
+            <li>图片加载失败时显示占位提示（如"🖼️ 图片加载失败：xxx"），不再出现裂图</li>
+            <li>上传路径按段 URL 编码加固：中文/特殊字符房间名生成的图片链接纯净稳定，渲染与图床访问均不受影响</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
             <span class="ver-tag">v1.31.0</span>
             <span class="ver-date">2026-08-21</span>
           </div>
@@ -1356,8 +1378,12 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
         </div>
         <div id="noticeEmojiPanel" style="display:none;flex-wrap:wrap;gap:2px;border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;max-height:110px;overflow-y:auto"></div>
         <textarea id="noticeText" rows="8" placeholder="填写房间公告、攻略玩法…&#10;支持贴图与表情，图片语法：![说明](图片链接)" style="width:100%;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;padding:10px;box-sizing:border-box;resize:vertical;font-family:inherit"></textarea>
+        <div id="noticeImgBar" style="display:none;margin-top:8px">
+          <div class="muted" style="font-size:11px;margin-bottom:4px">📎 已插入图片预览（点击看大图；上方编辑框中对应 <code>![图片](链接)</code> 语法文本，保存后公告直接显示图片）</div>
+          <div id="noticeImgGrid" class="notice-img-grid"></div>
+        </div>
         <p class="muted" style="font-size:11px;margin:6px 0 0">贴图会自动压缩（长边≤900px）后上传到房间仓库；本地模式直接内嵌保存。支持表情、图片、链接与 **加粗** 语法，公告对所有房间成员可见，保存即同步。</p>
-        <p class="muted" style="font-size:11px;margin:4px 0 0">💡 快捷方式：编辑框内直接 <b>Ctrl+V</b> 粘贴截图/复制的图片，自动压缩上传插入，无需先保存文件</p>
+        <p class="muted" style="font-size:11px;margin:4px 0 0">💡 快捷方式：编辑框内直接 <b>Ctrl+V</b> 粘贴截图/复制的图片，自动压缩上传并预览，无需先保存文件</p>
       </div>
       <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
         <button class="sm" id="noticeEditBtn">✏️ 编辑</button>
@@ -1366,6 +1392,19 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
           <button class="sm" id="noticeSave" style="display:none;background:var(--blue);color:#fff;border:none">💾 保存公告</button>
           <button class="secondary" id="closeNotice">关闭</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 公告图片大图查看弹窗 -->
+  <div class="modal" id="noticeImgViewModal" onclick="if(event.target===this)closeModal('noticeImgViewModal')">
+    <div class="modal-box" style="max-width:960px">
+      <div style="text-align:center">
+        <img id="noticeImgViewEl" src="" alt="" style="max-width:100%;max-height:72vh;border-radius:8px;border:1px solid var(--line)">
+        <p class="muted" style="font-size:12px;margin-top:8px">长按或右键图片可保存</p>
+      </div>
+      <div style="margin-top:10px;display:flex;justify-content:flex-end">
+        <button class="secondary" onclick="closeModal('noticeImgViewModal')">关闭</button>
       </div>
     </div>
   </div>
@@ -5459,6 +5498,17 @@ function init(){
         }
       }
     });
+    /* 编辑框内容变化实时同步图片预览（手动删图片语法时缩略图同步消失） */
+    noticeTextEl.addEventListener("input",noticeSyncPreview);
+  }
+  /* 查看区公告图片点击放大（事件委托，弹窗内所有公告图生效） */
+  const noticeViewBox=document.getElementById("noticeView");
+  if(noticeViewBox){
+    noticeViewBox.addEventListener("click",function(e){
+      if(e.target && e.target.tagName==="IMG" && e.target.dataset.noticeImg){
+        noticeViewImg(e.target.dataset.noticeImg);
+      }
+    });
   }
   document.getElementById("openShengyan").onclick=()=>{
     window.open("http://shengyan.xyz","_blank","noopener");
@@ -5634,10 +5684,32 @@ function noticeTime(t){
 /* 公告渲染：XSS 安全的轻量 Markdown（图片/链接/加粗/换行），表情即普通字符 */
 function noticeRenderMd(text){
   let s=escapeHtml(String(text||""));
-  s=s.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g, (m,alt,src)=>`<img src="${src}" alt="${alt}" title="${alt}" style="max-width:100%;border-radius:6px;margin:6px 0;border:1px solid var(--line)" loading="lazy">`);
+  s=s.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g, (m,alt,src)=>`<img src="${src}" alt="${alt}" title="${alt}" style="max-width:100%;border-radius:6px;margin:6px 0;border:1px solid var(--line)" loading="lazy" data-notice-img="${src}" onerror="this.outerHTML='<div class=\\'notice-img-broken\\'>🖼️ 图片加载失败'+(${JSON.stringify(alt)}?'：'+${JSON.stringify(alt)}:'')+'</div>'">`);
   s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--blue)">$1</a>');
   s=s.replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>");
   return s.replace(/\r?\n/g,"<br>");
+}
+/* 公告图片点击放大（查看区/编辑预览共用）：事件委托绑定大图弹窗 */
+function noticeViewImg(src){
+  const el=document.getElementById("noticeImgViewEl");
+  if(!el||!src) return;
+  el.src=src;
+  openModal("noticeImgViewModal");
+}
+/* 编辑态图片预览：扫描编辑框文本中的图片语法，重建缩略图网格
+   （粘贴/上传成功后即时显示图片内容；手动删除语法文本时预览同步消失） */
+function noticeSyncPreview(){
+  const bar=document.getElementById("noticeImgBar");
+  const grid=document.getElementById("noticeImgGrid");
+  if(!bar||!grid) return;
+  const ta=document.getElementById("noticeText");
+  const text=ta?ta.value:"";
+  const re=/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g;
+  const srcs=[]; let m;
+  while((m=re.exec(text))!==null) srcs.push(m[2]);
+  if(!srcs.length){ bar.style.display="none"; grid.innerHTML=""; return; }
+  bar.style.display="block";
+  grid.innerHTML=srcs.map(src=>`<img src="${src}" alt="公告图片" loading="lazy" onclick="noticeViewImg(this.src)">`).join("");
 }
 /* 渲染公告视图 + 顶栏红点（未读提示），编辑态互不影响 */
 function renderNotice(){
@@ -5677,6 +5749,7 @@ function noticeEnterEdit(){
   document.getElementById("noticeEditBtn").style.display="none";
   document.getElementById("noticeSave").style.display="inline-block";
   document.getElementById("noticeCancelEdit").style.display="inline-block";
+  noticeSyncPreview(); /* 进入编辑态即扫描现有图片语法，展示已插入图片缩略预览 */
   document.getElementById("noticeText").focus();
 }
 function noticeExitEdit(){
@@ -5686,6 +5759,8 @@ function noticeExitEdit(){
   document.getElementById("noticeSave").style.display="none";
   document.getElementById("noticeCancelEdit").style.display="none";
   document.getElementById("noticeEmojiPanel").style.display="none";
+  const bar=document.getElementById("noticeImgBar");
+  if(bar) bar.style.display="none"; /* 退出编辑隐藏预览条 */
 }
 async function noticeSaveNow(){
   const txt=document.getElementById("noticeText").value;
@@ -5701,6 +5776,7 @@ function noticeInsert(txt){
   const pos=st+txt.length;
   ta.focus();
   ta.setSelectionRange(pos,pos);
+  noticeSyncPreview(); /* 程序赋值不触发 input 事件，手动刷新图片预览 */
 }
 /* 表情面板（含红黄绿队伍色标） */
 const NOTICE_EMOJIS=Array.from("😀😁😂🤣😃😄😅😆😉😊😋😎🤩😍🥰😘🤗🤔😐😴😪😢😭😤😡🤬😱🥶🥵🤢🥴👻💀🤡👽🤖🎃😺😹😻🙈🙉🙊🐶🐱🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🐔🐧🦅🦉🐺🐴🦄🐝🦋🐢🐍🐙🦀🐠🐟🐬🐳🦈🐊🐘🌵🌲🌳🌱🌿🍀💐🌷🌹🌺🌸🌼🌻🌞🌙⭐🌟✨⚡🔥💥🌈☀⛅🌧❄☃💧💦🕹🎮🎲🎯🎁🎉🎊🏆🥇⚽🏀🏓🏸🎱🎽🏅❗❓💯❌⭕✅✔️🚫⚠️🆕🆒🆗1️⃣2️⃣3️⃣🔴🟡🟢🔵🟣⚫⚪🟥🟨🟩🚩🏴");
@@ -5752,7 +5828,9 @@ async function noticeUploadImage(file){
     }
     if(tip) tip.style.display="inline";
     const b64=dataUrl.split(",")[1];
-    const path="assets/"+SYNC.room.id+"/"+Date.now()+".jpg";
+    /* 路径分段编码：房间 ID（可能是中文/特殊字符）单独 encodeURIComponent，
+       保证生成的图片 URL 纯净稳定，Markdown 渲染与图床访问均不受房间名影响 */
+    const path="assets/"+encodeURIComponent(String(SYNC.room.id))+"/"+Date.now()+".jpg";
     const body={ access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token), message:"notice-img "+path, content:b64, branch:SYNC.cfg.branch||"master" };
     const pr=await fetch(SYNC.url(path)+"?access_token="+SYNC.tok(), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
     if(!pr.ok){ const e=await pr.json().catch(()=>({})); throw new Error("HTTP "+pr.status+" "+(e.message||"")); }
