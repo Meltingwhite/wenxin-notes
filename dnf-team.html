@@ -367,8 +367,9 @@ html.anim-off .theme-fall{display:none!important}
 .notice-editor:focus{border-color:var(--blue)}
 .notice-editor:empty:before{content:attr(data-ph);color:var(--mut);pointer-events:none}
 /* 内联图片：块级占一行、宽度适中（QQ公告视觉），点击可选中删除 */
-.notice-editor img{display:block;max-width:62%;border-radius:6px;margin:6px 0;border:1px solid var(--line);cursor:default;background:var(--panel2);min-height:24px}
+.notice-editor img{display:block;max-width:62%;border-radius:6px;margin:6px 0;border:1px solid var(--line);cursor:zoom-in;background:var(--panel2);min-height:24px}
 .notice-editor img:hover{border-color:var(--blue)}
+.notice-editor img.notice-img-broken{display:inline-block;max-width:100%;min-height:0;padding:10px 14px;border-style:dashed;border-color:var(--red);color:var(--red);font-size:12px;background:rgba(255,80,80,.06);cursor:default}
 .notice-editor a{color:var(--blue)}
 /* 查看区公告图片：可点放大 */
 #noticeView img{cursor:zoom-in;transition:opacity .15s}
@@ -940,6 +941,28 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.31.4</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>根治公告贴图裂开（补充修复）</b>：上一版发现 Gitee 签名链接过期后 CDN 返回的是 200 状态的占位 favicon（并非错误响应），浏览器 onerror 不会触发，导致旧公告仍显示碎图标。新增<b>主动签名过期检测</b>：渲染时解码 Gitee CDN 链接 metadata 中的 expire_at，过期立即替换为"图片已失效，请重新贴图"占位，不再发请求、不再等加载</li>
+            <li>新增<b>伪装图标尺寸检测</b>：所有外链图片加载后校验 naturalWidth/naturalHeight，≤32px 的占位 favicon 自动识别为失效；加载失败（onerror）同样兜底</li>
+            <li>查看态、编辑态统一用 noticeScanImages 扫描；失效占位在保存时自动跳过，不会把提示文字写回公告；新贴图继续内嵌 dataURL 永久保存</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.31.3</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>修复公告贴图过段时间裂开</b>：根因是 Gitee 仓库 raw 图片链接是带签名的临时 CDN 地址，约 3 小时后签名过期会自动跳转到占位图标，导致已保存公告里的图片全部裂成图标</li>
+            <li>贴图改为<b>始终以内嵌压缩图（dataURL）保存到公告内容</b>，图片随房间数据一同存储、永不失效；Gitee 上传仅作后台归档备份，不再作为显示地址</li>
+            <li>编辑区内贴图支持<b>双击放大</b>查看；外链/历史临时链接失效时统一显示"图片加载失败，请重新贴图"占位，不再出现碎图图标；保存时自动跳过已损坏的死链图片</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.31.2</span>
@@ -5533,6 +5556,16 @@ function init(){
       }
     });
   }
+  /* 编辑区内贴图双击放大（单击保留原生选中/删除，避免干扰编辑） */
+  const noticeEdBox=document.getElementById("noticeEditor");
+  if(noticeEdBox){
+    noticeEdBox.addEventListener("dblclick",function(e){
+      if(e.target && e.target.tagName==="IMG" && e.target.dataset.noticeImg && e.target.src){
+        e.preventDefault();
+        noticeViewImg(e.target.src);
+      }
+    });
+  }
   document.getElementById("openShengyan").onclick=()=>{
     window.open("http://shengyan.xyz","_blank","noopener");
   };
@@ -5707,10 +5740,71 @@ function noticeTime(t){
 /* 公告渲染：XSS 安全的轻量 Markdown（图片/链接/加粗/换行），表情即普通字符 */
 function noticeRenderMd(text){
   let s=escapeHtml(String(text||""));
-  s=s.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g, (m,alt,src)=>`<img src="${src}" alt="${alt}" title="${alt}" style="max-width:100%;border-radius:6px;margin:6px 0;border:1px solid var(--line)" loading="lazy" data-notice-img="${src}" onerror="this.outerHTML='<div class=\\'notice-img-broken\\'>🖼️ 图片加载失败'+(${JSON.stringify(alt)}?'：'+${JSON.stringify(alt)}:'')+'</div>'">`);
+  s=s.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g, (m,alt,src)=>`<img src="${src}" alt="${alt}" title="${alt}" style="max-width:100%;border-radius:6px;margin:6px 0;border:1px solid var(--line)" loading="lazy" data-notice-img="${src}">`);
   s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--blue)">$1</a>');
   s=s.replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>");
   return s.replace(/\r?\n/g,"<br>");
+}
+/* 判断 Gitee raw 签名链接是否已过期（解码 metadata 里的 expire_at）。
+   Gitee raw 会 302 到带签名的 CDN，过期后 CDN 返回 200 favicon 占位（onerror 不触发），
+   因此必须在客户端主动解析过期时间提前判定。 */
+function noticeGiteeUrlExpired(src){
+  if(!src || src.indexOf("gitee")<0) return false;
+  try{
+    const m=/[?&]metadata=([^&]+)/.exec(src);
+    if(!m){
+      /* 非签名直链（gitee.com/.../raw/...）：首次访问会 302 拿签名，无法本地判断，
+         交由 onload naturalWidth 检测兜底 */
+      return false;
+    }
+    const json=JSON.parse(atob(m[1].replace(/-/g,"+").replace(/_/g,"/")));
+    if(json && json.expire_at){
+      return Math.floor(Date.now()/1000) > json.expire_at;
+    }
+  }catch(e){}
+  return false;
+}
+/* 把一张失效图片替换为带提示文字的占位 span（在查看区/编辑器内均安全）。
+   用 span 而非保留无 src 的 img，彻底避免浏览器原生裂图图标。 */
+function noticeMarkImgBroken(img, alt){
+  if(!img || img.dataset.broken==="1") return;
+  img.dataset.broken="1";
+  const label="🖼️ 图片已失效"+(alt?("："+alt):"")+"（请重新贴图）";
+  const span=document.createElement("span");
+  span.className="notice-img-broken";
+  span.textContent=label;
+  span.dataset.alt=alt||"";
+  if(img.parentNode){ img.parentNode.replaceChild(span, img); }
+}
+/* 主动扫描容器内所有公告图片：
+   1) Gitee 签名链接已过期 → 直接标记失效（不发请求）
+   2) 外链/直链加载后 naturalWidth 过小（favicon 伪装）→ 标记失效
+   3) 加载失败（onerror）→ 标记失效
+   dataURL 内嵌图永不过期，跳过检测。 */
+function noticeScanImages(container){
+  if(!container) return;
+  const imgs=container.querySelectorAll("img[data-notice-img]");
+  imgs.forEach(img=>{
+    const src=img.getAttribute("src")||"";
+    if(img.dataset.broken==="1") return;
+    if(src.indexOf("data:image/")===0) return; /* 内嵌 dataURL：永久有效 */
+    const alt=img.getAttribute("alt")||"攻略配图";
+    /* 1) Gitee 签名链接：过期直接判定 */
+    if(noticeGiteeUrlExpired(src)){ noticeMarkImgBroken(img, alt); return; }
+    /* 2) 已加载完成的图：检查尺寸，过小视为占位图标；
+          非签名直链 302 后 img.src 变成带 metadata 的最终 CDN，再判一次过期 */
+    const checkSize=()=>{
+      if(img.dataset.broken==="1") return;
+      if(noticeGiteeUrlExpired(img.src||"")){ noticeMarkImgBroken(img, alt); return; }
+      const w=img.naturalWidth, h=img.naturalHeight;
+      if(w && h && w<=32 && h<=32){ noticeMarkImgBroken(img, alt); }
+    };
+    if(img.complete && img.naturalWidth){ checkSize(); }
+    else{
+      img.addEventListener("load", checkSize);
+      img.addEventListener("error", ()=>noticeMarkImgBroken(img, alt));
+    }
+  });
 }
 /* 公告图片点击放大（查看区/编辑预览共用）：事件委托绑定大图弹窗 */
 function noticeViewImg(src){
@@ -5725,11 +5819,14 @@ function noticeViewImg(src){
    进入编辑 noticeMdToEditorHtml(text)；保存时 noticeEditorToMd() */
 function noticeMdToEditorHtml(text){
   let s=escapeHtml(String(text||""));
-  s=s.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g,(m,alt,src)=>`<img src="${src}" alt="${alt}" title="${alt}">`);
+  s=s.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g,(m,alt,src)=>`<img src="${src}" alt="${alt}" title="${alt}" data-notice-img="${src}">`);
   s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2">$1</a>');
   s=s.replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>");
   return s.replace(/\r?\n/g,"<br>");
 }
+/* 图片加载失败兜底（兼容旧调用）：实际检测由 noticeScanImages 统一处理。
+   保留空函数避免历史引用报错。 */
+function noticeImgOnerror(alt){ return ""; }
 /* DOM → Markdown：遍历编辑器节点（文本/BR/IMG/STRONG/A/DIV），
    IMG 转图片语法，加粗/链接还原为 Md，空行压缩 */
 function noticeEditorToMd(){
@@ -5741,8 +5838,13 @@ function noticeEditorToMd(){
     if(node.nodeType!==1) return;
     const tag=node.tagName;
     if(tag==="BR"){ out+="\n"; return; }
+    /* 失效图片占位 span：跳过，不写入公告（避免保存"图片已失效"提示文字） */
+    if(tag==="SPAN" && node.classList && node.classList.contains("notice-img-broken")){ return; }
     if(tag==="IMG"){
-      out+="\n!["+(node.getAttribute("alt")||"贴图")+"]("+(node.getAttribute("src")||"")+")\n";
+      /* src 优先；data-cloud 为云端备份地址兜底；裂图占位（无 src）则跳过，避免写入死链 */
+      const src=node.getAttribute("src")||node.getAttribute("data-cloud")||"";
+      if(!src) return;
+      out+="\n!["+(node.getAttribute("alt")||"攻略配图")+"]("+src+")\n";
       return;
     }
     if(tag==="B"||tag==="STRONG"){ out+="**"; node.childNodes.forEach(walk); out+="**"; return; }
@@ -5766,6 +5868,16 @@ function noticeInsertImg(src,alt){
   el.focus();
   const img=document.createElement("img");
   img.src=src; img.alt=alt||"贴图"; img.title=alt||"贴图";
+  img.dataset.noticeImg=src; /* 复用查看区点击放大逻辑 */
+  /* 失效检测统一走 noticeScanImages：外链加载后校验尺寸/错误，dataURL 跳过 */
+  if(src.indexOf("data:image/")!==0){
+    img.addEventListener("load",()=>{
+      if(img.naturalWidth && img.naturalWidth<=32 && img.naturalHeight<=32){
+        noticeMarkImgBroken(img, img.alt||"贴图");
+      }
+    });
+    img.addEventListener("error",()=>noticeMarkImgBroken(img, img.alt||"贴图"));
+  }
   /* 删掉选区内容（若用户选中了文字再贴图） */
   const sel=window.getSelection();
   if(sel && sel.rangeCount && !sel.isCollapsed){
@@ -5814,6 +5926,7 @@ function renderNotice(){
   if(!view) return;
   if(n && n.text){
     view.innerHTML=noticeRenderMd(n.text);
+    noticeScanImages(view); /* 主动检测失效 Gitee/外链图片，替换为占位 */
     if(meta) meta.textContent="最近更新："+noticeTime(n.updatedAt)+(n.updatedBy?(" · by "+n.updatedBy):"");
   }else{
     view.innerHTML='<span class="muted">暂无公告，点击「✏️ 编辑」发布第一条公告 / 攻略玩法</span>';
@@ -5832,6 +5945,7 @@ function noticeEnterEdit(){
   const editor=document.getElementById("noticeEditor");
   /* Markdown → 富文本（图片转内联 img，QQ公告式所见即所得） */
   editor.innerHTML=noticeMdToEditorHtml((n&&n.text)||"");
+  noticeScanImages(editor); /* 编辑态同样主动检测失效外链/Gitee临时图 */
   document.getElementById("noticeEditWrap").style.display="block";
   document.getElementById("noticeView").style.display="none";
   document.getElementById("noticeEditBtn").style.display="none";
@@ -5900,36 +6014,42 @@ function noticeCompressImage(file){
     img.src=url;
   });
 }
-/* 贴图上传：云端模式上传到房间仓库 assets 目录；本地模式直接内嵌压缩图 */
+/* 贴图插入核心：压缩后始终以 dataURL 内联显示并随公告保存（永不过期）。
+   Gitee 上传仅作后台归档备份，云端 raw 链接是带签名的临时 CDN 地址（约3小时过期，
+   过期后会 302 跳到 favicon.ico 导致裂图），因此绝不能作为 img.src 长期保存。 */
 async function noticeUploadImage(file){
   const tip=document.getElementById("noticeUploading");
   try{
     const dataUrl=await noticeCompressImage(file);
-    /* QQ公告式体验：先用压缩图立即内联显示，再异步上传替换为图床链接 */
-    const img=noticeInsertImg(dataUrl,"贴图");
+    const img=noticeInsertImg(dataUrl,"攻略配图");
     if(!img) return;
+    img.dataset.embed="1"; /* 标记为内嵌图，便于保存/调试识别 */
     if(!hasSync(SYNC.cfg) || !SYNC.room){
-      showToast("✅ 贴图已压缩插入（本地模式内嵌保存）");
+      showToast("✅ 贴图已压缩插入（内嵌保存）");
       return;
     }
+    /* 云端模式：后台静默上传备份，但 src 始终保留 dataURL，不替换为临时 raw 链接 */
     if(tip) tip.style.display="inline";
-    const b64=dataUrl.split(",")[1];
-    /* 路径分段编码：房间 ID（可能是中文/特殊字符）单独 encodeURIComponent，
-       保证生成的图片 URL 纯净稳定，Markdown 渲染与图床访问均不受房间名影响 */
-    const path="assets/"+encodeURIComponent(String(SYNC.room.id))+"/"+Date.now()+".jpg";
-    const body={ access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token), message:"notice-img "+path, content:b64, branch:SYNC.cfg.branch||"master" };
-    const pr=await fetch(SYNC.url(path)+"?access_token="+SYNC.tok(), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
-    if(!pr.ok){ const e=await pr.json().catch(()=>({})); throw new Error("HTTP "+pr.status+" "+(e.message||"")); }
-    const raw=`https://gitee.com/${SYNC.cfg.owner}/${SYNC.cfg.repo}/raw/${encodeURIComponent(SYNC.cfg.branch||"master")}/${path}`;
-    /* 上传成功：img 的 src 替换为图床 URL（alt 同步更新），保存时即为云端链接 */
-    img.src=raw;
-    img.alt="攻略配图"; img.title="攻略配图";
-    showToast("✅ 贴图已上传并同步");
+    noticeCloudBackupImage(dataUrl, img).catch(()=>{});
   }catch(e){
-    showToast("⚠️ 贴图上传失败："+e.message+"，图片保留本地内嵌（保存后仍可见）");
+    showToast("⚠️ 贴图处理失败："+e.message);
   }finally{
     if(tip) tip.style.display="none";
   }
+}
+/* 后台上传图片到 Gitee assets 目录作归档（不影响显示，失败静默） */
+async function noticeCloudBackupImage(dataUrl, img){
+  const b64=dataUrl.split(",")[1];
+  /* 路径分段编码：房间 ID（可能是中文/特殊字符）单独 encodeURIComponent；
+     Gitee 服务端会按 UTF-8 解码存储，与 raw 访问链路一致 */
+  const path="assets/"+encodeURIComponent(String(SYNC.room.id))+"/"+Date.now()+".jpg";
+  const body={ access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token), message:"notice-img "+path, content:b64, branch:SYNC.cfg.branch||"master" };
+  const pr=await fetch(SYNC.url(path)+"?access_token="+SYNC.tok(), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  if(!pr.ok){ const e=await pr.json().catch(()=>({})); throw new Error("HTTP "+pr.status+" "+(e.message||"")); }
+  /* 云端地址仅记录到 data-cloud 供排查/未来引用，src 保持 dataURL 不变 */
+  const raw=`https://gitee.com/${SYNC.cfg.owner}/${SYNC.cfg.repo}/raw/${encodeURIComponent(SYNC.cfg.branch||"master")}/${path}`;
+  if(img){ img.dataset.cloud=raw; img.title="攻略配图（已云端备份）"; }
+  showToast("✅ 贴图已插入并云端备份");
 }
 
 /* 未保存修改浮动提示条 / Toast 通知 */
