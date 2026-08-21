@@ -362,10 +362,14 @@
 html.anim-off *{animation-play-state:paused!important}
 html.anim-off .theme-fall{display:none!important}
 
-/* ═══ 公告图片：编辑态缩略预览网格 + 查看态大图/失败占位 ═══ */
-.notice-img-grid{display:flex;flex-wrap:wrap;gap:8px}
-.notice-img-grid img{width:110px;height:82px;object-fit:cover;border-radius:6px;border:1px solid var(--line);cursor:zoom-in;transition:transform .15s,box-shadow .15s;background:var(--panel2)}
-.notice-img-grid img:hover{transform:scale(1.06);box-shadow:0 3px 12px rgba(0,0,0,.3)}
+/* ═══ 公告富文本编辑器（QQ公告式：图片内联在文本流中）═══ */
+.notice-editor{width:100%;min-height:170px;max-height:52vh;overflow-y:auto;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;padding:10px 12px;box-sizing:border-box;font-family:inherit;line-height:1.7;white-space:pre-wrap;word-break:break-word;outline:none;transition:border-color .15s;cursor:text}
+.notice-editor:focus{border-color:var(--blue)}
+.notice-editor:empty:before{content:attr(data-ph);color:var(--mut);pointer-events:none}
+/* 内联图片：块级占一行、宽度适中（QQ公告视觉），点击可选中删除 */
+.notice-editor img{display:block;max-width:62%;border-radius:6px;margin:6px 0;border:1px solid var(--line);cursor:default;background:var(--panel2);min-height:24px}
+.notice-editor img:hover{border-color:var(--blue)}
+.notice-editor a{color:var(--blue)}
 /* 查看区公告图片：可点放大 */
 #noticeView img{cursor:zoom-in;transition:opacity .15s}
 #noticeView img:hover{opacity:.92}
@@ -938,6 +942,17 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
       <div class="changelog-content" style="margin-top:15px">
         <div class="version-entry">
           <div class="version-header">
+            <span class="ver-tag">v1.31.2</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li>公告编辑器升级为 <b>QQ公告式富文本</b>：图片直接内联显示在文本流中（不再是链接文本或单独预览区），Ctrl+V 粘贴立即看到图片内容，点击图片选中后可删除，与 QQ 群公告编辑体验一致</li>
+            <li>贴图流程优化：粘贴后先用压缩图即时显示，后台异步上传房间仓库，成功后自动替换为云端链接；上传失败时图片保留本地内嵌，保存后公告仍可见</li>
+            <li>粘贴文本自动去格式（防外部网页样式污染）；回车统一换行符；存储格式不变（Markdown 文本），旧公告完全兼容</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
             <span class="ver-tag">v1.31.1</span>
             <span class="ver-date">2026-08-21</span>
           </div>
@@ -1377,13 +1392,9 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
           <span id="noticeUploading" class="muted" style="font-size:12px;display:none">上传中…</span>
         </div>
         <div id="noticeEmojiPanel" style="display:none;flex-wrap:wrap;gap:2px;border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;max-height:110px;overflow-y:auto"></div>
-        <textarea id="noticeText" rows="8" placeholder="填写房间公告、攻略玩法…&#10;支持贴图与表情，图片语法：![说明](图片链接)" style="width:100%;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;padding:10px;box-sizing:border-box;resize:vertical;font-family:inherit"></textarea>
-        <div id="noticeImgBar" style="display:none;margin-top:8px">
-          <div class="muted" style="font-size:11px;margin-bottom:4px">📎 已插入图片预览（点击看大图；上方编辑框中对应 <code>![图片](链接)</code> 语法文本，保存后公告直接显示图片）</div>
-          <div id="noticeImgGrid" class="notice-img-grid"></div>
-        </div>
-        <p class="muted" style="font-size:11px;margin:6px 0 0">贴图会自动压缩（长边≤900px）后上传到房间仓库；本地模式直接内嵌保存。支持表情、图片、链接与 **加粗** 语法，公告对所有房间成员可见，保存即同步。</p>
-        <p class="muted" style="font-size:11px;margin:4px 0 0">💡 快捷方式：编辑框内直接 <b>Ctrl+V</b> 粘贴截图/复制的图片，自动压缩上传并预览，无需先保存文件</p>
+        <div id="noticeEditor" contenteditable="true" spellcheck="false" data-ph="填写房间公告、攻略玩法…&#10;支持贴图与表情：Ctrl+V 直接粘贴图片，所见即所得" class="notice-editor"></div>
+        <p class="muted" style="font-size:11px;margin:6px 0 0">QQ公告式富文本编辑：图片直接显示在文本中，点击图片选中后可删除；贴图自动压缩（长边≤900px）后上传房间仓库，本地模式内嵌保存。支持表情、链接与 **加粗** 语法，保存即同步。</p>
+        <p class="muted" style="font-size:11px;margin:4px 0 0">💡 快捷方式：编辑框内直接 <b>Ctrl+V</b> 粘贴截图/复制的图片，立即内联显示；<b>Ctrl+B</b> 加粗选中文字</p>
       </div>
       <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
         <button class="sm" id="noticeEditBtn">✏️ 编辑</button>
@@ -5480,26 +5491,38 @@ function init(){
     this.value="";
     if(f) noticeUploadImage(f);
   };
-  /* 公告编辑支持 Ctrl+V 直接粘贴剪贴板图片：截图后无需保存文件，
-     拦截剪贴板里的图片项（跳过纯文本，文字粘贴不受影响），
-     复用贴图管道（自动压缩→上传房间仓库→插入 Markdown 语法） */
-  const noticeTextEl=document.getElementById("noticeText");
-  if(noticeTextEl){
-    noticeTextEl.addEventListener("paste",function(e){
+  /* QQ公告式富文本编辑器事件：
+     1) 粘贴图片 → 拦截走贴图管道（压缩→内联显示→上传替换链接）
+     2) 粘贴文本 → 强制纯文本插入，防外部 HTML/样式污染
+     3) 回车 → 统一插 <br>（避免浏览器默认插 div 造成结构混乱，Md 转换只需处理 BR） */
+  const noticeEditorEl=document.getElementById("noticeEditor");
+  if(noticeEditorEl){
+    noticeEditorEl.addEventListener("paste",function(e){
       const items=e.clipboardData&&e.clipboardData.items;
-      if(!items) return;
-      for(let i=0;i<items.length;i++){
-        const it=items[i];
-        if(it.kind==="file" && it.type && it.type.indexOf("image/")===0){
-          e.preventDefault();
-          const f=it.getAsFile();
-          if(f){ showToast("📋 已捕获粘贴图片，处理中…"); noticeUploadImage(f); }
-          return;
+      if(items){
+        for(let i=0;i<items.length;i++){
+          const it=items[i];
+          if(it.kind==="file" && it.type && it.type.indexOf("image/")===0){
+            e.preventDefault();
+            const f=it.getAsFile();
+            if(f){ showToast("📋 已捕获粘贴图片，处理中…"); noticeUploadImage(f); }
+            return;
+          }
         }
       }
+      /* 非图片粘贴：取纯文本手动插入（丢弃格式） */
+      const txt=e.clipboardData&&e.clipboardData.getData("text/plain");
+      if(txt){
+        e.preventDefault();
+        noticeInsertText(txt);
+      }
     });
-    /* 编辑框内容变化实时同步图片预览（手动删图片语法时缩略图同步消失） */
-    noticeTextEl.addEventListener("input",noticeSyncPreview);
+    noticeEditorEl.addEventListener("keydown",function(e){
+      if(e.key==="Enter" && !e.shiftKey && !e.ctrlKey && !e.metaKey){
+        e.preventDefault();
+        document.execCommand("insertLineBreak");
+      }
+    });
   }
   /* 查看区公告图片点击放大（事件委托，弹窗内所有公告图生效） */
   const noticeViewBox=document.getElementById("noticeView");
@@ -5696,20 +5719,83 @@ function noticeViewImg(src){
   el.src=src;
   openModal("noticeImgViewModal");
 }
-/* 编辑态图片预览：扫描编辑框文本中的图片语法，重建缩略图网格
-   （粘贴/上传成功后即时显示图片内容；手动删除语法文本时预览同步消失） */
-function noticeSyncPreview(){
-  const bar=document.getElementById("noticeImgBar");
-  const grid=document.getElementById("noticeImgGrid");
-  if(!bar||!grid) return;
-  const ta=document.getElementById("noticeText");
-  const text=ta?ta.value:"";
-  const re=/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g;
-  const srcs=[]; let m;
-  while((m=re.exec(text))!==null) srcs.push(m[2]);
-  if(!srcs.length){ bar.style.display="none"; grid.innerHTML=""; return; }
-  bar.style.display="block";
-  grid.innerHTML=srcs.map(src=>`<img src="${src}" alt="公告图片" loading="lazy" onclick="noticeViewImg(this.src)">`).join("");
+/* 编辑态图片预览 → 已由 QQ 公告式富文本编辑器取代（图片直接内联显示） */
+/* ═══ 富文本编辑器核心（QQ公告式）═══
+   存储格式不变（Markdown 文本），编辑时双向转换：
+   进入编辑 noticeMdToEditorHtml(text)；保存时 noticeEditorToMd() */
+function noticeMdToEditorHtml(text){
+  let s=escapeHtml(String(text||""));
+  s=s.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g,(m,alt,src)=>`<img src="${src}" alt="${alt}" title="${alt}">`);
+  s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2">$1</a>');
+  s=s.replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>");
+  return s.replace(/\r?\n/g,"<br>");
+}
+/* DOM → Markdown：遍历编辑器节点（文本/BR/IMG/STRONG/A/DIV），
+   IMG 转图片语法，加粗/链接还原为 Md，空行压缩 */
+function noticeEditorToMd(){
+  const el=document.getElementById("noticeEditor");
+  if(!el) return "";
+  let out="";
+  const walk=(node)=>{
+    if(node.nodeType===3){ out+=node.nodeValue||""; return; }
+    if(node.nodeType!==1) return;
+    const tag=node.tagName;
+    if(tag==="BR"){ out+="\n"; return; }
+    if(tag==="IMG"){
+      out+="\n!["+(node.getAttribute("alt")||"贴图")+"]("+(node.getAttribute("src")||"")+")\n";
+      return;
+    }
+    if(tag==="B"||tag==="STRONG"){ out+="**"; node.childNodes.forEach(walk); out+="**"; return; }
+    if(tag==="A"){
+      const save=out; out="";
+      node.childNodes.forEach(walk);
+      const inner=out; out=save;
+      out+="["+(inner||node.textContent||"链接")+"]("+(node.getAttribute("href")||"")+")";
+      return;
+    }
+    if(tag==="DIV"||tag==="P"){ out+="\n"; node.childNodes.forEach(walk); out+="\n"; return; }
+    node.childNodes.forEach(walk);
+  };
+  el.childNodes.forEach(walk);
+  return out.replace(/\n{3,}/g,"\n\n").replace(/^\n+|\n+$/g,"");
+}
+/* 光标处插入内联图片（QQ公告式），返回 img 节点供上传后替换 src */
+function noticeInsertImg(src,alt){
+  const el=document.getElementById("noticeEditor");
+  if(!el) return null;
+  el.focus();
+  const img=document.createElement("img");
+  img.src=src; img.alt=alt||"贴图"; img.title=alt||"贴图";
+  /* 删掉选区内容（若用户选中了文字再贴图） */
+  const sel=window.getSelection();
+  if(sel && sel.rangeCount && !sel.isCollapsed){
+    sel.deleteFromDocument();
+  }
+  let range;
+  if(sel && sel.rangeCount && el.contains(sel.anchorNode)){
+    range=sel.getRangeAt(0);
+    range.insertNode(img);
+    range.setStartAfter(img); range.setEndAfter(img);
+  }else{
+    /* 无光标信息则追加到末尾 */
+    el.appendChild(img);
+    range=document.createRange();
+    range.setStartAfter(img); range.setEndAfter(img);
+  }
+  sel.removeAllRanges(); sel.addRange(range);
+  /* 图片后补换行，方便继续输入文字 */
+  const br=document.createElement("br");
+  range.insertNode(br);
+  range.setStartAfter(br); range.setEndAfter(br);
+  sel.removeAllRanges(); sel.addRange(range);
+  return img;
+}
+/* 编辑器内插入纯文本（表情/粘贴文本统一入口，防 HTML 污染） */
+function noticeInsertText(txt){
+  const el=document.getElementById("noticeEditor");
+  if(!el) return;
+  el.focus();
+  document.execCommand("insertText",false,txt);
 }
 /* 渲染公告视图 + 顶栏红点（未读提示），编辑态互不影响 */
 function renderNotice(){
@@ -5743,14 +5829,21 @@ function openNotice(){
 function noticeEnterEdit(){
   if(!SYNC.room){ showToast("⚠️ 请先加入房间再编辑公告"); return; }
   const n=SYNC.room&&SYNC.room.notice;
-  document.getElementById("noticeText").value=(n&&n.text)||"";
+  const editor=document.getElementById("noticeEditor");
+  /* Markdown → 富文本（图片转内联 img，QQ公告式所见即所得） */
+  editor.innerHTML=noticeMdToEditorHtml((n&&n.text)||"");
   document.getElementById("noticeEditWrap").style.display="block";
   document.getElementById("noticeView").style.display="none";
   document.getElementById("noticeEditBtn").style.display="none";
   document.getElementById("noticeSave").style.display="inline-block";
   document.getElementById("noticeCancelEdit").style.display="inline-block";
-  noticeSyncPreview(); /* 进入编辑态即扫描现有图片语法，展示已插入图片缩略预览 */
-  document.getElementById("noticeText").focus();
+  /* 光标落末尾 */
+  editor.focus();
+  const range=document.createRange();
+  range.selectNodeContents(editor);
+  range.collapse(false);
+  const sel=window.getSelection();
+  sel.removeAllRanges(); sel.addRange(range);
 }
 function noticeExitEdit(){
   document.getElementById("noticeEditWrap").style.display="none";
@@ -5759,24 +5852,15 @@ function noticeExitEdit(){
   document.getElementById("noticeSave").style.display="none";
   document.getElementById("noticeCancelEdit").style.display="none";
   document.getElementById("noticeEmojiPanel").style.display="none";
-  const bar=document.getElementById("noticeImgBar");
-  if(bar) bar.style.display="none"; /* 退出编辑隐藏预览条 */
 }
 async function noticeSaveNow(){
-  const txt=document.getElementById("noticeText").value;
+  const txt=noticeEditorToMd(); /* 富文本 DOM → Markdown 文本，存储格式不变 */
   const ok=await SYNC.saveNotice(txt);
   if(ok){ noticeExitEdit(); }
 }
-/* 在光标处插入文本（表情/图片语法） */
+/* 在光标处插入文本（表情等纯文本；富文本编辑器内用 execCommand） */
 function noticeInsert(txt){
-  const ta=document.getElementById("noticeText");
-  if(!ta) return;
-  const st=ta.selectionStart||0, en=ta.selectionEnd||0;
-  ta.value=ta.value.slice(0,st)+txt+ta.value.slice(en);
-  const pos=st+txt.length;
-  ta.focus();
-  ta.setSelectionRange(pos,pos);
-  noticeSyncPreview(); /* 程序赋值不触发 input 事件，手动刷新图片预览 */
+  noticeInsertText(txt);
 }
 /* 表情面板（含红黄绿队伍色标） */
 const NOTICE_EMOJIS=Array.from("😀😁😂🤣😃😄😅😆😉😊😋😎🤩😍🥰😘🤗🤔😐😴😪😢😭😤😡🤬😱🥶🥵🤢🥴👻💀🤡👽🤖🎃😺😹😻🙈🙉🙊🐶🐱🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🐔🐧🦅🦉🐺🐴🦄🐝🦋🐢🐍🐙🦀🐠🐟🐬🐳🦈🐊🐘🌵🌲🌳🌱🌿🍀💐🌷🌹🌺🌸🌼🌻🌞🌙⭐🌟✨⚡🔥💥🌈☀⛅🌧❄☃💧💦🕹🎮🎲🎯🎁🎉🎊🏆🥇⚽🏀🏓🏸🎱🎽🏅❗❓💯❌⭕✅✔️🚫⚠️🆕🆒🆗1️⃣2️⃣3️⃣🔴🟡🟢🔵🟣⚫⚪🟥🟨🟩🚩🏴");
@@ -5791,7 +5875,7 @@ function noticeInsertImageLink(){
   if(!url) return;
   const u=url.trim();
   if(!/^(https?:\/\/|data:image\/)/i.test(u)){ showToast("⚠️ 链接需以 http(s):// 开头"); return; }
-  noticeInsert("\n![贴图]("+u+")\n");
+  noticeInsertImg(u,"贴图"); /* 直接内联显示图片 */
 }
 /* 贴图压缩：长边 ≤900px，JPEG 82%，避免超出仓库单文件体积限制 */
 function noticeCompressImage(file){
@@ -5821,8 +5905,10 @@ async function noticeUploadImage(file){
   const tip=document.getElementById("noticeUploading");
   try{
     const dataUrl=await noticeCompressImage(file);
+    /* QQ公告式体验：先用压缩图立即内联显示，再异步上传替换为图床链接 */
+    const img=noticeInsertImg(dataUrl,"贴图");
+    if(!img) return;
     if(!hasSync(SYNC.cfg) || !SYNC.room){
-      noticeInsert("\n![贴图]("+dataUrl+")\n");
       showToast("✅ 贴图已压缩插入（本地模式内嵌保存）");
       return;
     }
@@ -5835,10 +5921,12 @@ async function noticeUploadImage(file){
     const pr=await fetch(SYNC.url(path)+"?access_token="+SYNC.tok(), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
     if(!pr.ok){ const e=await pr.json().catch(()=>({})); throw new Error("HTTP "+pr.status+" "+(e.message||"")); }
     const raw=`https://gitee.com/${SYNC.cfg.owner}/${SYNC.cfg.repo}/raw/${encodeURIComponent(SYNC.cfg.branch||"master")}/${path}`;
-    noticeInsert("\n![攻略配图]("+raw+")\n");
-    showToast("✅ 贴图已上传并插入");
+    /* 上传成功：img 的 src 替换为图床 URL（alt 同步更新），保存时即为云端链接 */
+    img.src=raw;
+    img.alt="攻略配图"; img.title="攻略配图";
+    showToast("✅ 贴图已上传并同步");
   }catch(e){
-    showToast("⚠️ 贴图上传失败："+e.message+"，可改用「图片链接」");
+    showToast("⚠️ 贴图上传失败："+e.message+"，图片保留本地内嵌（保存后仍可见）");
   }finally{
     if(tip) tip.style.display="none";
   }
