@@ -299,9 +299,28 @@
 [data-theme="sakura"] .help code{background:var(--panel2);color:var(--blue)}
 [data-theme="sakura"] .tab.active{color:#fff}
 
+/* 🌸 樱花下落层（樱花粉主题试点：真实花瓣飘落+左右摇摆+自旋，叠加于原圆点波澜背景之上；
+   三层结构分工：pw=垂直下落 / sw=水平摇摆 / pt=花瓣本体自旋，互不干扰可组合）
+   z-index:40 落在页面内容之上营造沉浸感，但低于弹窗(50)/管理面板(100)/通知，不干扰操作 */
+.sakura-fall{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:40}
+.sakura-fall .pw{position:absolute;top:-6vh;left:var(--x);animation:skFall var(--dur) linear var(--delay) infinite;will-change:transform}
+.sakura-fall .sw{display:block;animation:skSway var(--sdur) ease-in-out var(--delay) infinite alternate;will-change:transform}
+.sakura-fall .pt{display:block;position:relative;width:14px;height:14px;
+  background:linear-gradient(135deg,#ffe3ee,var(--pc,#ff9ec4) 78%,#f783ac);
+  border-radius:100% 0 100% 0;
+  box-shadow:inset -1px -2px 3px rgba(214,51,108,.28),0 0 6px rgba(255,158,196,.35);
+  animation:skSpin var(--dur) linear var(--delay) infinite;will-change:transform}
+/* 内层小花瓣：双层花瓣更立体 */
+.sakura-fall .pt::after{content:"";position:absolute;left:16%;top:16%;width:68%;height:68%;
+  background:linear-gradient(135deg,#fff5f9,#ffb3d1);border-radius:100% 0 100% 0;opacity:.78}
+@keyframes skFall{from{transform:translateY(0)}to{transform:translateY(112vh)}}
+@keyframes skSway{from{transform:translateX(calc(var(--amp) * -1))}to{transform:translateX(var(--amp))}}
+@keyframes skSpin{from{transform:rotate(0deg)}to{transform:rotate(var(--spin))}}
+
 /* 系统开启"减少动态效果"时停用背景动画 */
 @media (prefers-reduced-motion:reduce){
   [data-theme="galaxy"],[data-theme="ocean"],[data-theme="sakura"]{animation:none!important}
+  .sakura-fall{display:none!important}
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,"Microsoft YaHei",sans-serif}
@@ -864,6 +883,18 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.29.0</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li>修复 12人/4人团本排表互相影响的严重问题：此前「保存到云端 / 角色自动同步 / 公告 / 团长状态 / 清空历史」等推送路径均未携带双模式槽位（teamSlot4/teamSlot12），云端只存单一 teamList——12人一键排表保存后，云端数据被拉取时污染4人槽位，导致4人队伍管理出现红黄绿队、排表互相覆盖。现所有写入路径统一携带双槽位，另一模式云端优先（保护他人已保存排表），两模式排表彻底独立互不影响</li>
+            <li>历史脏数据自动修复：拉取云端/本地存储时按排表形态（是否带红黄绿队伍字段）自动归位——4人槽里混入的12人表归还12人槽，反之亦然，无需手动处理；角色自动同步不再把另一模式的表错带成当前模式的表</li>
+            <li>历史版本快照升级：记录双模式槽位，回溯时两模式排表完整还原；管理员进房同样走槽位恢复</li>
+            <li>樱花粉主题新增真实樱花下落效果：16片双层花瓣随机大小/速度/延迟飘落，带左右摇摆与自旋（在原圆点波澜背景上叠加），花瓣落在界面上但不遮挡弹窗与操作；系统开启"减少动态效果"时自动关闭（试点主题，效果好再推广到其他主题）</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.28.0</span>
@@ -1439,7 +1470,56 @@ const CLI_ID = (function(){
   }catch(e){ return "c"+Date.now().toString(36)+Math.random().toString(36).slice(2,10); }
 })();
 let charList = [];
-let teamList = [];
+let teamList = [];      /* 当前模式的排表（渲染/编辑统一入口，恒为 raidMode 对应模式的表） */
+let teamSlot4 = [];     /* 4人团本排表独立槽位 */
+let teamSlot12 = [];    /* 12人团本排表独立槽位（两模式互不覆盖） */
+/* 当前模式表写回对应槽位（本地编辑/撤销重做后调用） */
+function syncTeamSlot(){ if(raidMode===12) teamSlot12=teamList; else teamSlot4=teamList; }
+/* 打包两槽位用于持久化/远端写入（当前模式取内存表，另一模式取槽位） */
+function packTeamSlots(){
+  return raidMode===12
+    ? {teamSlot4: clone(teamSlot4||[]), teamSlot12: clone(teamList||[])}
+    : {teamSlot4: clone(teamList||[]), teamSlot12: clone(teamSlot12||[])};
+}
+/* 判断排表形态：12人表每队带 raidColor/group 字段，4人表没有（用于脏数据自愈与旧协议归位） */
+function looksRaid12(tl){ return Array.isArray(tl) && tl.length>0 && tl.some(t=>t&&t.raidColor); }
+/* 槽位脏数据自愈：4槽存了12人表→归还12槽（12槽空时）；12槽存了4人表→归还4槽（4槽空时）；另一槽已有正确数据则仅清除脏数据 */
+function healTeamSlots(){
+  if(teamSlot4 && looksRaid12(teamSlot4)){
+    if(!teamSlot12 || !teamSlot12.length) teamSlot12=teamSlot4;
+    teamSlot4=[];
+  }
+  if(teamSlot12 && teamSlot12.length && !looksRaid12(teamSlot12)){
+    if(!teamSlot4 || !teamSlot4.length) teamSlot4=teamSlot12;
+    teamSlot12=[];
+  }
+}
+/* 云推送槽位合并（仅用于"另一模式"槽位；当前模式槽位由调用方直接写本地表）：
+   另一模式云端优先——保护其他成员已保存的排表不被本端过期内存覆盖；云端无数据时本地兜底；
+   云端槽位先做形态校验，脏数据（4槽存12人表/12槽存4人表）丢弃不再传播 */
+function slotsForPush(base){
+  const b4raw=Array.isArray(base&&base.teamSlot4)?base.teamSlot4:[];
+  const b12raw=Array.isArray(base&&base.teamSlot12)?base.teamSlot12:[];
+  const b4 = looksRaid12(b4raw) ? [] : b4raw;
+  const b12 = (b12raw.length && !looksRaid12(b12raw)) ? [] : b12raw;
+  const l4=(raidMode===4?teamList:teamSlot4)||[];
+  const l12=(raidMode===12?teamList:teamSlot12)||[];
+  return { teamSlot4: clone(b4.length?b4:l4), teamSlot12: clone(b12.length?b12:l12) };
+}
+/* 从远端/本地存储恢复两槽位并按当前模式装载 teamList；
+   旧协议兼容：无槽位字段时按【表形态】归位（不信 raidMode，历史脏数据 raidMode=4+12人表也能正确回到12槽）；
+   新协议数据同样做形态自愈，两模式排表彻底独立互不污染 */
+function applyTeamSlots(data){
+  const has4=Array.isArray(data&&data.teamSlot4), has12=Array.isArray(data&&data.teamSlot12);
+  teamSlot4 = has4 ? data.teamSlot4 : [];
+  teamSlot12 = has12 ? data.teamSlot12 : [];
+  if(!has4 && !has12 && Array.isArray(data&&data.teamList) && data.teamList.length){
+    if(looksRaid12(data.teamList)) teamSlot12=data.teamList; else teamSlot4=data.teamList;
+  }
+  healTeamSlots();
+  teamList = (raidMode===12 ? teamSlot12 : teamSlot4)||[];
+  if(!teamList.length) teamList = arrange(charList, raidMode);
+}
 let editTargetId = null;
 let raidMode = 4; /* 4=四人次本, 12=十二人团本(3队红黄绿) */
 let viewMode = "normal"; /* normal=标准, compact=紧凑, ultra=一览 */
@@ -1845,11 +1925,31 @@ function randId(){ return Math.random().toString(36).slice(2,10); }
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 /* ---------- 本地存储 ---------- */
-function saveStorage(){ try{ localStorage.setItem(LS_CHAR, JSON.stringify({charList,teamList,raidMode})); }catch(e){} }
+function saveStorage(){
+  try{
+    syncTeamSlot(); /* 当前模式表写回槽位后再持久化，两模式排表独立保存 */
+    localStorage.setItem(LS_CHAR, JSON.stringify({charList,teamList,raidMode,teamSlot4,teamSlot12}));
+  }catch(e){}
+}
 function loadStorage(){
   try{
     const s = JSON.parse(localStorage.getItem(LS_CHAR));
-    if(s && Array.isArray(s.charList)){ charList = s.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }); raidMode = s.raidMode||4; teamList = s.teamList && s.teamList.length ? s.teamList : arrange(charList); return true; }
+    if(s && Array.isArray(s.charList)){
+      charList = s.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; });
+      raidMode = s.raidMode||4;
+      /* 新存储：恢复双模式槽位；旧存储（无槽位）：teamList 按表形态归入对应模式槽位 */
+      if(Array.isArray(s.teamSlot4) || Array.isArray(s.teamSlot12)){
+        teamSlot4 = Array.isArray(s.teamSlot4)?s.teamSlot4:[];
+        teamSlot12 = Array.isArray(s.teamSlot12)?s.teamSlot12:[];
+      } else if(Array.isArray(s.teamList) && s.teamList.length){
+        if(looksRaid12(s.teamList)) teamSlot12=s.teamList; else teamSlot4=s.teamList;
+      }
+      /* 形态自愈：历史脏数据（4槽存12人表/12槽存4人表）自动归位，两模式排表彻底独立 */
+      healTeamSlots();
+      teamList = (raidMode===12?teamSlot12:teamSlot4)||[];
+      if(!teamList.length) teamList = arrange(charList, raidMode);
+      return true;
+    }
   }catch(e){}
   return false;
 }
@@ -2705,7 +2805,7 @@ const SYNC = {
       // 应用远端数据
       charList = Array.isArray(data.charList)?data.charList:charList;
       raidMode = data.raidMode||4;
-      teamList = Array.isArray(data.teamList)?data.teamList:arrange(charList);
+      applyTeamSlots(data);
       if(data.raid12Config) applyRaid12Config(data.raid12Config);
       saveStorage(); renderAll(); updateModeBtns();
       renderNotice();
@@ -2734,6 +2834,7 @@ const SYNC = {
       // 创建空房间
       const initData = {
         charList: [], teamList: [], raidMode: 4,
+        teamSlot4: [], teamSlot12: [],
         password: password, dataVersion: 1,
         editor: this.nick(), room: roomId, presence: {},
         createdBy: ACCT.currentUser() || this.nick()
@@ -2805,7 +2906,7 @@ const SYNC = {
         charList = Array.isArray(data.charList)?data.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; }):charList;
         /* 查看模式为本地偏好：仅进入房间时应用远端模式，后续轮询不覆盖本地切换 */
         if(initial) raidMode = data.raidMode||4;
-        teamList = Array.isArray(data.teamList)?data.teamList:arrange(charList);
+        applyTeamSlots(data);
         if(data.raid12Config) applyRaid12Config(data.raid12Config);
         saveStorage(); renderAll(); updateModeBtns();
       }
@@ -2816,9 +2917,12 @@ const SYNC = {
   },
   /* 本地编辑：仅更新本地状态，标记 dirty，不上传远端（用于队伍排表） */
   writeStateLocal(intent){
-    const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
+    const st = Object.assign({charList, teamList, raidMode, presence:this.room?this.room.presence:{}}, packTeamSlots());
     const next = intent(st) || st;
     charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+    if(Array.isArray(next.teamSlot4)) teamSlot4 = next.teamSlot4;
+    if(Array.isArray(next.teamSlot12)) teamSlot12 = next.teamSlot12;
+    syncTeamSlot();
     if(this.room){
       this.room.presence = next.presence||{};
       /* 门槛配置等扩展字段：暂存到房间，随下次保存/同步携带 */
@@ -2834,9 +2938,12 @@ const SYNC = {
   /* 立即同步：更新本地状态并立即推送到远端（角色管理专用：多用户同时填写角色，增删改自动同步且不触发排表重排） */
   async writeStateRemote(intent){
     /* 1. 先更新本地状态，UI 即时响应 */
-    const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
+    const st = Object.assign({charList, teamList, raidMode, presence:this.room?this.room.presence:{}}, packTeamSlots());
     const next = intent(st) || st;
     charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+    if(Array.isArray(next.teamSlot4)) teamSlot4 = next.teamSlot4;
+    if(Array.isArray(next.teamSlot12)) teamSlot12 = next.teamSlot12;
+    syncTeamSlot();
     if(this.room) this.room.presence = next.presence||{};
     saveStorage(); renderAll(); updateModeBtns();
     /* 2. 无远端配置 → 仅本地 */
@@ -2858,13 +2965,20 @@ const SYNC = {
         for(const rc of remoteChars){
           if(rc.id && !localIds.has(rc.id)) mergedChars.push(rc);
         }
-        /* 排表：本地排表优先（含新增角色的智能入队占位），本地为空则保留远端，都无则自动排表。
-           角色自动同步绝不触发一键排表式的重排，仅原样携带本地排表 */
+        /* 排表：本地排表优先（含新增角色的智能入队占位），本地为空则取云端同模式槽位，再退自动排表。
+           角色自动同步绝不触发一键排表式的重排，仅原样携带本地排表；
+           云端 teamList 与当前模式可能不一致（另一成员保存的是另一模式），故只按槽位/形态取同模式数据，杜绝跨模式污染 */
         let mergedTeamList;
+        const remoteSameSlot = raidMode===12
+          ? (Array.isArray(base.teamSlot12)?base.teamSlot12:null)
+          : (Array.isArray(base.teamSlot4)?base.teamSlot4:null);
         const remoteTL = Array.isArray(base.teamList) ? base.teamList : [];
         if(teamList.length > 0){
           mergedTeamList = teamList;
-        } else if(remoteTL.length > 0){
+        } else if(remoteSameSlot && remoteSameSlot.length > 0){
+          mergedTeamList = remoteSameSlot;
+        } else if(!remoteSameSlot && remoteTL.length > 0 && (looksRaid12(remoteTL)===(raidMode===12))){
+          /* 旧协议云端无槽位：仅当 teamList 形态与当前模式一致时才沿用 */
           mergedTeamList = remoteTL;
         } else {
           mergedTeamList = arrange(mergedChars, raidMode, base.raid12Config);
@@ -2873,6 +2987,9 @@ const SYNC = {
           charList: mergedChars,
           teamList: mergedTeamList,
           raidMode: raidMode,
+          /* 双模式槽位：当前模式取合并后的表，另一模式云端优先本地兜底，两模式排表互不覆盖 */
+          teamSlot4: (raidMode===4 ? mergedTeamList : slotsForPush(base).teamSlot4),
+          teamSlot12: (raidMode===12 ? mergedTeamList : slotsForPush(base).teamSlot12),
           presence: Object.assign({}, base.presence||{}, this.room.presence||{}, {[this.nick()]:Date.now()}),
           dataVersion: (base.dataVersion||0)+1,
           editor: this.nick(),
@@ -2927,7 +3044,9 @@ const SYNC = {
     list.push({
       v: next.dataVersion, t: Date.now(), by: next.editor || this.nick(),
       raid: next.raidMode, teams: (next.teamList||[]).length, chars: (next.charList||[]).length,
-      snap: { charList: next.charList, teamList: next.teamList, raidMode: next.raidMode }
+      /* 快照含双模式槽位：回溯时两模式排表完整还原 */
+      snap: { charList: next.charList, teamList: next.teamList, raidMode: next.raidMode,
+              teamSlot4: next.teamSlot4, teamSlot12: next.teamSlot12 }
     });
     while(list.length > 30) list.shift();
     return list;
@@ -2968,6 +3087,9 @@ const SYNC = {
           history: []
         };
         if(base.raid12Config) next.raid12Config = base.raid12Config;
+        /* 双模式槽位原样携带：清空历史不得连带丢失另一模式排表 */
+        if(Array.isArray(base.teamSlot4)) next.teamSlot4 = base.teamSlot4;
+        if(Array.isArray(base.teamSlot12)) next.teamSlot12 = base.teamSlot12;
         /* 公告为房间级共享数据：清空历史不得连带清空公告 */
         next.notice = (base.notice!=null) ? base.notice : ((this.room&&this.room.notice)||null);
         /* 团长模式：清空历史不得连带清除团长状态 */
@@ -3032,6 +3154,9 @@ const SYNC = {
           notice
         };
         if(base.raid12Config) next.raid12Config = base.raid12Config;
+        /* 双模式槽位原样携带：不得因公告/团长/历史操作丢失另一模式排表 */
+        if(Array.isArray(base.teamSlot4)) next.teamSlot4 = base.teamSlot4;
+        if(Array.isArray(base.teamSlot12)) next.teamSlot12 = base.teamSlot12;
         /* 团长模式：保存公告不得影响团长状态 */
         if(base.captain!=null) next.captain = base.captain;
         const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"notice "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
@@ -3091,6 +3216,9 @@ const SYNC = {
           history: Array.isArray(base.history)?base.history:[]
         };
         if(base.raid12Config) next.raid12Config = base.raid12Config;
+        /* 双模式槽位原样携带：不得因团长操作丢失另一模式排表 */
+        if(Array.isArray(base.teamSlot4)) next.teamSlot4 = base.teamSlot4;
+        if(Array.isArray(base.teamSlot12)) next.teamSlot12 = base.teamSlot12;
         next.notice = (base.notice!=null) ? base.notice : ((this.room&&this.room.notice)||null);
         /* 团长字段：mode=null 表示关闭；否则写入 {user,cid,ts,waveSel}（cid=本机客户端ID，区分同昵称多设备） */
         if(mode && mode.user) next.captain = {user:mode.user, cid:(mode.cid||CLI_ID), ts:mode.ts||Date.now(), waveSel:(mode.waveSel===undefined?null:mode.waveSel)};
@@ -3163,6 +3291,9 @@ const SYNC = {
           charList: mergedChars,
           teamList: teamList,
           raidMode: raidMode,
+          /* 双模式槽位：当前模式取本地表（本次保存对象），另一模式云端优先本地兜底，两模式排表互不覆盖 */
+          teamSlot4: (raidMode===4 ? teamList : slotsForPush(base).teamSlot4),
+          teamSlot12: (raidMode===12 ? teamList : slotsForPush(base).teamSlot12),
           presence: Object.assign({}, base.presence||{}, this.room.presence||{}, {[this.nick()]:Date.now()}),
           dataVersion: (base.dataVersion||0)+1,
           editor: this.nick(),
@@ -3212,17 +3343,23 @@ const SYNC = {
     opts = opts||{};
     if(!this.room){
       // 无房间：纯本地操作，不走同步
-      const st = {charList, teamList, raidMode, presence:{}};
+      const st = Object.assign({charList, teamList, raidMode, presence:{}}, packTeamSlots());
       const next = intent(st) || st;
       charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+      if(Array.isArray(next.teamSlot4)) teamSlot4 = next.teamSlot4;
+      if(Array.isArray(next.teamSlot12)) teamSlot12 = next.teamSlot12;
+      syncTeamSlot();
       saveStorage(); renderAll(); updateModeBtns();
       return;
     }
     if(!hasSync(this.cfg)){
       // 本地模式：直接对本地状态应用
-      const st = {charList, teamList, raidMode, presence:this.room.presence||{}};
+      const st = Object.assign({charList, teamList, raidMode, presence:this.room.presence||{}}, packTeamSlots());
       const next = intent(st) || st;
       charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; this.room.presence = next.presence||{};
+      if(Array.isArray(next.teamSlot4)) teamSlot4 = next.teamSlot4;
+      if(Array.isArray(next.teamSlot12)) teamSlot12 = next.teamSlot12;
+      syncTeamSlot();
       saveStorage(); renderAll(); updateModeBtns();
       return;
     }
@@ -3946,7 +4083,8 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
         </div>`;
       container.appendChild(wl);
     }
-    const rColor = team.raidColor || (isRaid12 ? raidColors[tIdx%3] : null);
+    /* 4人模式彻底忽略12人残留的 raidColor/group 字段，杜绝切模式后出现红黄绿队 */
+    const rColor = isRaid12 ? (team.raidColor || raidColors[tIdx%3]) : null;
     if(isRaid12 && rColor){ curWaveColors.push(rColor); }
     const block=document.createElement("div");
     block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass + (currentWaveHL===curGroup ? " wave-active" : "");
@@ -4251,8 +4389,13 @@ async function doAutoArrange(){
 }
 async function switchMode(m){
   if(m===raidMode) return;
-  /* 模式切换为无感视图切换：不重排队伍、不同步云端、不触发未保存提示 */
+  /* 双模式排表独立：切走前把当前模式表存回槽位，再加载新模式槽位（互不覆盖） */
+  syncTeamSlot();
   raidMode = m;
+  teamList = (m===12 ? teamSlot12 : teamSlot4)||[];
+  /* 目标模式槽位为空（从未排过/历史脏数据清空后）：与进房/刷新行为一致，自动排表兜底，避免切过去看到空白 */
+  if(!teamList.length) teamList = arrange(charList, m);
+  /* 模式切换为无感视图切换：不同步云端、不触发未保存提示 */
   saveStorage();
   renderAll(); updateModeBtns();
 }
@@ -4807,7 +4950,8 @@ const ADMIN = {
       applyCaptainFromRemote((data.captain!=null)?data.captain:null);
       charList=Array.isArray(data.charList)?data.charList.map(c=>{if(c.type==="healer")c.type="N";return c;}):charList;
       raidMode=data.raidMode||4;
-      teamList=Array.isArray(data.teamList)?data.teamList:arrange(charList);
+      /* 双模式槽位恢复+形态自愈：与普通进房一致，两模式排表互不污染 */
+      applyTeamSlots(data);
       if(data.raid12Config) applyRaid12Config(data.raid12Config);
       saveStorage();renderAll();updateModeBtns();renderNotice();
       SYNC.start();
@@ -5004,6 +5148,49 @@ async function doBatchDelete(){
   }
   alert("批量删除完成：成功 "+ok+" 个"+(fail>0?"，失败 "+fail+" 个":""));
   await loadAdminRooms();
+}
+
+/* ---------- 🌸 樱花下落层（樱花粉主题试点） ----------
+   主题为 sakura 时创建固定定位花瓣层：16片花瓣随机位置/大小/速度/延迟/自旋，负延迟让开场即铺满屏幕；
+   三层动画分工（下落/摇摆/自旋）由 CSS 变量驱动；切走主题或系统开启减少动态时移除 */
+let _sakuraLayer=null;
+function setupSakuraFall(){
+  const want = document.documentElement.getAttribute("data-theme")==="sakura";
+  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+  if(!want || reduced){
+    if(_sakuraLayer){ _sakuraLayer.remove(); _sakuraLayer=null; }
+    return;
+  }
+  if(_sakuraLayer) return; /* 已存在，避免重复创建 */
+  const layer=document.createElement("div");
+  layer.className="sakura-fall";
+  layer.setAttribute("aria-hidden","true");
+  const N=16;
+  const palette=["#ff9ec4","#f783ac","#ffc9de","#fa5c8d"]; /* 中粉/深粉/浅粉/艳粉：深浅搭配保证任何背景区域都有花瓣可见 */
+  for(let i=0;i<N;i++){
+    const pw=document.createElement("i"); pw.className="pw";
+    const sw=document.createElement("i"); sw.className="sw";
+    const pt=document.createElement("i"); pt.className="pt";
+    const dur=(9+Math.random()*10).toFixed(2);          /* 单片下落总时长 9~19s */
+    const delay=(-Math.random()*20).toFixed(2);          /* 负延迟：打开页面即有花瓣在途中 */
+    const sdur=(2.2+Math.random()*2.8).toFixed(2);       /* 摇摆半周期 2.2~5s */
+    const amp=(14+Math.random()*30).toFixed(1);          /* 摇摆幅度 14~44px */
+    const size=(9+Math.random()*10).toFixed(1);          /* 花瓣尺寸 9~19px */
+    const spin=((Math.random()<.5?-1:1)*(160+Math.random()*380))|0; /* 自旋 ±160~540deg */
+    pw.style.setProperty("--x",(Math.random()*100).toFixed(2)+"vw");
+    pw.style.setProperty("--dur",dur+"s");
+    pw.style.setProperty("--delay",delay+"s");
+    sw.style.setProperty("--sdur",sdur+"s");
+    sw.style.setProperty("--amp",amp+"px");
+    pt.style.setProperty("--spin",spin+"deg");
+    pt.style.setProperty("--pc",palette[(Math.random()*palette.length)|0]);
+    pt.style.width=size+"px";
+    pt.style.height=size+"px";
+    pt.style.opacity=(.38+Math.random()*.42).toFixed(2); /* 透明度 .38~.80 */
+    sw.appendChild(pt); pw.appendChild(sw); layer.appendChild(pw);
+  }
+  document.body.appendChild(layer);
+  _sakuraLayer=layer;
 }
 
 /* ---------- 初始化 ---------- */
@@ -5204,10 +5391,12 @@ function init(){
   const savedTheme=localStorage.getItem("busha_theme")||"dark";
   document.documentElement.setAttribute("data-theme", savedTheme);
   themeSelect.value=savedTheme;
+  setupSakuraFall();
   themeSelect.onchange=()=>{
     const v=themeSelect.value;
     document.documentElement.setAttribute("data-theme", v);
     localStorage.setItem("busha_theme", v);
+    setupSakuraFall();
   };
 
   // 管理员
@@ -5491,8 +5680,14 @@ function doRollback(idx){
   if(Array.isArray(snap.charList)){
     charList=snap.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; });
   }
-  teamList=snap.teamList;
   if(snap.raidMode===4||snap.raidMode===12){ raidMode=snap.raidMode; }
+  /* 新快照带双模式槽位：两模式排表完整还原（含形态自愈）；旧快照仅回溯当次保存的模式表 */
+  if(Array.isArray(snap.teamSlot4) || Array.isArray(snap.teamSlot12)){
+    teamSlot4 = Array.isArray(snap.teamSlot4)?snap.teamSlot4:[];
+    teamSlot12 = Array.isArray(snap.teamSlot12)?snap.teamSlot12:[];
+    healTeamSlots();
+  }
+  teamList=snap.teamList;
   SYNC.dirty=true;
   SYNC.dirtyCount=(SYNC.dirtyCount||0)+1;
   saveStorage(); renderAll(); updateModeBtns();
