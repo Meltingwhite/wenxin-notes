@@ -866,6 +866,18 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
       <div class="changelog-content" style="margin-top:15px">
         <div class="version-entry">
           <div class="version-header">
+            <span class="ver-tag">v1.28.0</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li>修复同账号多设备团长失效：团长身份改按本机客户端唯一ID（CLI_ID）判定，不再依赖昵称——两台电脑同账号时，队员端正确识别团长、实时跟随攻坚波次选中（⚔ 攻坚中）、抢夺弹窗正常弹出，被抢夺通知按设备精准送达</li>
+            <li>修复取消团长勾选自动回勾：关闭失败（同步忙/网络错误）时勾选状态回滚并提示重试；关闭时清空待推送的波次同步定时器，杜绝残留定时器把团长状态写回</li>
+            <li>修复有未保存修改的成员收不到团长状态：轮询不再整体跳过，本地排表受保护的同时，团长波次选中/公告/在线状态照常实时同步</li>
+            <li>波次选中推送增加自动重试（同步忙时800ms后重试，最多3次），避免波次攻坚状态偶发丢失；同昵称设备显示「（其他设备）」标识</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
             <span class="ver-tag">v1.27.0</span>
             <span class="ver-date">2026-08-21</span>
           </div>
@@ -1415,6 +1427,17 @@ const LS_SESSION = "busha_session_v1"; /* 当前登录会话 */
 const LS_REMEMBER = "busha_remember_rooms"; /* 记住房间 */
 const LS_NOTICE_LOCAL = "busha_notice_local_v1"; /* 房间公告（本地模式/离线缓存） */
 const LS_NOTICE_SEEN = "busha_notice_seen_v1"; /* 公告已读标记（房间id→updatedAt） */
+const LS_CLI_ID = "busha_cli_id_v1"; /* 本机客户端唯一ID：区分同昵称多设备（团长身份判定用） */
+/* 本机客户端唯一ID：同一账号在两台电脑登录时昵称相同，但 CLI_ID 不同，
+   团长身份以 CLI_ID 判定（兼容无 cid 的旧数据回退昵称判定），抢夺/锁定/波次跟随均按设备区分 */
+const CLI_ID = (function(){
+  try{
+    let v = null;
+    try{ v = localStorage.getItem(LS_CLI_ID); }catch(e){}
+    if(!v){ v = "c"+Date.now().toString(36)+Math.random().toString(36).slice(2,10); try{ localStorage.setItem(LS_CLI_ID, v); }catch(e){} }
+    return v;
+  }catch(e){ return "c"+Date.now().toString(36)+Math.random().toString(36).slice(2,10); }
+})();
 let charList = [];
 let teamList = [];
 let editTargetId = null;
@@ -2758,8 +2781,8 @@ const SYNC = {
   async fetchState(initial){
     if(!hasSync(this.cfg)) return;
     if(!this.room) return;
-    /* 本地有未保存修改时，跳过远端拉取，避免覆盖本地编辑 */
-    if(this.dirty && !initial) return;
+    /* 本地有未保存修改时，仍拉取房间级共享数据（团长状态/公告/在线），仅跳过排表数据应用，避免覆盖本地编辑 */
+    const skipData = this.dirty && !initial;
     try{
       const r = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok()+"&ref="+this.br());
       if(r.status===404){ this.setStatus(initial?"房间未同步，编辑后自动创建":"房间未同步","off"); this.renderPresence(); return; }
@@ -2772,10 +2795,10 @@ const SYNC = {
       /* 公告为房间级独立数据：无论版本是否更新都刷新（红点提示） */
       this.room.notice = (data.notice!=null) ? data.notice : null;
       renderNotice();
-      /* 团长模式同为房间级独立数据：无论版本是否更新都刷新（抢夺通知/波次跟随/编辑锁定） */
+      /* 团长模式同为房间级独立数据：无论版本是否更新都刷新（抢夺通知/波次跟随/编辑锁定），dirty 成员同样跟随 */
       applyCaptainFromRemote((data.captain!=null)?data.captain:null);
       const dv = data.dataVersion||0;
-      if(dv > this.room.dataVersion){
+      if(!skipData && dv > this.room.dataVersion){
         this.room.dataVersion = dv;
         // 备份本地后应用远端
         try{ localStorage.setItem(LS_BACK, JSON.stringify({charList,teamList,raidMode})); }catch(e){}
@@ -3069,8 +3092,8 @@ const SYNC = {
         };
         if(base.raid12Config) next.raid12Config = base.raid12Config;
         next.notice = (base.notice!=null) ? base.notice : ((this.room&&this.room.notice)||null);
-        /* 团长字段：mode=null 表示关闭；否则写入 {user,ts,waveSel} */
-        if(mode && mode.user) next.captain = {user:mode.user, ts:mode.ts||Date.now(), waveSel:(mode.waveSel===undefined?null:mode.waveSel)};
+        /* 团长字段：mode=null 表示关闭；否则写入 {user,cid,ts,waveSel}（cid=本机客户端ID，区分同昵称多设备） */
+        if(mode && mode.user) next.captain = {user:mode.user, cid:(mode.cid||CLI_ID), ts:mode.ts||Date.now(), waveSel:(mode.waveSel===undefined?null:mode.waveSel)};
         else next.captain = null;
         const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"captain "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
@@ -3290,14 +3313,26 @@ const SYNC = {
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 /* ═════════ 团长模式：权限判断 / UI / 弹窗 / 抢夺 ═════════ */
-/* 当前用户是否被团长模式锁定（团长模式开启且团长不是自己） */
+/* 团长是否是本机：优先按 CLI_ID（同昵称多设备可区分），旧数据无 cid 时回退昵称判定 */
+function captainIsMe(){
+  if(!captainState || !captainState.user) return false;
+  if(captainState.cid) return captainState.cid===CLI_ID;
+  return captainState.user===SYNC.nick();
+}
+/* 团长显示名：同昵称的其他设备加"（其他设备）"提示，避免误以为是自己本机 */
+function captainLabel(){
+  if(!captainState || !captainState.user) return "-";
+  if(captainState.user===SYNC.nick() && !captainIsMe()) return captainState.user+"（其他设备）";
+  return captainState.user;
+}
+/* 当前用户是否被团长模式锁定（团长模式开启且团长不是本机） */
 function captainLocked(){
-  return !!(SYNC.room && captainState && captainState.user && captainState.user!==SYNC.nick());
+  return !!(SYNC.room && captainState && captainState.user && !captainIsMe());
 }
 /* 编辑操作统一守卫：被锁定时弹提示并返回 true（调用方直接 return） */
 function captainLockGuard(){
   if(!captainLocked()) return false;
-  showToast("👑 团长模式中，仅团长「"+captainState.user+"」可编辑队伍");
+  showToast("👑 团长模式中，仅团长「"+captainLabel()+"」可编辑队伍");
   return true;
 }
 /* 团长模式 UI 刷新：开关 / 徽章 / 锁定横幅 / body 锁定类 */
@@ -3308,16 +3343,15 @@ function updateCaptainUI(){
   const bar=document.getElementById("captainLockBar");
   const barText=document.getElementById("captainLockBarText");
   if(!wrap||!cb) return;
-  const me=SYNC.nick();
   const active = !!(SYNC.room && captainState && captainState.user);
-  const isMe = active && captainState.user===me;
+  const isMe = active && captainIsMe();
   wrap.classList.toggle("on",isMe);
   cb.checked=isMe;
   if(active && !isMe){
-    if(badge){ badge.style.display=""; badge.textContent="👑 团长："+captainState.user; badge.title="团长模式已被占用，勾选👑团长可抢夺权限"; }
-    wrap.title="团长模式已被「"+captainState.user+"」占用，勾选可抢夺权限（对方会收到通知）";
+    if(badge){ badge.style.display=""; badge.textContent="👑 团长："+captainLabel(); badge.title="团长模式已被占用，勾选👑团长可抢夺权限"; }
+    wrap.title="团长模式已被「"+captainLabel()+"」占用，勾选可抢夺权限（对方会收到通知）";
     if(bar){ bar.classList.add("show"); }
-    if(barText){ barText.textContent="当前团长："+captainState.user+"（仅团长可编辑队伍与选择波次；你可点击玩家名片高亮查看，画面与团长一致）"; }
+    if(barText){ barText.textContent="当前团长："+captainLabel()+"（仅团长可编辑队伍与选择波次；你可点击玩家名片高亮查看，画面与团长一致）"; }
   } else {
     if(badge){ badge.style.display="none"; }
     wrap.title = isMe ? "团长模式已开启：波次选中与队伍编辑权限归你，点击可关闭" : "团长模式：占用波次选中权限，团长模式下仅团长可编辑队伍";
@@ -3329,18 +3363,21 @@ function updateCaptainUI(){
 function applyCaptainFromRemote(cap){
   const prev=captainState;
   const me=SYNC.nick();
-  captainState = (cap && cap.user) ? {user:cap.user, ts:cap.ts||0, waveSel:(cap.waveSel===undefined?null:cap.waveSel)} : null;
-  /* 我是原团长，权限被他人抢夺 → 弹窗通知 */
-  if(prev && prev.user===me && captainState && captainState.user!==me){
-    captainShowTakeoverPopup(captainState.user);
+  /* 归一化：保留 cid（同昵称多设备身份）；无 cid 的旧数据回退昵称判定 */
+  const prevMine = prev ? (prev.cid ? prev.cid===CLI_ID : prev.user===me) : false;
+  captainState = (cap && cap.user) ? {user:cap.user, cid:cap.cid||"", ts:cap.ts||0, waveSel:(cap.waveSel===undefined?null:cap.waveSel)} : null;
+  const curMine = captainIsMe();
+  /* 本机是原团长，权限被其他设备/他人抢夺 → 弹窗通知 */
+  if(prevMine && captainState && !curMine){
+    captainShowTakeoverPopup(captainLabel());
   }
-  /* 我是原团长，模式被自己之外关闭（他人抢夺后立即关闭等场景） */
-  if(prev && prev.user===me && !captainState){
+  /* 本机是原团长，模式被自己之外关闭（他人抢夺后立即关闭等场景；本机主动关闭不重复提示） */
+  if(prevMine && !captainState && !window._capSelfClose){
     showToast("👑 团长模式已关闭");
   }
   /* 非团长：波次选中跟随团长 */
   let needRender=false;
-  if(captainState && captainState.user!==me){
+  if(captainState && !curMine){
     if(currentWaveHL!==captainState.waveSel){
       currentWaveHL=captainState.waveSel;
       needRender=true;
@@ -3349,16 +3386,26 @@ function applyCaptainFromRemote(cap){
   updateCaptainUI();
   if(needRender && typeof renderTeamTable==="function") renderTeamTable();
 }
-/* 团长本人推送选中波次（防抖，仅更新 captain 字段，不触碰排表数据） */
+/* 团长本人推送选中波次（防抖，仅更新 captain 字段，不触碰排表数据；同步忙时自动重试） */
 let _capWaveTimer=null;
+let _capWaveRetry=0;
 function captainPushWaveSel(wave){
-  if(!captainState || captainState.user!==SYNC.nick()) return;
+  if(!captainState || !captainIsMe()) return;
   captainState.waveSel=wave;
   if(!SYNC.room || !hasSync(SYNC.cfg)) return;
   clearTimeout(_capWaveTimer);
-  _capWaveTimer=setTimeout(()=>{
-    const m={user:captainState.user, ts:captainState.ts, waveSel:captainState.waveSel};
-    SYNC.setCaptainMode(m,true);
+  _capWaveRetry=0;
+  _capWaveTimer=setTimeout(async function capWavePush(){
+    /* 关闭/被抢夺后残留的定时器直接丢弃，防止把旧团长状态写回 */
+    if(!captainState || !captainIsMe()) return;
+    const m={user:captainState.user, cid:CLI_ID, ts:captainState.ts, waveSel:captainState.waveSel};
+    const ok=await SYNC.setCaptainMode(m,true);
+    /* 同步忙（writing>0）或瞬时失败：800ms 后自动重试，最多3次，避免波次选中丢失 */
+    if(ok===false && _capWaveRetry<3){
+      _capWaveRetry++;
+      clearTimeout(_capWaveTimer);
+      _capWaveTimer=setTimeout(capWavePush,800);
+    }
   },500);
 }
 /* 抢夺确认弹窗（Promise，确认=true） */
@@ -3687,7 +3734,7 @@ function renderTeamTable(){
       if(e.target.closest(".wave-btn")) return; /* 排序按钮已自行处理 */
       if(window._dragging) return; /* 拖拽进行中，忽略点击 */
       if(captainLocked()){
-        showToast("👑 团长模式中，攻坚波次由团长「"+captainState.user+"」选择");
+        showToast("👑 团长模式中，攻坚波次由团长「"+captainLabel()+"」选择");
         return;
       }
       const wave=Number(this.dataset.waveDrag);
@@ -5033,9 +5080,9 @@ function init(){
     const me=SYNC.nick();
     if(!SYNC.room){ this.checked=false; showToast("⚠️ 请先加入房间后再使用团长模式"); return; }
     if(this.checked){
-      /* 想开启/抢夺：已被他人占用时弹窗提示占用者，确认后抢夺 */
-      if(captainState && captainState.user && captainState.user!==me){
-        const ok=await captainConfirmTakeover(captainState.user);
+      /* 想开启/抢夺：已被其他设备/他人占用时弹窗提示占用者，确认后抢夺 */
+      if(captainState && captainState.user && !captainIsMe()){
+        const ok=await captainConfirmTakeover(captainLabel());
         if(!ok){ this.checked=false; updateCaptainUI(); return; }
       }
       const done=await SYNC.setCaptainMode({user:me, ts:Date.now(), waveSel:currentWaveHL});
@@ -5045,14 +5092,26 @@ function init(){
         this.checked=false; updateCaptainUI();
       }
     } else {
-      /* 关闭：仅团长本人可关 */
-      if(captainState && captainState.user && captainState.user!==me){
+      /* 关闭：仅团长本机可关 */
+      if(captainState && captainState.user && !captainIsMe()){
         this.checked=true;
         showToast("⚠️ 只有团长本人可关闭团长模式");
         return;
       }
+      /* 丢弃待推送的波次同步定时器，防止关闭后残留定时器把团长状态写回（自动回勾bug） */
+      clearTimeout(_capWaveTimer);
+      _capWaveRetry=0;
+      window._capSelfClose=true;
       const done=await SYNC.setCaptainMode(null);
-      if(done) showToast("已关闭团长模式，全员恢复编辑权限");
+      window._capSelfClose=false;
+      if(done){
+        showToast("已关闭团长模式，全员恢复编辑权限");
+        updateCaptainUI();
+      } else {
+        /* 关闭失败（同步忙/网络错误）：回滚勾选状态与远端一致，避免7秒轮询后自动回勾 */
+        this.checked=true; updateCaptainUI();
+        showToast("⚠️ 关闭失败，请稍后再试");
+      }
     }
   });
   /* 团长弹窗按钮：确认抢夺 / 取消 / 知道了 */
