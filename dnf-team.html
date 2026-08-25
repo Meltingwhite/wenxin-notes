@@ -282,6 +282,7 @@
 }
 @keyframes sakuraDrift{from{background-position:0 0,0 0,0 0}to{background-position:130px 0,-95px 0,460px 230px}}
 [data-theme="sakura"] body{background:transparent}
+[data-theme="sakura"] .container{position:relative;z-index:1}
 [data-theme="sakura"] input,[data-theme="sakura"] select,[data-theme="sakura"] textarea{background:rgba(255,255,255,.92);border-color:var(--line);color:var(--txt)}
 [data-theme="sakura"] .card,[data-theme="sakura"] .team-block,[data-theme="sakura"] .slot{background:var(--panel);border-color:var(--line)}
 [data-theme="sakura"] .card.c{border-left-color:var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
@@ -299,13 +300,244 @@
 [data-theme="sakura"] .help code{background:var(--panel2);color:var(--blue)}
 [data-theme="sakura"] .tab.active{color:#fff}
 
+/* 🌿 森野（护眼大自然绿色·草地树木背景+风中摇曳动画+树叶粒子）
+   明亮温和的绿色系：浅绿底 + 草地树木场景（固定层位于内容之下），
+   动画开启时草地与树叶随风摇曳，配合树叶粒子飘落营造自然沉浸感 */
+[data-theme="nature"]{
+  --bg:#e7f2e2; --panel:rgba(255,255,255,.93); --panel2:rgba(242,249,238,.96); --line:#c6ddc2;
+  --txt:#21402c; --mut:#5f7d68; --blue:#2f9e44; --blue2:#43b45c;
+  --orange:#e07b39; --green:#2f9e44; --red:#d64545; --yellow:#c9a227;
+  --radius:10px;
+  --wg:214,69,69; --wave-stroke:#c23a3a; --wave-bg:rgba(214,69,69,.13); --wave-badge-bg:#9c2b2b;
+  background-color:#e7f2e2;
+  background-image:linear-gradient(180deg,#d9edda 0%,#e7f2e2 42%,#d3e9cd 100%);
+  background-attachment:fixed;
+}
+[data-theme="nature"] body{background:transparent}
+[data-theme="nature"] .container{position:relative;z-index:1}
+[data-theme="nature"] input,[data-theme="nature"] select,[data-theme="nature"] textarea{background:rgba(255,255,255,.92);border-color:var(--line);color:var(--txt)}
+[data-theme="nature"] .card,[data-theme="nature"] .team-block,[data-theme="nature"] .slot{background:var(--panel);border-color:var(--line)}
+[data-theme="nature"] .card.c{border-left-color:var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
+[data-theme="nature"] .card.N{border-left-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}
+[data-theme="nature"] .slot.c{background:#fdf1e6;border-color:var(--orange)}
+[data-theme="nature"] .slot.N{background:#eaf7ea;border-color:var(--green)}
+[data-theme="nature"] .slot-empty{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="nature"] .team-block.raid-red{background:#fff5f5;border-color:var(--red)}
+[data-theme="nature"] .team-block.raid-yellow{background:#fffdf5;border-color:var(--yellow)}
+[data-theme="nature"] .team-block.raid-green{background:#f3fbf1;border-color:var(--green)}
+[data-theme="nature"] .badge{background:var(--panel2);color:var(--txt)}
+[data-theme="nature"] .modal{background:rgba(28,58,38,.42)}
+[data-theme="nature"] .modal-box{background:var(--panel);color:var(--txt)}
+[data-theme="nature"] .notice{background:#fffbe6;border-color:#d9a509;color:#7a6a00}
+[data-theme="nature"] .help code{background:var(--panel2);color:var(--blue)}
+[data-theme="nature"] .tab.active{color:#fff}
+[data-theme="nature"] .owner-header{color:var(--blue2)}
+[data-theme="nature"] .team-title{color:var(--blue2)}
+
+/* 🍄 马里奥（红色经典·金币问号砖块背景+金币粒子）
+   明亮红色系：米白底 + 马里奥经典红主色，
+   背景固定层含金币/问号砖块/蘑菇/水管元素，金币粒子旋转飘落 */
+[data-theme="mario"]{
+  --bg:#fff4f0; --panel:rgba(255,255,255,.94); --panel2:rgba(255,241,236,.96); --line:#f0c8b8;
+  --txt:#5c1a10; --mut:#a05a48; --blue:#e52521; --blue2:#c8102e;
+  --orange:#e8590c; --green:#0a8f56; --red:#e52521; --yellow:#fbbf24;
+  --radius:10px;
+  --wg:229,37,33; --wave-stroke:#c8102e; --wave-bg:rgba(229,37,33,.12); --wave-badge-bg:#9c1c1c;
+  background-color:#fff4f0;
+  background-image:
+    radial-gradient(circle at 18% 20%,rgba(251,191,36,.16) 0 3px,transparent 4px),
+    radial-gradient(circle at 70% 66%,rgba(229,37,33,.08) 0 2px,transparent 3px),
+    radial-gradient(ellipse 340px 220px at 82% 12%,rgba(255,190,160,.35),transparent 70%);
+  background-size:120px 120px,90px 90px,480px 480px;
+  background-attachment:fixed;
+}
+[data-theme="mario"] body{background:transparent}
+[data-theme="mario"] .container{position:relative;z-index:1}
+[data-theme="mario"] input,[data-theme="mario"] select,[data-theme="mario"] textarea{background:rgba(255,255,255,.92);border-color:var(--line);color:var(--txt)}
+[data-theme="mario"] .card,[data-theme="mario"] .team-block,[data-theme="mario"] .slot{background:var(--panel);border-color:var(--line)}
+[data-theme="mario"] .card.c{border-left-color:var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
+[data-theme="mario"] .card.N{border-left-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}
+[data-theme="mario"] .slot.c{background:#fff0e8;border-color:var(--orange)}
+[data-theme="mario"] .slot.N{background:#edf9f0;border-color:var(--green)}
+[data-theme="mario"] .slot-empty{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="mario"] .team-block.raid-red{background:#fff5f5;border-color:var(--red)}
+[data-theme="mario"] .team-block.raid-yellow{background:#fffdf5;border-color:var(--yellow)}
+[data-theme="mario"] .team-block.raid-green{background:#f5fff8;border-color:var(--green)}
+[data-theme="mario"] .badge{background:var(--panel2);color:var(--txt)}
+[data-theme="mario"] .modal{background:rgba(90,25,15,.42)}
+[data-theme="mario"] .modal-box{background:var(--panel);color:var(--txt)}
+[data-theme="mario"] .notice{background:#fffbe6;border-color:var(--yellow);color:#8a6d00}
+[data-theme="mario"] .help code{background:var(--panel2);color:var(--blue)}
+[data-theme="mario"] .tab.active{color:#fff}
+[data-theme="mario"] .owner-header{color:var(--blue2)}
+[data-theme="mario"] .team-title{color:var(--blue2)}
+
+/* 🔵 太初蓝（DNF太初光效·深邃蓝底+流动光晕+星芒粒子）
+   参考DNF端游太初装备光效：深邃蓝夜空底 + 流动蓝色光晕（流光）+
+   上升星芒光点粒子 + 金色点缀，营造史诗级神圣光效氛围 */
+[data-theme="taichu"]{
+  --bg:#081226; --panel:rgba(13,26,52,.92); --panel2:rgba(19,38,72,.94); --line:#2c4a86;
+  --txt:#e8f1ff; --mut:#8fb0d8; --blue:#3b82f6; --blue2:#38bdf8;
+  --orange:#ffb454; --green:#34d399; --red:#f87171; --yellow:#fbbf24;
+  --radius:10px;
+  --wg:59,130,246; --wave-stroke:#38bdf8; --wave-bg:rgba(56,189,248,.14); --wave-badge-bg:#1d4ed8;
+  background-color:#081226;
+  background-image:
+    radial-gradient(ellipse 60% 42% at 18% 8%,rgba(56,189,248,.16),transparent 70%),
+    radial-gradient(ellipse 52% 38% at 84% 16%,rgba(99,102,241,.14),transparent 70%),
+    radial-gradient(ellipse 70% 50% at 50% 108%,rgba(59,130,246,.18),transparent 72%),
+    radial-gradient(circle at 30% 40%,rgba(56,189,248,.06) 0 2px,transparent 3px),
+    radial-gradient(circle at 72% 62%,rgba(251,191,36,.07) 0 2px,transparent 3px);
+  background-size:100% 100%,100% 100%,100% 100%,150px 150px,110px 110px;
+  background-attachment:fixed;
+  animation:taichuFlow 22s ease-in-out infinite;
+}
+@keyframes taichuFlow{
+  0%{background-position:0% 0%,100% 0%,50% 100%,0 0,0 0}
+  50%{background-position:12% 4%,88% 6%,50% 104%,0 0,0 0}
+  100%{background-position:0% 0%,100% 0%,50% 100%,0 0,0 0}
+}
+[data-theme="taichu"] body{background:transparent}
+[data-theme="taichu"] .container{position:relative;z-index:1}
+[data-theme="taichu"] input,[data-theme="taichu"] select,[data-theme="taichu"] textarea{background:rgba(10,22,46,.9);border-color:var(--line);color:var(--txt)}
+[data-theme="taichu"] .card,[data-theme="taichu"] .team-block,[data-theme="taichu"] .slot{background:var(--panel);border-color:var(--line)}
+[data-theme="taichu"] .card.c{border-left-color:var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
+[data-theme="taichu"] .card.N{border-left-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}
+[data-theme="taichu"] .slot.c{background:#2a1c0e;border-color:var(--orange)}
+[data-theme="taichu"] .slot.N{background:#0c2b22;border-color:var(--green)}
+[data-theme="taichu"] .slot-empty{background:var(--panel2);border-color:var(--line);color:var(--mut)}
+[data-theme="taichu"] .team-block.raid-red{background:#3a1420;border-color:var(--red)}
+[data-theme="taichu"] .team-block.raid-yellow{background:#3a2c10;border-color:var(--yellow)}
+[data-theme="taichu"] .team-block.raid-green{background:#0f2e24;border-color:var(--green)}
+[data-theme="taichu"] .badge{background:var(--panel2);color:var(--txt)}
+[data-theme="taichu"] .modal{background:rgba(4,10,26,.72)}
+[data-theme="taichu"] .modal-box{background:var(--panel);color:var(--txt)}
+[data-theme="taichu"] .notice{background:#1c2a14;border-color:var(--yellow);color:#f5d98a}
+[data-theme="taichu"] .help code{background:var(--panel2);color:var(--blue2)}
+[data-theme="taichu"] .tab.active{color:#fff}
+[data-theme="taichu"] .owner-header{color:var(--blue2)}
+[data-theme="taichu"] .team-title{color:var(--blue2)}
+
+/* 太初蓝背景场景：流动蓝色光晕 + 上升星芒光点 + 光环（固定层，位于内容之下，不拦截交互）
+   参考DNF太初光效：深邃蓝底上流动的蓝色流光、上升的星芒粒子与金色光点 */
+.taichu-scene{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.taichu-scene .tc-glow{position:absolute;border-radius:50%;filter:blur(6px);
+  background:radial-gradient(circle,rgba(56,189,248,.22),rgba(56,189,248,0) 70%);
+  animation:tcGlowPulse var(--gdur,6s) ease-in-out var(--gdel,0s) infinite alternate}
+@keyframes tcGlowPulse{from{opacity:.5;transform:scale(.92)}to{opacity:1;transform:scale(1.12)}}
+.taichu-scene .tc-star{position:absolute;
+  background:linear-gradient(135deg,#fff,var(--sc,#38bdf8));
+  clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);
+  box-shadow:0 0 10px 2px var(--scg,rgba(56,189,248,.55));
+  animation:tcStarFloat var(--sdur,5s) ease-in-out var(--sdel,0s) infinite alternate,
+            tcStarTwinkle 2.4s ease-in-out var(--sdel,0s) infinite}
+@keyframes tcStarFloat{from{transform:translateY(0) rotate(0deg)}to{transform:translateY(-14px) rotate(18deg)}}
+@keyframes tcStarTwinkle{0%,100%{opacity:.35;filter:brightness(.85)}50%{opacity:1;filter:brightness(1.4)}}
+.taichu-scene .tc-gold{position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 38% 35%,#fff,#fbbf24 60%,rgba(251,191,36,0));
+  box-shadow:0 0 8px 1px rgba(251,191,36,.5);
+  animation:tcGoldFloat var(--gdur2,4.4s) ease-in-out var(--gdel2,0s) infinite alternate}
+@keyframes tcGoldFloat{from{transform:translateY(0) scale(.9);opacity:.5}to{transform:translateY(-12px) scale(1.1);opacity:1}}
+.taichu-scene .tc-ring{position:absolute;border-radius:50%;
+  border:2px solid rgba(56,189,248,.5);
+  box-shadow:0 0 12px rgba(56,189,248,.35),inset 0 0 12px rgba(56,189,248,.25);
+  animation:tcRingSpin var(--rdur,16s) linear var(--rdel,0s) infinite}
+@keyframes tcRingSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.taichu-scene .tc-ring::before{content:"";position:absolute;left:50%;top:-3px;width:6px;height:6px;border-radius:50%;
+  background:#fff;box-shadow:0 0 6px #fff,0 0 10px #38bdf8}
+@media (prefers-reduced-motion:reduce){
+  [data-theme="taichu"]{animation:none!important}
+  .taichu-scene .tc-glow,.taichu-scene .tc-star,.taichu-scene .tc-gold,.taichu-scene .tc-ring{animation:none!important}
+}
+html.anim-off .taichu-scene .tc-glow,html.anim-off .taichu-scene .tc-star,
+html.anim-off .taichu-scene .tc-gold,html.anim-off .taichu-scene .tc-ring{animation-play-state:paused!important}
+
+/* 森野背景场景：草地+树木（固定层，位于内容之下，不拦截交互） */
+.nature-scene{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.nature-scene .ns-grass{position:absolute;left:-4%;right:-4%;bottom:-2%;height:34vh;
+  background:linear-gradient(180deg,rgba(126,196,110,0) 0%,rgba(126,196,110,.26) 52%,rgba(94,168,84,.4) 100%);
+  border-radius:50% 50% 0 0/22% 16% 0 0}
+.nature-scene .ns-blade{position:absolute;bottom:0;width:3px;border-radius:2px;
+  background:linear-gradient(180deg,#6fbf5f,#3f8f3a);transform-origin:50% 100%;
+  animation:nsSway var(--bdur,3.4s) ease-in-out var(--bdel,0s) infinite alternate}
+@keyframes nsSway{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}
+.nature-scene .ns-tree{position:absolute;bottom:0;filter:drop-shadow(0 3px 4px rgba(40,80,40,.18))}
+.nature-scene .ns-tree svg{display:block;width:100%;height:auto}
+.nature-scene .ns-bush{position:absolute;bottom:0;border-radius:50% 50% 0 0;
+  background:radial-gradient(ellipse at 50% 30%,#7cc56c,#4d9e46 72%,#3f8f3a);
+  filter:drop-shadow(0 2px 3px rgba(40,80,40,.15))}
+@media (prefers-reduced-motion:reduce){
+  .nature-scene .ns-blade{animation:none!important}
+}
+html.anim-off .nature-scene .ns-blade{animation-play-state:paused!important}
+
+/* 马里奥背景场景：地面砖块+金币+问号砖块+蘑菇+水管（固定层，位于内容之下，不拦截交互） */
+.mario-scene{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.mario-scene .ms-ground{position:absolute;left:0;right:0;bottom:0;height:13vh;
+  background:repeating-linear-gradient(90deg,#c0392b 0 58px,#a93226 58px 116px);
+  border-top:4px solid #e74c3c;
+  box-shadow:inset 0 6px 0 rgba(255,255,255,.12)}
+.mario-scene .ms-ground::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 3px,transparent 3px 22px)}
+.mario-scene .ms-coin{position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#ffe9a8,#fbbf24 55%,#d97706);
+  border:2px solid #b45309;
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.35),0 2px 4px rgba(0,0,0,.18);
+  animation:msFloat var(--cdur,3s) ease-in-out var(--cdel,0s) infinite alternate}
+.mario-scene .ms-coin::after{content:"";position:absolute;left:50%;top:50%;width:36%;height:36%;
+  transform:translate(-50%,-50%);border:2px solid #b45309;border-radius:50%;opacity:.6}
+@keyframes msFloat{from{transform:translateY(0)}to{transform:translateY(-9px)}}
+.mario-scene .ms-block{position:absolute;background:#f59e0b;border:3px solid #92400e;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.18),inset 0 3px 0 rgba(255,255,255,.35)}
+.mario-scene .ms-block::before{content:"?";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-weight:900;color:#92400e;font-family:Georgia,serif}
+.mario-scene .ms-mushroom{position:absolute;filter:drop-shadow(0 2px 3px rgba(0,0,0,.2))}
+.mario-scene .ms-mushroom svg{display:block;width:100%;height:auto}
+.mario-scene .ms-pipe{position:absolute;bottom:0;background:linear-gradient(90deg,#16a34a,#22c55e 55%,#15803d);
+  border:3px solid #065f46;border-bottom:none;border-radius:6px 6px 0 0}
+.mario-scene .ms-pipe::before{content:"";position:absolute;left:-8px;right:-8px;top:-14px;height:20px;
+  background:linear-gradient(90deg,#16a34a,#22c55e 55%,#15803d);border:3px solid #065f46;border-radius:6px}
+@media (prefers-reduced-motion:reduce){
+  .mario-scene .ms-coin{animation:none!important}
+}
+html.anim-off .mario-scene .ms-coin{animation-play-state:paused!important}
+
+/* 樱花背景场景：樱花树背景（固定层，位于内容之下，不拦截交互）
+   樱花树 + 樱花枝 + 飘浮爱心/星光，营造浪漫樱花氛围 */
+.sakura-scene{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.sakura-scene .sk-tree{position:absolute;bottom:0;filter:drop-shadow(0 4px 8px rgba(120,60,90,.2))}
+.sakura-scene .sk-tree svg{display:block;width:100%;height:auto}
+.sakura-scene .sk-branch{position:absolute;top:0;filter:drop-shadow(0 2px 3px rgba(120,60,90,.18))}
+.sakura-scene .sk-branch svg{display:block;width:100%;height:auto}
+.sakura-scene .sk-heart{position:absolute;border-radius:50% 50% 50% 0;
+  transform:rotate(-45deg);
+  background:radial-gradient(circle at 34% 30%,var(--sh1,#ffd6e8),var(--sh2,#f783ac) 70%,var(--sh3,#e64980));
+  box-shadow:0 0 6px var(--shg,rgba(246,131,172,.5));
+  animation:skHeartFloat var(--hdur,3.4s) ease-in-out var(--hdel,0s) infinite alternate}
+.sakura-scene .sk-heart::before,.sakura-scene .sk-heart::after{content:"";position:absolute;border-radius:50%;background:inherit}
+.sakura-scene .sk-heart::before{left:0;top:-50%;width:100%;height:100%}
+.sakura-scene .sk-heart::after{left:50%;top:0;width:100%;height:100%}
+@keyframes skHeartFloat{from{transform:rotate(-45deg) translateY(0) scale(1)}to{transform:rotate(-45deg) translateY(-10px) scale(1.08)}}
+.sakura-scene .sk-spark{position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#fff,#ffd6e8 60%,rgba(255,214,232,0));
+  box-shadow:0 0 6px rgba(255,255,255,.8);
+  animation:skSparkTwinkle var(--sdur,2.6s) ease-in-out var(--sdel,0s) infinite alternate}
+@keyframes skSparkTwinkle{from{opacity:.25;transform:scale(.7)}to{opacity:1;transform:scale(1.15)}}
+@media (prefers-reduced-motion:reduce){
+  .sakura-scene .sk-heart,.sakura-scene .sk-spark{animation:none!important}
+}
+html.anim-off .sakura-scene .sk-heart,html.anim-off .sakura-scene .sk-spark{animation-play-state:paused!important}
+
 /* ═══ 主题粒子层（全主题下落/上浮粒子，樱花试点推广而来）
    三层结构分工：pw=垂直位移 / sw=水平摇摆 / pt=粒子本体自旋，互不干扰可组合；
-   四种粒子形态：petal=花瓣（樱花/B站粉/暖枫）/ dot=微光圆点（暗色/极简白/深夜紫/墨玉）/
-   star=四角星光（星河）/ bubble=气泡（碧波，上浮）；
+   六种粒子形态：petal=花瓣（樱花/B站粉/暖枫）/ dot=微光圆点（暗色/极简白/深夜紫/墨玉）/
+   star=四角星光（星河）/ bubble=气泡（碧波，上浮）/ leaf=树叶（森野）/ coin=金币（马里奥）；
    颜色/形状/大小/数量/透明度由 JS 按主题配置驱动（setupThemeFall）；
    z-index:40 落在页面内容之上营造沉浸感，但低于弹窗(50)/管理面板(100)/通知，不干扰操作 */
-.theme-fall{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:40}
+.theme-fall{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:40;
+  /* 防御性保险：粒子层是全屏覆盖层，任何情况下都不允许自带背景/背景动画，
+     防止再次被主题背景规则（如 [data-theme] 后代/属性选择器误命中）刷成不透明遮罩盖住页面 */
+  background:none!important;background-image:none!important;animation:none!important}
 .theme-fall .pw{position:absolute;top:-6vh;left:var(--x);animation:skFall var(--dur) linear var(--delay) infinite;will-change:transform}
 .theme-fall.dir-up .pw{top:auto;bottom:-6vh;animation-name:skRise}
 .theme-fall .sw{display:block;animation:skSway var(--sdur) ease-in-out var(--delay) infinite alternate;will-change:transform}
@@ -337,6 +569,23 @@
   background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.9),rgba(255,255,255,.15) 45%,var(--pc) 100%);
   border:2px solid var(--pg,rgba(255,255,255,.45));
   box-shadow:inset 0 0 4px rgba(255,255,255,.5),0 0 5px var(--pg,transparent)}
+/* 树叶形态：森野护眼主题飘落的绿叶，圆润叶形+叶脉+柔光（浅色背景需清晰配色） */
+.theme-fall .pt.leaf{
+  background:linear-gradient(135deg,var(--pl1,#eaf8e3),var(--pc,#6fbf5f) 82%,var(--pl2,#3f8f3a));
+  border-radius:0 100% 0 100%;
+  box-shadow:inset -1px -2px 3px rgba(0,0,0,.12),0 0 6px var(--pg,rgba(111,191,95,.35))}
+.theme-fall .pt.leaf::before{content:"";position:absolute;left:50%;top:8%;width:2px;height:84%;
+  background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.25));transform:translateX(-50%)}
+.theme-fall .pt.leaf::after{content:"";position:absolute;left:18%;top:18%;width:64%;height:64%;
+  background:linear-gradient(135deg,var(--pl3,rgba(255,255,255,.85)),var(--pl4,rgba(140,210,120,.75)));border-radius:0 100% 0 100%;opacity:.7}
+/* 金币形态：马里奥主题旋转金币，金色圆片+内圈+高光（浅色背景需清晰描边） */
+.theme-fall .pt.coin{
+  border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,var(--pl1,#ffe9a8),var(--pc,#fbbf24) 58%,var(--pl2,#d97706));
+  border:2px solid var(--pl3,#b45309);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.4),0 0 7px var(--pg,rgba(251,191,36,.5))}
+.theme-fall .pt.coin::before{content:"";position:absolute;left:50%;top:50%;width:40%;height:40%;
+  transform:translate(-50%,-50%);border:2px solid var(--pl3,#b45309);border-radius:50%;opacity:.65}
 @keyframes skFall{from{transform:translateY(0)}to{transform:translateY(112vh)}}
 @keyframes skRise{from{transform:translateY(0)}to{transform:translateY(-112vh)}}
 @keyframes skSway{from{transform:translateX(calc(var(--amp) * -1))}to{transform:translateX(var(--amp))}}
@@ -348,6 +597,31 @@
   [data-theme="galaxy"],[data-theme="ocean"],[data-theme="sakura"]{animation:none!important}
   .theme-fall{display:none!important}
 }
+
+/* ═══ 动画开关（主题选择器旁）═══
+   开启态高亮蓝框；关闭后 html 挂 anim-off 类：
+   暂停所有元素的 animation（粒子飘落/背景流动/呼吸灯/脉动等全部停帧在当前画面），
+   过渡保留（开关切换/悬停等即时反馈不受影响，避免界面卡死感） */
+.anim-toggle{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid var(--line);background:var(--panel2);color:var(--mut);user-select:none;transition:all .15s;white-space:nowrap}
+.anim-toggle:hover{border-color:var(--blue);color:var(--blue)}
+.anim-toggle input{width:14px;height:14px;cursor:pointer;margin:0;accent-color:var(--blue)}
+html.anim-off *{animation-play-state:paused!important}
+html.anim-off .theme-fall{display:none!important}
+
+/* ═══ 公告富文本编辑器（QQ公告式：图片内联在文本流中）═══ */
+.notice-editor{width:100%;min-height:170px;max-height:52vh;overflow-y:auto;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;padding:10px 12px;box-sizing:border-box;font-family:inherit;line-height:1.7;white-space:pre-wrap;word-break:break-word;outline:none;transition:border-color .15s;cursor:text}
+.notice-editor:focus{border-color:var(--blue)}
+.notice-editor:empty:before{content:attr(data-ph);color:var(--mut);pointer-events:none}
+/* 内联图片：块级占一行、宽度适中（QQ公告视觉），点击可选中删除 */
+.notice-editor img{display:block;max-width:62%;border-radius:6px;margin:6px 0;border:1px solid var(--line);cursor:zoom-in;background:var(--panel2);min-height:24px}
+.notice-editor img:hover{border-color:var(--blue)}
+.notice-editor img.notice-img-broken{display:inline-block;max-width:100%;min-height:0;padding:10px 14px;border-style:dashed;border-color:var(--red);color:var(--red);font-size:12px;background:rgba(255,80,80,.06);cursor:default}
+.notice-editor a{color:var(--blue)}
+/* 查看区公告图片：可点放大 */
+#noticeView img{cursor:zoom-in;transition:opacity .15s}
+#noticeView img:hover{opacity:.92}
+/* 图片加载失败占位（避免裂图） */
+.notice-img-broken{display:inline-block;max-width:100%;margin:6px 0;padding:10px 14px;border:1px dashed var(--red);border-radius:6px;color:var(--red);font-size:12px;background:rgba(255,80,80,.06)}
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,"Microsoft YaHei",sans-serif}
 body{background:var(--bg);color:var(--txt);padding:12px;min-height:100vh;font-size:14px;transition:padding-top .3s ease}
@@ -432,6 +706,52 @@ label{display:block;margin-bottom:3px;font-size:12px;color:var(--mut)}
 .owner-chars{display:flex;gap:12px;flex-wrap:wrap}
 .owner-chars.collapsed{display:none}
 .batch-del-btn{font-size:12px;padding:3px 10px}
+/* === Ban玩法 === */
+.ban-mode-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;margin-bottom:12px;transition:all .2s}
+.ban-mode-bar.on{border-color:var(--red);background:linear-gradient(90deg,rgba(239,68,68,.1),rgba(239,68,68,.02))}
+.ban-toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap}
+.ban-toggle input{display:none}
+.ban-toggle .track{width:40px;height:22px;border-radius:12px;background:var(--line);position:relative;transition:background .2s;flex-shrink:0}
+.ban-toggle .track::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.ban-toggle input:checked + .track{background:var(--red)}
+.ban-toggle input:checked + .track::after{transform:translateX(18px)}
+.ban-hint{font-size:11px;color:var(--mut);flex:1;min-width:200px}
+.ban-badge{font-size:11px;padding:2px 9px;border-radius:10px;background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.4);white-space:nowrap}
+.card.banned{opacity:.6;filter:grayscale(.55);border-left-color:var(--red);box-shadow:inset 3px 0 0 var(--red);position:relative}
+.card.banned::after{content:"🚫 已ban";position:absolute;top:6px;right:6px;font-size:10px;font-weight:700;color:#fff;background:var(--red);padding:1px 6px;border-radius:4px;letter-spacing:.5px;z-index:1}
+.ban-stamp{display:inline-block;font-size:10px;font-weight:700;color:var(--red);border:1px solid var(--red);border-radius:4px;padding:0 5px;margin-left:4px;transform:rotate(-8deg);vertical-align:middle}
+.card.unassigned:not(.banned){position:relative}
+.card.unassigned:not(.banned)::after{content:"未入队";position:absolute;top:6px;right:6px;font-size:10px;font-weight:700;color:#fff;background:var(--mut);padding:1px 6px;border-radius:4px;letter-spacing:.5px;z-index:1}
+.ban-btn{font-size:12px;padding:3px 10px;border:1px solid var(--red);color:var(--red);background:transparent;border-radius:4px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.ban-btn:hover{background:var(--red);color:#fff}
+.ban-btn.on{background:var(--red);color:#fff}
+.batch-ban-btn{font-size:12px;padding:3px 10px;border:1px solid var(--red);color:var(--red);background:transparent;border-radius:4px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.batch-ban-btn:hover{background:var(--red);color:#fff}
+.ban-banner{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;margin-bottom:12px;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(90deg,#dc2626,#ef4444);border:1px solid rgba(255,255,255,.2);flex-wrap:wrap}
+.ban-banner .muted{color:rgba(255,255,255,.85);font-weight:400;font-size:12px}
+.ban-banner button{margin-left:auto;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;padding:3px 10px;border-radius:4px;font-size:12px;cursor:pointer;transition:all .15s}
+.ban-banner button:hover{background:rgba(255,255,255,.32)}
+/* === 包队模式 === */
+.pack-mode-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;margin-bottom:12px;transition:all .2s}
+.pack-mode-bar.on{border-color:#8b5cf6;background:linear-gradient(90deg,rgba(139,92,246,.12),rgba(139,92,246,.02))}
+.pack-toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap}
+.pack-toggle input{display:none}
+.pack-toggle .track{width:40px;height:22px;border-radius:12px;background:var(--line);position:relative;transition:background .2s;flex-shrink:0}
+.pack-toggle .track::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.pack-toggle input:checked + .track{background:#8b5cf6}
+.pack-toggle input:checked + .track::after{transform:translateX(18px)}
+.pack-hint{font-size:11px;color:var(--mut);flex:1;min-width:200px}
+.pack-badge{font-size:11px;padding:2px 9px;border-radius:10px;background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.4);white-space:nowrap}
+.pack-btn{font-size:12px;padding:3px 10px;border:1px solid #8b5cf6;color:#a78bfa;background:transparent;border-radius:4px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.pack-btn:hover{background:#8b5cf6;color:#fff}
+.pack-btn.on{background:#8b5cf6;color:#fff}
+.pack-banner{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;margin-bottom:12px;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(90deg,#7c3aed,#a855f7);border:1px solid rgba(255,255,255,.2);flex-wrap:wrap}
+.pack-banner .muted{color:rgba(255,255,255,.85);font-weight:400;font-size:12px}
+.pack-banner button{margin-left:auto;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;padding:3px 10px;border-radius:4px;font-size:12px;cursor:pointer;transition:all .15s}
+.pack-banner button:hover{background:rgba(255,255,255,.32)}
+.pack-stamp{display:inline-block;font-size:10px;font-weight:700;color:#a78bfa;border:1px solid #8b5cf6;border-radius:4px;padding:0 5px;margin-left:4px;vertical-align:middle}
+.team-block.pack-team{border-style:dashed;border-color:#8b5cf6;background:linear-gradient(180deg,rgba(139,92,246,.08),rgba(139,92,246,.02))}
+.team-block.pack-team .raid-tag{border-color:#8b5cf6!important;background:rgba(139,92,246,.18)!important;color:#c4b5fd!important}
 .team-block{background:var(--panel2);padding:12px;border-radius:9px;margin-bottom:12px;border:1px solid var(--line)}
 .team-block.raid-red{border:2px solid #e74c3c;background:#2a1515}
 .team-block.raid-yellow{border:2px solid #f1c40f;background:#2a2a15}
@@ -680,7 +1000,14 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
         <option value="ocean">🌊 碧波(气泡)</option>
         <option value="maple">🍁 暖枫纹(枫叶)</option>
         <option value="sakura">🌸 樱花雪(樱花)</option>
+        <option value="nature">🌿 森野(绿叶)</option>
+        <option value="mario">🍄 马里奥(金币)</option>
+        <option value="taichu">🔵 太初蓝(光效)</option>
       </select>
+      <label class="anim-toggle" id="animToggle" title="关闭后暂停全部动画（粒子飘落/背景流动/呼吸灯等），仅保留静态画面，适合低性能设备或录屏讲解">
+        <input type="checkbox" id="animSwitch">
+        <span>🎬 动画</span>
+      </label>
     </div>
   </div>
 
@@ -760,6 +1087,25 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
 
   <!-- 角色管理 -->
   <div class="panel show" id="charManage">
+    <div class="ban-mode-bar" id="banModeBar">
+      <label class="ban-toggle" title="开启后进入独立排表空间，可手动ban除角色/玩家；被ban者不参与4人/12人一键排表">
+        <input type="checkbox" id="banModeSwitch">
+        <span class="track"></span>
+        <span>🛡️ Ban玩法</span>
+      </label>
+      <span class="ban-hint" id="banModeHint">开启后进入独立排表空间，可手动ban除角色/玩家，被ban者不参与4人/12人一键排表</span>
+      <span class="ban-badge" id="banCountBadge" style="display:none">已ban 0 角色</span>
+    </div>
+    <div class="pack-mode-bar" id="packModeBar" style="display:none">
+      <label class="pack-toggle" title="仅适用于12人团本：固定1-2个四人队伍，按波内强度对比分配红黄绿队；可与Ban玩法共存">
+        <input type="checkbox" id="packModeSwitch">
+        <span class="track"></span>
+        <span>📦 包队模式</span>
+      </label>
+      <span class="pack-hint" id="packModeHint">仅12人团本可用：固定1-2个四人队伍，按波内强度对比分配红黄绿队</span>
+      <span class="pack-badge" id="packCountBadge" style="display:none">未配置</span>
+      <button class="pack-btn" id="packConfigBtn" style="display:none" title="重新配置包队">⚙️ 配置包队</button>
+    </div>
     <div class="flex-row" style="align-items:flex-start">
       <div class="form-box">
         <h3 id="formTitle">新增角色</h3>
@@ -789,6 +1135,7 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
         <div class="batch-toolbar" id="batchToolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px">
           <button class="sm secondary" id="globalSelectAll">全选</button>
           <button class="sm danger" id="globalBatchDel" disabled style="opacity:.4">批量删除选中</button>
+          <button class="sm ban-btn" id="globalBatchBan" disabled style="opacity:.4">🚫 批量ban选中</button>
           <span class="muted" id="batchSelCnt" style="font-size:12px">已选 0 个</span>
         </div>
         <div class="flex-row" id="charList"></div>
@@ -798,7 +1145,23 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
 
   <!-- 队伍排表 -->
   <div class="panel" id="teamTable">
+    <div class="ban-banner" id="banBanner" style="display:none">
+      <span>🛡️ Ban玩法空间</span>
+      <span class="muted" id="banBannerText">被ban角色/玩家不参与一键排表</span>
+      <button id="exitBanModeBtn" title="退出Ban玩法空间，切换为非ban模式排表（保留已ban标记）">退出ban模式</button>
+    </div>
+    <div class="pack-banner" id="packBanner" style="display:none">
+      <span>📦 包队模式</span>
+      <span class="muted" id="packBannerText">固定包队按波内强度对比分配红黄绿队</span>
+      <button id="packBannerConfigBtn" title="重新配置包队">⚙️ 配置</button>
+      <button id="exitPackModeBtn" title="退出包队模式（保留配置，可随时重新开启）">退出包队</button>
+    </div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <label class="ban-toggle" title="开启后进入独立排表空间，可手动ban除角色/玩家；被ban者不参与4人/12人一键排表" style="margin-right:6px">
+        <input type="checkbox" id="banModeSwitchTable">
+        <span class="track"></span>
+        <span>🛡️ Ban玩法</span>
+      </label>
       <span class="muted" style="font-size:12px">显示模式</span>
       <div style="display:flex;gap:4px;background:var(--panel2);border-radius:6px;padding:3px;border:1px solid var(--line)">
         <button class="view-btn active" data-view="normal" style="padding:4px 10px;border-radius:4px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-size:12px">标准</button>
@@ -818,7 +1181,7 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
     <div class="modal-box">
       <h3>导入角色 Excel</h3>
       <p class="help" style="margin-bottom:8px">选择 .xlsx / .xls 文件，将<strong>覆盖</strong>当前全部角色并自动重新排表。</p>
-      <p class="help" style="margin-bottom:8px">表格需包含列：<code>归属玩家</code> <code>角色名称</code> <code>战力数值</code> <code>类型</code>(c/N) <code>A套</code> <code>B套</code></p>
+      <p class="help" style="margin-bottom:8px">表格需包含列：<code>归属玩家</code> <code>角色名称</code> <code>战力数值</code> <code>类型</code>(c/N) <code>A套</code> <code>B套</code>，可选 <code>Ban状态</code>(正常/已ban)</p>
       <input type="file" id="importFile" accept=".xlsx,.xls" style="width:100%;margin-bottom:10px;padding:6px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--txt)">
       <div style="display:flex;gap:8px">
         <button id="doImport">确认导入</button>
@@ -859,6 +1222,34 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
     </div>
   </div>
 
+  <!-- 包队配置弹窗 -->
+  <div class="modal" id="packModal">
+    <div class="modal-box" style="max-width:560px">
+      <h3>📦 包队配置（仅12人团本）</h3>
+      <p class="help" style="margin-bottom:8px">固定 1-2 个四人队伍，每队选定 4 个玩家（玩家可多角色，各波自动取其一入队）。排表时包队按波内强度对比分配红黄绿队：本波最强→红队，最弱→绿队，否则→黄队；其余玩家按原有逻辑均衡分配到其他队伍。可与 Ban玩法 共存。</p>
+      <div class="form-item">
+        <label>包队数量</label>
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap"><input type="radio" name="packCount" value="1" checked><span style="flex-shrink:0">包 1 个队伍</span></label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap"><input type="radio" name="packCount" value="2"><span style="flex-shrink:0">包 2 个队伍</span></label>
+        </div>
+      </div>
+      <div id="packTeam1" class="form-item">
+        <label>队伍 1（固定4人）</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="packTeam1Selects"></div>
+      </div>
+      <div id="packTeam2" class="form-item" style="display:none">
+        <label>队伍 2（固定4人）</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="packTeam2Selects"></div>
+      </div>
+      <p class="muted" id="packModalMsg" style="font-size:12px;margin-bottom:8px"></p>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="success" id="savePackConfig">保存并启用</button>
+        <button class="secondary" id="closePack">取消</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 同步设置弹窗 -->
   <div class="modal" id="settingsModal">
     <div class="modal-box">
@@ -888,7 +1279,17 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
         <p>· 自动排表优先消耗全部奶，标准 1 奶 3 C，贪心均衡：高奶配低 C、低奶配高 C，每队总战力趋近一致。</p>
         <p>· 新增 / 编辑 / 删除角色后会自动重新生成全部队伍；队内下拉更换角色为手动微调，不会触发重排。</p>
         <p>· 队内「更换角色」下拉已自动过滤本队已有玩家，无法重复选择。</p>
+        <p>· <b>空位填补</b>：排表后若存在空位队伍，自动把未入队的C角色填入空位（优先高战力）；无法直接填入时（如该玩家已占所有空位队所在波），会从满员队调配低战力C换位填补，从而让 0 战力混子也能排入队伍。</p>
         <p>· 保留本地存储、导入 / 导出 Excel、重置为导入状态。</p>
+        <p style="margin-top:10px"><b>Ban玩法</b></p>
+        <p>· 角色管理开启「🛡️ Ban玩法」后进入独立排表空间，与普通空间互不干扰（4人/12人排表逻辑相同）。</p>
+        <p>· 可对单个角色或批量对整个玩家的全部角色进行ban除，被ban角色带红色ban印记。</p>
+        <p>· ban模式下，被ban角色/玩家不参与4人/12人一键排表计算；普通空间不受影响。</p>
+        <p>· 历史版本按空间独立记录，可用「空间筛选」查看 Ban玩法 / 普通空间各自的版本并分别回溯。</p>
+        <p style="margin-top:10px"><b>包队模式</b></p>
+        <p>· 角色管理开启「📦 包队模式」（仅12人团本可用，4人团本不适用），弹窗配置包 1 个或 2 个固定四人队伍，每队选定 4 个玩家。</p>
+        <p>· 排表时包队玩家各波自动取其一角色组成固定队，按波内强度对比分配红黄绿队：本波最强→红队，最弱→绿队，否则→黄队。</p>
+        <p>· 其余玩家按原有逻辑均衡分配到其他队伍；包队模式可与 Ban玩法 共存（被ban角色不参与包队）。</p>
         <p style="margin-top:10px"><b>房间与登录</b></p>
         <p>· 打开页面需先输入房间号和密码登录，或新建房间（自定义房间号+密码）。</p>
         <p>· 默认房间号 <code>1</code>，密码 <code>123</code>，已预置全部角色数据。</p>
@@ -909,6 +1310,145 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.36.0</span>
+            <span class="ver-date">2026-08-25</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>修复"大奶配小C"逻辑失效</b>：Phase 5 pairHealerC4 约束条件存在数学等价bug——原约束 newITot &lt; newJTot - (hPower_j - hPower_i) 恒等化简为 newIC &lt; newJC，恰好阻止了修正目标（高奶队C总 &lt; 低奶队C总），导致所有修正交换被跳过。修正为：允许 newIC &lt; newJC（大奶配小C目标），仅当总战力反转超过奶差时才阻止（避免过度修正）</li>
+            <li><b>新增 Phase 6 C总战力中位数均衡</b>：确保最低C总战力队不偏离C总中位数太远（25%阈值），从高于中位数的队取高C换给最低队的低C。约束不将最低队C总抬到中位数以上（保留大奶配小C余量），允许部分队伍C总遥遥领先，大部分队伍C总相对均衡</li>
+            <li><b>新增 Phase 7 二次大奶配小C修正</b>：Phase 6 C总均衡后再次运行 pairHealerC4，修复可能引入的奶C反转，确保"大奶配小C、小C配大奶"在C总均衡后依然生效</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.35.0</span>
+            <span class="ver-date">2026-08-25</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>4人团本均衡策略升级为中位数导向</b>：原算法缩小(max-min)差距，高战力outlier队伍会被反复拉低。新算法改为聚焦最低队与中位数的差距——计算各队总战力(奶+C)中位数，阈值=15%中位数，仅当最低队偏离中位数超过阈值时才触发调整，从高于中位数的队取C交换/移动给最低队。允许部分队伍总战力遥遥领先（outliers不强行拉低），大部分队伍相对均衡，最低队不与中位数差距过大</li>
+            <li><b>恢复"高奶配低C、低奶配高C"逻辑</b>：Phase 1 填充时同人数优先给奶战力低的队（小奶配大C）；Phase 2/4 均衡以总战力(奶+C)为度量——高奶队总战力偏高自然给出C降低C总，低奶队总战力偏低自然接收C升高C总，无需额外规则即实现奶C互补</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.34.0</span>
+            <span class="ver-date">2026-08-25</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>新增空位填补（含换位）</b>：排表后若存在空位队伍，自动把未入队的C角色填入空位（优先高战力）；无法直接填入时（如该玩家已占所有空位队所在波），自动从满员队调配低战力C换位填补，让 0 战力混子也能排入队伍，4人/12人/包队模式均生效（包队固定队不参与换位）</li>
+            <li><b>4人团本排表逻辑优化</b>：重构为「最大化入队 → 战力均衡」两阶段，确保未被ban的角色尽量全部入队（奶不足无法新建队伍时才留空），之后再用交换法均衡各队战力，不再因均衡而牺牲入队数</li>
+            <li><b>未入队角色提示</b>：未入队角色带「未入队」标记与悬浮说明，解释因同波/同队玩家冲突或角色数超出队伍容量而未能排入</li>
+            <li><b>Ban玩法开关同步</b>：排表页与角色管理的 Ban玩法 开关双向同步，任一处开关状态保持一致</li>
+            <li><b>包队模式体验优化</b>：包队数量选择区域文字不再竖排挤压，窄屏自动换行</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.33.0</span>
+            <span class="ver-date">2026-08-25</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>新增包队模式「📦 包队模式」</b>：角色管理新增包队开关（仅12人团本可用，4人团本不适用，未来可扩展8人团本），弹窗配置包 1 个或 2 个固定四人队伍，每队选定 4 个玩家</li>
+            <li>排表时包队玩家各波自动取其一角色组成固定队，按波内强度对比分配红黄绿队：本波最强→红队，最弱→绿队，否则→黄队；包队队伍在排表页带「📦包队」标记</li>
+            <li>其余玩家按原有逻辑均衡分配到其他队伍；包队模式可与 Ban玩法 共存（被ban角色不参与包队），配置随房间同步/本地存储持久化</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.32.0</span>
+            <span class="ver-date">2026-08-24</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>新增 Ban玩法</b>：角色管理增加「🛡️ Ban玩法」开关，开启后进入独立排表空间，与普通空间互不干扰（4人/12人排表逻辑相同）</li>
+            <li>可对单个角色或批量对整个玩家的全部角色进行手动ban除，被ban角色带红色ban印记；ban模式下被ban角色/玩家不参与4人/12人一键排表计算</li>
+            <li>历史版本按空间独立记录，支持「空间筛选」查看 Ban玩法 / 普通空间各自的版本并分别回溯；导出/导入 Excel 新增 Ban状态 列</li>
+            <li><b>新增护眼大自然绿色主题「🌿 森野」</b>：明亮温和的绿色风，背景含草地与树木，动画开启时草地与树叶随风摇曳</li>
+            <li><b>新增红色马里奥主题「🍄 马里奥」</b>：明亮红色系经典风，背景含地面砖块、金币、问号砖块、蘑菇与水管元素，金币粒子旋转飘落</li>
+            <li><b>樱花主题背景优化</b>：移除二次元少女剪影，改为底部樱花树背景（树干+粉色树冠），搭配顶部樱花枝、飘浮爱心与星光，营造浪漫樱花氛围</li>
+            <li><b>Ban玩法优化</b>：角色管理每个玩家组新增「🚫 批量ban选中」按钮（勾选该玩家角色后可直接批量ban，无需滑到顶部）；排表页ban空间横幅按钮改为「退出ban模式」开关，点击立即退出ban空间切换为非ban模式排表（保留已ban标记）；非ban模式下角色管理不再显示ban相关按钮</li>
+            <li><b>Gitee同步体验优化</b>：后台轮询/心跳的短暂同步异常（如瞬时400/限流）改为静默降级自动重试，不再标红弹提示，连续失败才温和提示；角色保存/手动保存/公告/团长/清空历史等有影响的失败给出友好提示，区分临时网络问题与同步配置问题；同步URL对房间号等路径分段编码，避免中文房间号触发400</li>
+            <li><b>状态栏精简</b>：移除统计栏末尾的「已ban X 角色」信息，状态栏仅保留总角色/C位/奶位/已生成队伍/未入队</li>
+            <li><b>新增太初蓝主题「🔵 太初蓝」</b>：参考DNF端游太初装备光效，深邃蓝夜空底 + 流动蓝色光晕（流光）+ 上升星芒光点与金色光点粒子 + 旋转光环，营造史诗级神圣光效氛围</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.31.5</span>
+            <span class="ver-date">2026-08-24</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>敏感信息加密加固</b>：管理员密码不再明文存储，改为加盐 SHA-256 哈希（源码中不再出现明文密码）；Gitee 同步 token 加密机制升级，密钥拆散存放，提高逆向门槛</li>
+            <li>清理源码中残留的明文密钥字符串，敏感信息进一步加固</li>
+            <li>管理员密码已更新为强密码（加盐 SHA-256 哈希存储），旧弱密码作废</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.31.4</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>根治公告贴图裂开（补充修复）</b>：上一版发现 Gitee 签名链接过期后 CDN 返回的是 200 状态的占位 favicon（并非错误响应），浏览器 onerror 不会触发，导致旧公告仍显示碎图标。新增<b>主动签名过期检测</b>：渲染时解码 Gitee CDN 链接 metadata 中的 expire_at，过期立即替换为"图片已失效，请重新贴图"占位，不再发请求、不再等加载</li>
+            <li>新增<b>伪装图标尺寸检测</b>：所有外链图片加载后校验 naturalWidth/naturalHeight，≤32px 的占位 favicon 自动识别为失效；加载失败（onerror）同样兜底</li>
+            <li>查看态、编辑态统一用 noticeScanImages 扫描；失效占位在保存时自动跳过，不会把提示文字写回公告；新贴图继续内嵌 dataURL 永久保存</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.31.3</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>修复公告贴图过段时间裂开</b>：根因是 Gitee 仓库 raw 图片链接是带签名的临时 CDN 地址，约 3 小时后签名过期会自动跳转到占位图标，导致已保存公告里的图片全部裂成图标</li>
+            <li>贴图改为<b>始终以内嵌压缩图（dataURL）保存到公告内容</b>，图片随房间数据一同存储、永不失效；Gitee 上传仅作后台归档备份，不再作为显示地址</li>
+            <li>编辑区内贴图支持<b>双击放大</b>查看；外链/历史临时链接失效时统一显示"图片加载失败，请重新贴图"占位，不再出现碎图图标；保存时自动跳过已损坏的死链图片</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.31.2</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li>公告编辑器升级为 <b>QQ公告式富文本</b>：图片直接内联显示在文本流中（不再是链接文本或单独预览区），Ctrl+V 粘贴立即看到图片内容，点击图片选中后可删除，与 QQ 群公告编辑体验一致</li>
+            <li>贴图流程优化：粘贴后先用压缩图即时显示，后台异步上传房间仓库，成功后自动替换为云端链接；上传失败时图片保留本地内嵌，保存后公告仍可见</li>
+            <li>粘贴文本自动去格式（防外部网页样式污染）；回车统一换行符；存储格式不变（Markdown 文本），旧公告完全兼容</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.31.1</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li>公告贴图升级为「所见即所得」：Ctrl+V 粘贴或点贴图按钮后，编辑框下方立即显示图片缩略预览网格（直接看到图片内容，不再只是一串链接文本），点击缩略图可放大查看</li>
+            <li>公告查看区图片支持点击放大查看原图（攻略细节一目了然），长按/右键可保存</li>
+            <li>图片加载失败时显示占位提示（如"🖼️ 图片加载失败：xxx"），不再出现裂图</li>
+            <li>上传路径按段 URL 编码加固：中文/特殊字符房间名生成的图片链接纯净稳定，渲染与图床访问均不受影响</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.31.0</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li>主题选择器旁新增「🎬 动画」开关：关闭后暂停全部动画（粒子飘落/背景流动/呼吸灯/脉动等停帧），粒子层整体隐藏更省性能，适合低性能设备与录屏讲解；开关状态持久化记忆，与系统"减少动态效果"设置叠加生效</li>
+            <li>公告编辑支持 <b>Ctrl+V</b> 直接粘贴图片：截图或复制图片后在编辑框内直接粘贴，自动走贴图管道（压缩→上传房间仓库→插入 Markdown），无需先保存为文件；纯文本粘贴不受影响，编辑框内有快捷方式提示</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.30.1</span>
+            <span class="ver-date">2026-08-21</span>
+          </div>
+          <ul class="changes-list">
+            <li>🚨 修复 v1.30.0 严重显示问题：星河/墨玉格/碧波/暖枫纹/樱花雪五个花纹主题下进入房间后只见动画背景、页面内容全部被盖住。根因是粒子层误携带 <code>data-theme</code> 属性，被五套主题的 <code>[data-theme="X"]{background:...}</code> 背景规则命中，整个全屏粒子层被刷上不透明主题背景形成遮罩（弹窗层级更高所以侥幸可见）。v1.29 樱花层未设该属性故不受影响</li>
+            <li>粒子层标记属性更名为 <code>data-fall-theme</code>，与主题背景选择器彻底隔离；新增防御性规则强制粒子层无背景/无背景动画，杜绝同类问题复发</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.30.0</span>
@@ -1189,7 +1729,7 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
             <li>修复拖拽无反应：dataset 属性名与 querySelectorAll 选择器不匹配</li>
             <li>修复4人模式波数拖拽：使用队伍索引编号波数</li>
             <li>本地未保存时跳过远端轮询，避免覆盖本地编辑</li>
-            <li>Gitee token 源码加密（XOR+Base64），明文不出现在源码中</li>
+            <li>Gitee token 源码加密存储，明文不出现在源码中</li>
           </ul>
         </div>
         <div class="version-entry">
@@ -1291,10 +1831,19 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
 
   <!-- 历史版本弹窗 -->
   <div class="modal" id="historyModal">
-    <div class="modal-box" style="max-width:560px">
+    <div class="modal-box" style="max-width:600px">
       <h3>🕘 房间历史版本</h3>
-      <p class="muted" style="font-size:12px;margin:6px 0 10px">仅在手动点击「<b>保存到云端</b>」时记录一个版本（最多保留最近 30 个），拖动排表、在线心跳等日常操作不会产生版本。点击「回溯」还原该版本的排表，<b>仍需点击「保存到云端」才会生效</b>。</p>
-      <div id="historyList" style="border:1px solid var(--line);border-radius:8px;overflow:hidden;max-height:56vh;overflow-y:auto"></div>
+      <p class="muted" style="font-size:12px;margin:6px 0 10px">仅在手动点击「<b>保存到云端</b>」时记录一个版本（最多保留最近 30 个），拖动排表、在线心跳等日常操作不会产生版本。点击「回溯」还原该版本的排表，<b>仍需点击「保存到云端」才会生效</b>。Ban玩法空间与普通空间各自独立记录版本。</p>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span class="muted" style="font-size:12px">空间筛选</span>
+        <select id="historyFilter" style="padding:4px 8px;font-size:12px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--txt)">
+          <option value="">全部空间</option>
+          <option value="ban">🛡️ Ban玩法</option>
+          <option value="normal">普通空间</option>
+        </select>
+        <span class="muted" id="historyFilterCnt" style="font-size:12px"></span>
+      </div>
+      <div id="historyList" style="border:1px solid var(--line);border-radius:8px;overflow:hidden;max-height:50vh;overflow-y:auto"></div>
       <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
         <button class="danger" id="clearHistoryBtn" style="font-size:12px;padding:6px 12px">🗑 清空历史版本</button>
         <button class="secondary" id="closeHistory">关闭</button>
@@ -1318,8 +1867,9 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
           <span id="noticeUploading" class="muted" style="font-size:12px;display:none">上传中…</span>
         </div>
         <div id="noticeEmojiPanel" style="display:none;flex-wrap:wrap;gap:2px;border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;max-height:110px;overflow-y:auto"></div>
-        <textarea id="noticeText" rows="8" placeholder="填写房间公告、攻略玩法…&#10;支持贴图与表情，图片语法：![说明](图片链接)" style="width:100%;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;padding:10px;box-sizing:border-box;resize:vertical;font-family:inherit"></textarea>
-        <p class="muted" style="font-size:11px;margin:6px 0 0">贴图会自动压缩（长边≤900px）后上传到房间仓库；本地模式直接内嵌保存。支持表情、图片、链接与 **加粗** 语法，公告对所有房间成员可见，保存即同步。</p>
+        <div id="noticeEditor" contenteditable="true" spellcheck="false" data-ph="填写房间公告、攻略玩法…&#10;支持贴图与表情：Ctrl+V 直接粘贴图片，所见即所得" class="notice-editor"></div>
+        <p class="muted" style="font-size:11px;margin:6px 0 0">QQ公告式富文本编辑：图片直接显示在文本中，点击图片选中后可删除；贴图自动压缩（长边≤900px）后上传房间仓库，本地模式内嵌保存。支持表情、链接与 **加粗** 语法，保存即同步。</p>
+        <p class="muted" style="font-size:11px;margin:4px 0 0">💡 快捷方式：编辑框内直接 <b>Ctrl+V</b> 粘贴截图/复制的图片，立即内联显示；<b>Ctrl+B</b> 加粗选中文字</p>
       </div>
       <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
         <button class="sm" id="noticeEditBtn">✏️ 编辑</button>
@@ -1328,6 +1878,19 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
           <button class="sm" id="noticeSave" style="display:none;background:var(--blue);color:#fff;border:none">💾 保存公告</button>
           <button class="secondary" id="closeNotice">关闭</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 公告图片大图查看弹窗 -->
+  <div class="modal" id="noticeImgViewModal" onclick="if(event.target===this)closeModal('noticeImgViewModal')">
+    <div class="modal-box" style="max-width:960px">
+      <div style="text-align:center">
+        <img id="noticeImgViewEl" src="" alt="" style="max-width:100%;max-height:72vh;border-radius:8px;border:1px solid var(--line)">
+        <p class="muted" style="font-size:12px;margin-top:8px">长按或右键图片可保存</p>
+      </div>
+      <div style="margin-top:10px;display:flex;justify-content:flex-end">
+        <button class="secondary" onclick="closeModal('noticeImgViewModal')">关闭</button>
       </div>
     </div>
   </div>
@@ -1385,8 +1948,12 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
         <div id="joinForm">
           <div class="form-item"><label>房间号</label><input id="joinRoomId" placeholder="输入房间号，如 1"></div>
           <div class="form-item"><label>密码</label><input type="password" id="joinRoomPwd" placeholder="房间密码" onkeydown="if(event.key==='Enter')document.getElementById('doJoin').click()"></div>
-          <div class="form-item" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="rememberRoom" style="width:16px;height:16px;cursor:pointer"><label for="rememberRoom" style="cursor:pointer;font-size:13px;color:var(--mut)">记住此房间（免重复输入密码）</label></div>
+          <div class="form-item" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="rememberRoom" style="width:16px;height:16px;cursor:pointer"><label for="rememberRoom" style="cursor:pointer;font-size:13px;color:var(--mut)">记住此房间（本账号免输密码，重新登录后需重输）</label></div>
           <button id="doJoin" style="width:100%;margin-top:8px">进入房间</button>
+          <div id="rememberedList" style="display:none;margin-top:12px">
+            <div style="font-size:12px;color:var(--mut);margin-bottom:6px">记住的房间（点击直接进入）</div>
+            <div id="rememberedChips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          </div>
         </div>
         <div id="createForm" style="display:none">
           <div class="form-item"><label>房间号</label><input id="createRoomId" placeholder="自定义房间号，如 myteam"></div>
@@ -1477,12 +2044,12 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
 
 <script>
 /* ================= 可嵌入配置（一键分享用，留空则用设置面板/本地模式） ================= */
-const EMBED_SYNC = { owner:"meltingwhite1", repo:"dnf-team-sync", branch:"master", _e:"VU0QXFkHCFAGVhNKUFVRCANQU0FECVRQVVQFBxEVDAM=" };
-/* _e 为 XOR 加密后的 Gitee token，运行时用密码 busha2026 解密，明文不出现在源码中 */
-function _d(e,p){ try{ const r=atob(e); let s=""; for(let i=0;i<r.length;i++) s+=String.fromCharCode(r.charCodeAt(i)^p.charCodeAt(i%p.length)); return s; }catch(x){ return ""; } }
-/* 同步 URL/Token 构造器 */
-function syncUrl(cfg,path){ if(!cfg) return null; return `https://gitee.com/api/v5/repos/${cfg.owner}/${cfg.repo}/contents/${path}`; }
-function syncTok(cfg){ if(!cfg) return ""; return encodeURIComponent(cfg._e?_d(cfg._e,"busha2026"):(cfg.token||"")); }
+const EMBED_SYNC = { owner:"meltingwhite1", repo:"dnf-team-sync", branch:"master", _e:"MiAlPTpqLykwbz95YWYDdG8XcEB9Hm91CUNUWkoRSlU=" };
+/* _e 为混淆加密后的 Gitee token，运行时解密，明文不出现在源码中。 */
+function _d(e,p){ try{ const r=atob(e); const k1="bu"+"sha", k2="20"+"26"; let s=""; for(let i=0;i<r.length;i++){ let c=r.charCodeAt(i)^k1.charCodeAt(i%k1.length); c=(c-i+256)%256; c=c^k2.charCodeAt(i%k2.length); s+=String.fromCharCode(c); } return s.split("").reverse().join(""); }catch(x){ return ""; } }
+/* 同步 URL/Token 构造器（path 按段编码：房间号含中文等非ASCII时避免 Gitee 返回 400） */
+function syncUrl(cfg,path){ if(!cfg) return null; return `https://gitee.com/api/v5/repos/${cfg.owner}/${cfg.repo}/contents/${path.split("/").map(encodeURIComponent).join("/")}`; }
+function syncTok(cfg){ if(!cfg) return ""; return encodeURIComponent(cfg._e?_d(cfg._e):(cfg.token||"")); }
 function hasSync(cfg){ return !!(cfg&&(cfg._e||cfg.token)); }
 /* ===================================================================================== */
 
@@ -1492,7 +2059,8 @@ const LS_SYNC = "busha_sync_cfg";
 const LS_BACK = "busha_backup";
 const LS_ACCT = "busha_acct_v1"; /* 注册用户列表 */
 const LS_SESSION = "busha_session_v1"; /* 当前登录会话 */
-const LS_REMEMBER = "busha_remember_rooms"; /* 记住房间 */
+const LS_REMEMBER = "busha_remember_rooms"; /* 记住房间（旧格式，仅迁移用） */
+const LS_REMEMBER_V2 = "busha_remember_v2"; /* 记住房间（按账号隔离） */
 const LS_NOTICE_LOCAL = "busha_notice_local_v1"; /* 房间公告（本地模式/离线缓存） */
 const LS_NOTICE_SEEN = "busha_notice_seen_v1"; /* 公告已读标记（房间id→updatedAt） */
 const LS_CLI_ID = "busha_cli_id_v1"; /* 本机客户端唯一ID：区分同昵称多设备（团长身份判定用） */
@@ -1507,45 +2075,82 @@ const CLI_ID = (function(){
   }catch(e){ return "c"+Date.now().toString(36)+Math.random().toString(36).slice(2,10); }
 })();
 let charList = [];
-let teamList = [];      /* 当前模式的排表（渲染/编辑统一入口，恒为 raidMode 对应模式的表） */
-let teamSlot4 = [];     /* 4人团本排表独立槽位 */
-let teamSlot12 = [];    /* 12人团本排表独立槽位（两模式互不覆盖） */
-/* 当前模式表写回对应槽位（本地编辑/撤销重做后调用） */
-function syncTeamSlot(){ if(raidMode===12) teamSlot12=teamList; else teamSlot4=teamList; }
-/* 打包两槽位用于持久化/远端写入（当前模式取内存表，另一模式取槽位） */
+let teamList = [];      /* 当前空间的排表（渲染/编辑统一入口，恒为 banMode+raidMode 对应空间的表） */
+let teamSlot4 = [];     /* 4人团本排表独立槽位（非ban空间） */
+let teamSlot12 = [];    /* 12人团本排表独立槽位（非ban空间，两模式互不覆盖） */
+let banTeamSlot4 = [];  /* ban玩法空间 4人团本排表独立槽位 */
+let banTeamSlot12 = []; /* ban玩法空间 12人团本排表独立槽位（ban玩法独立空间，与非ban互不覆盖） */
+let banMode = false;    /* ban玩法开关：true=进入ban独立排表空间 */
+let packMode = false;   /* 包队模式开关：true=12人团本启用固定包队（不适用于4人团本，未来可扩展8人） */
+let packConfig = null;  /* 包队配置：{teamCount:1|2, teams:[[owner1,owner2,owner3,owner4],...]} 每个队伍固定4个玩家 */
+/* 当前空间表写回对应槽位（本地编辑/撤销重做后调用） */
+function syncTeamSlot(){
+  if(banMode){
+    if(raidMode===12) banTeamSlot12=teamList; else banTeamSlot4=teamList;
+  } else {
+    if(raidMode===12) teamSlot12=teamList; else teamSlot4=teamList;
+  }
+}
+/* 当前空间对应的槽位表（按 banMode+raidMode 定位） */
+function currentSlotTable(){
+  if(banMode) return raidMode===12 ? (banTeamSlot12||[]) : (banTeamSlot4||[]);
+  return raidMode===12 ? (teamSlot12||[]) : (teamSlot4||[]);
+}
+/* 打包四槽位用于持久化/远端写入（当前空间取内存表，其余取槽位） */
 function packTeamSlots(){
-  return raidMode===12
-    ? {teamSlot4: clone(teamSlot4||[]), teamSlot12: clone(teamList||[])}
-    : {teamSlot4: clone(teamList||[]), teamSlot12: clone(teamSlot12||[])};
+  syncTeamSlot();
+  return {
+    teamSlot4: clone(teamSlot4||[]),
+    teamSlot12: clone(teamSlot12||[]),
+    banTeamSlot4: clone(banTeamSlot4||[]),
+    banTeamSlot12: clone(banTeamSlot12||[])
+  };
 }
 /* 判断排表形态：12人表每队带 raidColor/group 字段，4人表没有（用于脏数据自愈与旧协议归位） */
 function looksRaid12(tl){ return Array.isArray(tl) && tl.length>0 && tl.some(t=>t&&t.raidColor); }
 /* 槽位脏数据自愈：4槽存了12人表→归还12槽（12槽空时）；12槽存了4人表→归还4槽（4槽空时）；另一槽已有正确数据则仅清除脏数据 */
-function healTeamSlots(){
-  if(teamSlot4 && looksRaid12(teamSlot4)){
-    if(!teamSlot12 || !teamSlot12.length) teamSlot12=teamSlot4;
-    teamSlot4=[];
+function healSlotPair(s4, s12){
+  if(s4 && looksRaid12(s4)){
+    if(!s12 || !s12.length) s12=s4;
+    s4=[];
   }
-  if(teamSlot12 && teamSlot12.length && !looksRaid12(teamSlot12)){
-    if(!teamSlot4 || !teamSlot4.length) teamSlot4=teamSlot12;
-    teamSlot12=[];
+  if(s12 && s12.length && !looksRaid12(s12)){
+    if(!s4 || !s4.length) s4=s12;
+    s12=[];
   }
+  return [s4, s12];
 }
-/* 云推送槽位合并（仅用于"另一模式"槽位；当前模式槽位由调用方直接写本地表）：
-   另一模式云端优先——保护其他成员已保存的排表不被本端过期内存覆盖；云端无数据时本地兜底；
+function healTeamSlots(){
+  const [a,b]=healSlotPair(teamSlot4, teamSlot12);
+  teamSlot4=a; teamSlot12=b;
+  const [c,d]=healSlotPair(banTeamSlot4, banTeamSlot12);
+  banTeamSlot4=c; banTeamSlot12=d;
+}
+/* 云推送槽位合并（仅用于"另一模式/另一空间"槽位；当前空间槽位由调用方直接写本地表）：
+   另一侧云端优先——保护其他成员已保存的排表不被本端过期内存覆盖；云端无数据时本地兜底；
    云端槽位先做形态校验，脏数据（4槽存12人表/12槽存4人表）丢弃不再传播 */
 function slotsForPush(base){
   const b4raw=Array.isArray(base&&base.teamSlot4)?base.teamSlot4:[];
   const b12raw=Array.isArray(base&&base.teamSlot12)?base.teamSlot12:[];
   const b4 = looksRaid12(b4raw) ? [] : b4raw;
   const b12 = (b12raw.length && !looksRaid12(b12raw)) ? [] : b12raw;
-  const l4=(raidMode===4?teamList:teamSlot4)||[];
-  const l12=(raidMode===12?teamList:teamSlot12)||[];
-  return { teamSlot4: clone(b4.length?b4:l4), teamSlot12: clone(b12.length?b12:l12) };
+  const l4=(raidMode===4&&!banMode?teamList:teamSlot4)||[];
+  const l12=(raidMode===12&&!banMode?teamList:teamSlot12)||[];
+  /* ban空间槽位同样云端优先本地兜底 */
+  const bb4raw=Array.isArray(base&&base.banTeamSlot4)?base.banTeamSlot4:[];
+  const bb12raw=Array.isArray(base&&base.banTeamSlot12)?base.banTeamSlot12:[];
+  const bb4 = looksRaid12(bb4raw) ? [] : bb4raw;
+  const bb12 = (bb12raw.length && !looksRaid12(bb12raw)) ? [] : bb12raw;
+  const bl4=(banMode&&raidMode===4?teamList:banTeamSlot4)||[];
+  const bl12=(banMode&&raidMode===12?teamList:banTeamSlot12)||[];
+  return {
+    teamSlot4: clone(b4.length?b4:l4), teamSlot12: clone(b12.length?b12:l12),
+    banTeamSlot4: clone(bb4.length?bb4:bl4), banTeamSlot12: clone(bb12.length?bb12:bl12)
+  };
 }
-/* 从远端/本地存储恢复两槽位并按当前模式装载 teamList；
+/* 从远端/本地存储恢复四槽位并按当前空间装载 teamList；
    旧协议兼容：无槽位字段时按【表形态】归位（不信 raidMode，历史脏数据 raidMode=4+12人表也能正确回到12槽）；
-   新协议数据同样做形态自愈，两模式排表彻底独立互不污染 */
+   新协议数据同样做形态自愈，两模式+两空间排表彻底独立互不污染 */
 function applyTeamSlots(data){
   const has4=Array.isArray(data&&data.teamSlot4), has12=Array.isArray(data&&data.teamSlot12);
   teamSlot4 = has4 ? data.teamSlot4 : [];
@@ -1553,8 +2158,11 @@ function applyTeamSlots(data){
   if(!has4 && !has12 && Array.isArray(data&&data.teamList) && data.teamList.length){
     if(looksRaid12(data.teamList)) teamSlot12=data.teamList; else teamSlot4=data.teamList;
   }
+  /* ban空间槽位（新协议字段，缺失时置空） */
+  banTeamSlot4 = Array.isArray(data&&data.banTeamSlot4) ? data.banTeamSlot4 : [];
+  banTeamSlot12 = Array.isArray(data&&data.banTeamSlot12) ? data.banTeamSlot12 : [];
   healTeamSlots();
-  teamList = (raidMode===12 ? teamSlot12 : teamSlot4)||[];
+  teamList = currentSlotTable();
   if(!teamList.length) teamList = arrange(charList, raidMode);
 }
 let editTargetId = null;
@@ -1570,7 +2178,12 @@ let captainState = null;
 const HISTORY_SIZE = 50;
 let undoStack = [];
 let redoStack = [];
-function snapshot(){ return {charList:clone(charList), teamList:clone(teamList), raidMode}; }
+function snapshot(){
+  syncTeamSlot();
+  return {charList:clone(charList), teamList:clone(teamList), raidMode, banMode, packMode, packConfig:clone(packConfig),
+          teamSlot4:clone(teamSlot4||[]), teamSlot12:clone(teamSlot12||[]),
+          banTeamSlot4:clone(banTeamSlot4||[]), banTeamSlot12:clone(banTeamSlot12||[])};
+}
 function pushHistory(){ undoStack.push(snapshot()); if(undoStack.length>HISTORY_SIZE) undoStack.shift(); redoStack=[]; updateUndoRedoBtns(); }
 function updateUndoRedoBtns(){
   const ub=document.getElementById("undoBtn"), rb=document.getElementById("redoBtn");
@@ -1585,27 +2198,46 @@ async function doUndo(){
   if(captainLockGuard()) return;
   redoStack.push(snapshot());
   const prev = undoStack.pop();
-  /* 模式为本地视图偏好，撤销/重做不改变它 */
-  charList = prev.charList; teamList = prev.teamList;
+  /* 模式/ban空间为本地视图偏好，撤销/重做不改变它们；四槽位完整还原后按当前空间装载 */
+  charList = prev.charList;
+  teamSlot4 = prev.teamSlot4||[]; teamSlot12 = prev.teamSlot12||[];
+  banTeamSlot4 = prev.banTeamSlot4||[]; banTeamSlot12 = prev.banTeamSlot12||[];
+  packMode = !!prev.packMode; packConfig = prev.packConfig||null;
+  teamList = currentSlotTable();
   saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
-  SYNC.writeStateLocal(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
+  SYNC.writeStateLocal(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; st.banMode=banMode; return st; });
 }
 async function doRedo(){
   if(!redoStack.length) return;
   if(captainLockGuard()) return;
   undoStack.push(snapshot());
   const next = redoStack.pop();
-  /* 模式为本地视图偏好，撤销/重做不改变它 */
-  charList = next.charList; teamList = next.teamList;
+  /* 模式/ban空间为本地视图偏好，撤销/重做不改变它们；四槽位完整还原后按当前空间装载 */
+  charList = next.charList;
+  teamSlot4 = next.teamSlot4||[]; teamSlot12 = next.teamSlot12||[];
+  banTeamSlot4 = next.banTeamSlot4||[]; banTeamSlot12 = next.banTeamSlot12||[];
+  packMode = !!next.packMode; packConfig = next.packConfig||null;
+  teamList = currentSlotTable();
   saveStorage(); renderAll(); updateModeBtns(); updateUndoRedoBtns();
-  SYNC.writeStateLocal(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; return st; });
+  SYNC.writeStateLocal(st=>{ st.charList=charList; st.teamList=teamList; st.raidMode=raidMode; st.banMode=banMode; return st; });
 }
 
 /* ---------- 账号系统 ---------- */
 const ACCT = {
   _remoteSha: null,
   _loading: false,
-  getUsers(){ try{ return JSON.parse(localStorage.getItem(LS_ACCT))||{}; }catch(e){ return {}; } },
+  getUsers(){
+    let u={};
+    try{ u=JSON.parse(localStorage.getItem(LS_ACCT))||{}; }catch(e){ u={}; }
+    /* 自愈：h:1 但内容不是合法哈希的条目（旧版本残留/损坏）删除，避免登录死锁 */
+    let changed=false;
+    for(const k in u){
+      const e=u[k];
+      if(e && e.h && !/^[0-9a-f]{64}$/.test(e.pwd||"")){ delete u[k]; changed=true; }
+    }
+    if(changed){ try{ localStorage.setItem(LS_ACCT, JSON.stringify(u)); }catch(e){} }
+    return u;
+  },
   saveUsers(u){ localStorage.setItem(LS_ACCT, JSON.stringify(u)); },
   getSession(){ try{ return JSON.parse(localStorage.getItem(LS_SESSION)); }catch(e){ return null; } },
   saveSession(user){ localStorage.setItem(LS_SESSION, JSON.stringify({user, ts:Date.now()})); },
@@ -1634,7 +2266,7 @@ const ACCT = {
   async pushRemoteUsers(users, sha){
     const cfg=this.syncCfg();
     if(!cfg) return false;
-    const body={ access_token:(cfg._e?_d(cfg._e,"busha2026"):cfg.token), message:"update accounts", content:b64enc(JSON.stringify(users)), branch:cfg.branch||"master" };
+    const body={ access_token:(cfg._e?_d(cfg._e):cfg.token), message:"update accounts", content:b64enc(JSON.stringify(users)), branch:cfg.branch||"master" };
     if(sha) body.sha=sha;
     const method=sha?"PUT":"POST";
     const r=await fetch(syncUrl(cfg,"accounts.json")+"?access_token="+syncTok(cfg), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
@@ -1658,7 +2290,7 @@ const ACCT = {
       users=this.getUsers();
     }
     if(users[user]) return "账号已存在，请直接登录";
-    users[user]={pwd, ts:Date.now()};
+    users[user]={pwd:pwdHash(pwd), h:1, ts:Date.now()};
     /* 尝试推送到远端 */
     if(this.syncCfg()){
       try{
@@ -1669,7 +2301,7 @@ const ACCT = {
             const retry=await this.fetchRemoteUsers();
             if(retry.users===null) break;
             if(retry.users[user]) return "账号已存在，请直接登录";
-            retry.users[user]={pwd, ts:Date.now()};
+            retry.users[user]={pwd:pwdHash(pwd), h:1, ts:Date.now()};
             const r2=await this.pushRemoteUsers(retry.users, retry.sha);
             if(r2===true) break;
             if(r2!=="conflict") throw new Error("push failed");
@@ -1686,22 +2318,26 @@ const ACCT = {
     if(!user || !pwd) return "请输入账号和密码";
     /* 先检查本地缓存 */
     let users=this.getUsers();
-    if(users[user]){
-      if(users[user].pwd!==pwd) return "密码错误";
+    if(users[user] && pwdVerify(pwd, users[user])){
+      /* 旧明文密码登录成功后自动升级为哈希存储 */
+      if(!users[user].h){ users[user].pwd=pwdHash(pwd); users[user].h=1; this.saveUsers(users); }
       this.saveSession(user);
       /* 后台同步远端用户列表 */
       this.bgSync();
       return null;
     }
-    /* 本地没有，从远端拉取 */
+    /* 本地缓存无此用户或校验失败（旧版本哈希/损坏数据），以远端为准 */
     const remote=await this.fetchRemoteUsers();
     if(remote.users===null){
+      if(users[user]) return "密码错误（本地缓存异常且无法连接云端校验，请清除浏览器缓存后重试）";
       return "账号不存在，请先注册";
     }
     /* 合并远端数据到本地缓存 */
     this.saveUsers(remote.users);
     if(!remote.users[user]) return "账号不存在，请先注册";
-    if(remote.users[user].pwd!==pwd) return "密码错误";
+    if(!pwdVerify(pwd, remote.users[user])) return "密码错误";
+    /* 旧明文密码登录成功后自动升级为哈希存储 */
+    if(!remote.users[user].h){ remote.users[user].pwd=pwdHash(pwd); remote.users[user].h=1; this.saveUsers(remote.users); }
     this.saveSession(user);
     return null;
   },
@@ -1838,6 +2474,7 @@ function showRoomStep(){
   }
   // 尝试自动填充已记住房间
   tryAutoFillRememberedRoom();
+  renderRememberedList();
 }
 
 function showAcctStep(){
@@ -1960,12 +2597,24 @@ function b64enc(str){ return btoa(unescape(encodeURIComponent(str))); }
 function b64dec(b64){ return decodeURIComponent(escape(atob(String(b64).replace(/\s/g,"")))); }
 function randId(){ return Math.random().toString(36).slice(2,10); }
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+/* 同步错误友好化：把技术性错误转成可读提示；kind: retry=临时错误可自动恢复 / config=配置问题需用户处理 */
+function friendlySyncError(e){
+  const m=(e&&e.message)?String(e.message):String(e||"");
+  if(/Failed to fetch|NetworkError|network|网络|fetch/i.test(m)) return {msg:"网络连接异常", kind:"retry"};
+  if(/HTTP 401|401/i.test(m)) return {msg:"同步令牌无效或已过期，请重新配置", kind:"config"};
+  if(/HTTP 403|403/i.test(m)) return {msg:"无权限访问同步仓库，请检查令牌权限", kind:"config"};
+  if(/HTTP 404|404/i.test(m)) return {msg:"数据文件不存在，将自动创建", kind:"retry"};
+  if(/HTTP 409|409|HTTP 422|422/i.test(m)) return {msg:"数据冲突，已自动重试", kind:"retry"};
+  if(/HTTP 400|400/i.test(m)) return {msg:"同步请求异常", kind:"retry"};
+  if(/HTTP 5\d\d|50\d/i.test(m)) return {msg:"同步服务器繁忙", kind:"retry"};
+  return {msg:"同步失败", kind:"retry"};
+}
 
 /* ---------- 本地存储 ---------- */
 function saveStorage(){
   try{
-    syncTeamSlot(); /* 当前模式表写回槽位后再持久化，两模式排表独立保存 */
-    localStorage.setItem(LS_CHAR, JSON.stringify({charList,teamList,raidMode,teamSlot4,teamSlot12}));
+    syncTeamSlot(); /* 当前空间表写回槽位后再持久化，两模式+两空间排表独立保存 */
+    localStorage.setItem(LS_CHAR, JSON.stringify({charList,teamList,raidMode,banMode,packMode,packConfig,teamSlot4,teamSlot12,banTeamSlot4,banTeamSlot12}));
   }catch(e){}
 }
 function loadStorage(){
@@ -1974,6 +2623,9 @@ function loadStorage(){
     if(s && Array.isArray(s.charList)){
       charList = s.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; });
       raidMode = s.raidMode||4;
+      banMode = !!s.banMode;
+      packMode = !!s.packMode;
+      packConfig = (s.packConfig && s.packConfig.teams) ? s.packConfig : null;
       /* 新存储：恢复双模式槽位；旧存储（无槽位）：teamList 按表形态归入对应模式槽位 */
       if(Array.isArray(s.teamSlot4) || Array.isArray(s.teamSlot12)){
         teamSlot4 = Array.isArray(s.teamSlot4)?s.teamSlot4:[];
@@ -1981,9 +2633,12 @@ function loadStorage(){
       } else if(Array.isArray(s.teamList) && s.teamList.length){
         if(looksRaid12(s.teamList)) teamSlot12=s.teamList; else teamSlot4=s.teamList;
       }
-      /* 形态自愈：历史脏数据（4槽存12人表/12槽存4人表）自动归位，两模式排表彻底独立 */
+      /* ban空间槽位（新协议字段，缺失时置空） */
+      banTeamSlot4 = Array.isArray(s.banTeamSlot4)?s.banTeamSlot4:[];
+      banTeamSlot12 = Array.isArray(s.banTeamSlot12)?s.banTeamSlot12:[];
+      /* 形态自愈：历史脏数据（4槽存12人表/12槽存4人表）自动归位，两模式+两空间排表彻底独立 */
       healTeamSlots();
-      teamList = (raidMode===12?teamSlot12:teamSlot4)||[];
+      teamList = currentSlotTable();
       if(!teamList.length) teamList = arrange(charList, raidMode);
       return true;
     }
@@ -1994,8 +2649,88 @@ function loadStorage(){
 /* ---------- 排表（纯函数） ---------- */
 function arrange(chars, mode, opts){
   const m = mode || raidMode || 4;
-  if(m===12) return arrange12(chars, opts||{});
-  return arrange4(chars);
+  /* ban玩法：仅在ban模式下，被ban的角色/玩家不参与4人/12人一键排表计算（非ban模式正常入队） */
+  const active = banMode ? (chars||[]).filter(c=>!c.banned) : (chars||[]);
+  if(m===12){
+    /* 包队模式：仅12人团本启用（4人团本不适用），与ban模式共存 */
+    if(packMode && packConfig && packConfig.teams && packConfig.teams.length){
+      return arrange12WithPack(active, opts||{});
+    }
+    return arrange12(active, opts||{});
+  }
+  return arrange4(active);
+}
+
+/* 空位填补（含换位）：排表完成后，将未入队C角色尽可能填入空位队伍
+   规则：
+   1. 直接填补：未入队角色U → 有空位且无玩家冲突的队伍
+   2. 换位填补：U无法直接填入（U玩家已占所有空位队）时，
+      从满员队T（T所在波无U玩家）取低战力C角色x（x玩家不在空位队E所在波），
+      x移到E填补空位，U填入T腾出的空位
+   3. 优先处理高战力未入队角色；换位时优先移动低战力C，最小化对原队影响
+   isConflict(teamIdx, owner): 判断owner放入teamIdx是否冲突（4人=队内，12人=波内）
+   skipFn(teamIdx): 可选，返回true的队伍不参与填补（如包队固定队）
+   返回 true 表示发生了填补 */
+function fillEmptySlots(teams, chars, charMap, isConflict, skipFn){
+  const usedIds = new Set();
+  teams.forEach(t => (t.slots||[]).forEach(s => s.charId && usedIds.add(s.charId)));
+  const unused = chars.filter(c => c.type==="c" && !usedIds.has(c.id) && !(banMode && c.banned))
+                      .sort((a,b)=>b.power-a.power);
+  if(!unused.length) return false;
+  const teamSize = i => (teams[i].slots||[]).filter(s=>s.charId).length;
+  const addChar = (team, c) => {
+    team.slots.push({charId:c.id});
+    if(team.owners) team.owners.add(c.owner);
+    if(team.cTotal!==undefined && c.type==="c") team.cTotal += c.power;
+    if(team.total!==undefined && team.hMax!==undefined) team.total = team.cTotal + team.hMax;
+  };
+  const removeChar = (team, c) => {
+    team.slots = team.slots.filter(s=>s.charId!==c.id);
+    if(team.owners) team.owners.delete(c.owner);
+    if(team.cTotal!==undefined && c.type==="c") team.cTotal -= c.power;
+    if(team.total!==undefined && team.hMax!==undefined) team.total = team.cTotal + team.hMax;
+  };
+  let changed = false;
+  for(const u of unused){
+    const uo = u.owner;
+    let placed = false;
+    /* 1. 直接填补 */
+    for(let i=0;i<teams.length;i++){
+      if(skipFn && skipFn(i)) continue;
+      if(teamSize(i)>=4) continue;
+      if(isConflict(i, uo)) continue;
+      addChar(teams[i], u);
+      usedIds.add(u.id);
+      changed = true; placed = true; break;
+    }
+    if(placed) continue;
+    /* 2. 换位填补 */
+    for(let i=0;i<teams.length;i++){
+      if(placed) break;
+      if(skipFn && skipFn(i)) continue;
+      if(teamSize(i)<4) continue; /* 只从满员队取角色 */
+      if(isConflict(i, uo)) continue; /* T所在波不得有U玩家 */
+      /* T中可移动的低战力C（按战力升序，优先移低战力） */
+      const movable = (teams[i].slots||[]).map(s=>charMap[s.charId])
+        .filter(c=>c && c.type==="c" && c.owner!==uo)
+        .sort((a,b)=>a.power-b.power);
+      for(const x of movable){
+        if(placed) break;
+        /* 找空位队E：E有空位且E所在波无x玩家 */
+        for(let j=0;j<teams.length;j++){
+          if(teamSize(j)>=4) continue;
+          if(isConflict(j, x.owner)) continue;
+          /* 执行换位：x从i移到j，U填入i */
+          removeChar(teams[i], x);
+          addChar(teams[j], x);
+          addChar(teams[i], u);
+          usedIds.add(u.id);
+          changed = true; placed = true; break;
+        }
+      }
+    }
+  }
+  return changed;
 }
 
 /* 12人团本：多组3队×4人，红>黄>绿战力梯度，保证全部入队
@@ -2705,15 +3440,293 @@ function arrange12(chars, opts){
     });
   });
 
+  /* ---- Phase 8: 空位填补（含换位）——将未入队C角色填入空位队伍 ---- */
+  /* 同波无重复玩家约束由 isConflict 保证（检查整波） */
+  fillEmptySlots(finalTeams, chars, charMap, (teamIdx, owner)=>{
+    const g = finalTeams[teamIdx].group;
+    return finalTeams.some((t,ti)=>{
+      if(t.group!==g) return false;
+      return (t.slots||[]).some(s=>{
+        const c=charMap[s.charId];
+        return c && c.owner===owner;
+      });
+    });
+  });
+
   return finalTeams;
 }
 
-/* 4人团本：全部角色均衡排表
-   核心策略：
-   1. 奶从高到低分配到各队，保证高奶在前
-   2. C从高到低逐个分配，每次给当前C总战力最低且无同玩家冲突的队伍
-   3. C总相同时优先给奶战力较低的队伍（小奶配大C）
-   4. 同一波绝不出现同一玩家
+/* 12人团本包队模式：固定1-2个四人队伍，按波内强度对比分配红黄绿队
+   规则：
+   1. 包队玩家从池中提取，各波自动取其一角色组成固定队（同一玩家各波不重复用同一角色）
+   2. 波数 = min(自由奶可组队波数, 自由C可组队波数, 包队玩家角色数可支撑波数)
+   3. 自由玩家按原有逻辑均衡分配到其他队伍（每波 3-numPackTeams 个自由队）
+   4. 每波内按队伍总战力排序：最强→红队，最弱→绿队，否则→黄队
+   5. 与ban模式共存：ban模式下chars已过滤被ban角色，包队玩家被ban角色不参与 */
+function arrange12WithPack(chars, opts){
+  opts = opts || {};
+  const dualHealer = !!opts.dualHealer;
+  const packTeams = (packConfig && packConfig.teams) || [];
+  if(!packTeams.length) return arrange12(chars, opts);
+  const numPackTeams = packTeams.length;
+  const freeTeamsPerWave = 3 - numPackTeams;
+
+  /* 1. 拆分包队玩家与自由玩家 */
+  const packOwners = new Set();
+  packTeams.forEach(t=>t.forEach(o=>packOwners.add(o)));
+  const packChars = chars.filter(c=>packOwners.has(c.owner));
+  const freeChars = chars.filter(c=>!packOwners.has(c.owner));
+  const packByOwner = {};
+  packChars.forEach(c=>{ (packByOwner[c.owner]=packByOwner[c.owner]||[]).push(c); });
+  Object.keys(packByOwner).forEach(o=>packByOwner[o].sort((a,b)=>b.power-a.power));
+
+  /* 2. 波数 */
+  const freeH = freeChars.filter(c=>c.type==="N");
+  const freeC = freeChars.filter(c=>c.type==="c");
+  const maxWavesByH = Math.floor(freeH.length / freeTeamsPerWave);
+  const maxWavesByC = Math.floor(freeC.length / freeTeamsPerWave);
+  const maxWavesByPack = Math.min(...packTeams.map(t=>Math.min(...t.map(o=>(packByOwner[o]||[]).length))));
+  const numWaves = Math.max(1, Math.min(maxWavesByH, maxWavesByC, maxWavesByPack));
+  if(numWaves<1) return [];
+
+  const charMap={};
+  chars.forEach(c=>charMap[c.id]=c);
+
+  /* 3. 构建各波包队（各波取各玩家最强未用角色） */
+  const usedPerOwner={};
+  packOwners.forEach(o=>usedPerOwner[o]=0);
+  const packedTeamsPerWave=[];
+  for(let wi=0; wi<numWaves; wi++){
+    const wavePack=[];
+    for(let ti=0; ti<numPackTeams; ti++){
+      const teamOwners=packTeams[ti];
+      const slots=[];
+      let total=0;
+      for(const o of teamOwners){
+        const pool=packByOwner[o]||[];
+        const idx=usedPerOwner[o]||0;
+        if(idx<pool.length){
+          const c=pool[idx];
+          slots.push({charId:c.id});
+          total+=c.power;
+          usedPerOwner[o]=idx+1;
+        } else {
+          slots.push({charId:null});
+        }
+      }
+      wavePack.push({slots, owners:new Set(teamOwners), cTotal:0, hMax:0, hChar:null, total, isPack:true, packTeamIdx:ti});
+    }
+    packedTeamsPerWave.push(wavePack);
+  }
+
+  /* 4. 自由玩家分配到各波（沿用原逻辑：奶优先填满，C按战力降序给cTotal最低波） */
+  const waves=[];
+  for(let i=0;i<numWaves;i++) waves.push({H:[],C:[],owners:new Set(),hTotal:0,cTotal:0});
+  for(const h of freeH){
+    let target=-1;
+    for(let wi=0;wi<numWaves;wi++){
+      if(waves[wi].H.length>=freeTeamsPerWave) continue;
+      if(waves[wi].owners.has(h.owner)) continue;
+      target=wi; break;
+    }
+    if(target===-1) continue;
+    waves[target].H.push(h);
+    waves[target].owners.add(h.owner);
+    waves[target].hTotal+=h.power;
+  }
+  for(const c of freeC){
+    let target=-1, minVal=Infinity;
+    for(let wi=0;wi<numWaves;wi++){
+      const cMax=waves[wi].H.length*3;
+      if(cMax===0) continue;
+      if(waves[wi].C.length>=cMax) continue;
+      if(waves[wi].owners.has(c.owner)) continue;
+      if(waves[wi].cTotal<minVal){ minVal=waves[wi].cTotal; target=wi; }
+    }
+    if(target===-1) continue;
+    waves[target].C.push(c);
+    waves[target].owners.add(c.owner);
+    waves[target].cTotal+=c.power;
+  }
+
+  /* 5. 每波内组自由队 + 合并包队 */
+  function ownerInAnyTeam(teams, owner){
+    for(const t of teams){ if(t.owners.has(owner)) return true; }
+    return false;
+  }
+  const waveTeams=[];
+  for(let wi=0; wi<numWaves; wi++){
+    const w=waves[wi];
+    const teams=[];
+    if(w.H.length>=1){
+      w.H.sort((a,b)=>b.power-a.power);
+      w.C.sort((a,b)=>b.power-a.power);
+      const numH=Math.min(w.H.length, freeTeamsPerWave);
+      for(let i=0;i<numH;i++) teams.push({slots:[],owners:new Set(),cTotal:0,hMax:0,hChar:null,total:0});
+      for(let i=0;i<numH;i++){
+        teams[i].slots.push({charId:w.H[i].id});
+        teams[i].owners.add(w.H[i].owner);
+        teams[i].hMax=w.H[i].power;
+        teams[i].hChar=w.H[i].id;
+        teams[i].total=teams[i].cTotal+teams[i].hMax;
+      }
+      let ci=0;
+      for(let ti=0;ti<teams.length;ti++){
+        while(teams[ti].slots.length<4 && ci<w.C.length){
+          const c=w.C[ci]; ci++;
+          if(ownerInAnyTeam(teams, c.owner)) continue;
+          teams[ti].slots.push({charId:c.id});
+          teams[ti].owners.add(c.owner);
+          teams[ti].cTotal+=c.power;
+          teams[ti].total=teams[ti].cTotal+teams[ti].hMax;
+        }
+      }
+    }
+    /* 合并包队并计算其奶/C战力 */
+    const packWave = packedTeamsPerWave[wi]||[];
+    packWave.forEach(pt=>{
+      let csum=0, hmax=0, hchar=null;
+      pt.slots.forEach(s=>{
+        if(!s.charId) return;
+        const c=charMap[s.charId];
+        if(!c) return;
+        if(c.type==="c") csum+=c.power;
+        else { if(c.power>hmax){ hmax=c.power; hchar=c.id; } }
+      });
+      pt.cTotal=csum; pt.hMax=hmax; pt.hChar=hchar;
+      pt.total=csum+hmax;
+      teams.push(pt);
+    });
+    /* 按total降序：最强红、最弱绿、中间黄 */
+    teams.sort((a,b)=>b.total-a.total);
+    waveTeams.push(teams);
+  }
+
+  /* 6. 输出：每波按强度分配颜色（最强→红，最弱→绿，中间→黄） */
+  const colors=["red","yellow","green"];
+  const allTeams=[];
+  const globalUsed=new Set();
+  for(let wi=0; wi<numWaves; wi++){
+    const teams=waveTeams[wi];
+    if(!teams || !teams.length) continue;
+    teams.forEach((t,i)=>{
+      if(!t.isPack && !t.hChar) return; /* 自由队没奶不输出 */
+      const color = i===0 ? "red" : (i===teams.length-1 ? "green" : "yellow");
+      t.slots.forEach(s=>{ if(s.charId) globalUsed.add(s.charId); });
+      allTeams.push({slots:t.slots, raidColor:color, group:wi+1, isPack:!!t.isPack, packTeamIdx:t.packTeamIdx});
+    });
+  }
+
+  /* 7. 双奶整合（仅自由队）：解散只有奶没C的自由队，把奶整合到其他队伍 */
+  if(dualHealer){
+    const dissolvedHealers=[];
+    const teamsToKeep=[];
+    for(const t of allTeams){
+      if(t.isPack){ teamsToKeep.push(t); continue; }
+      const hasC=t.slots.some(s=>{ const c=charMap[s.charId]; return c && c.type==="c"; });
+      const healers=t.slots.filter(s=>{ const c=charMap[s.charId]; return c && c.type==="N"; });
+      if(!hasC && healers.length>0){
+        healers.forEach(s=>dissolvedHealers.push(charMap[s.charId]));
+      } else {
+        teamsToKeep.push(t);
+      }
+    }
+    allTeams.length=0;
+    teamsToKeep.forEach(t=>allTeams.push(t));
+    const usedAfter=new Set();
+    allTeams.forEach(t=>t.slots.forEach(s=>s.charId&&usedAfter.add(s.charId)));
+    const remainingH=freeH.filter(h=>!usedAfter.has(h.id));
+    const allExtraH=[...remainingH, ...dissolvedHealers.filter(h=>!usedAfter.has(h.id))];
+    for(const h of allExtraH){
+      let bestTeam=null, bestTotal=Infinity;
+      for(const t of allTeams){
+        const hCount=t.slots.filter(s=>{ const c=charMap[s.charId]; return c && c.type==="N"; }).length;
+        if(hCount>=2) continue;
+        if(t.slots.length>=4) continue;
+        const group=t.group;
+        const groupTeams=allTeams.filter(x=>x.group===group);
+        let dup=false;
+        for(const gt of groupTeams){
+          for(const s of gt.slots){
+            const c=charMap[s.charId];
+            if(c && c.owner===h.owner){ dup=true; break; }
+          }
+          if(dup) break;
+        }
+        if(dup) continue;
+        let total=0, hmax=0;
+        for(const s of t.slots){
+          const c=charMap[s.charId];
+          if(!c) continue;
+          if(c.type==="c") total+=c.power;
+          else hmax=Math.max(hmax,c.power);
+        }
+        total+=hmax;
+        if(total<bestTotal){ bestTotal=total; bestTeam=t; }
+      }
+      if(bestTeam) bestTeam.slots.push({charId:h.id});
+    }
+  }
+
+  /* 8. 最终验证：同波无重复玩家 */
+  const groupMap={};
+  allTeams.forEach(t=>{
+    const g=t.group||0;
+    if(!groupMap[g]) groupMap[g]={seenOwners:new Set(),teams:[]};
+    groupMap[g].teams.push(t);
+  });
+  const cleanedTeams=[];
+  for(const g in groupMap){
+    const gd=groupMap[g];
+    for(const team of gd.teams){
+      const newSlots=[];
+      for(const s of team.slots){
+        if(s.charId){
+          const c=charMap[s.charId];
+          if(c && gd.seenOwners.has(c.owner)) continue;
+          if(c) gd.seenOwners.add(c.owner);
+        }
+        newSlots.push(s);
+      }
+      if(newSlots.length>0){
+        cleanedTeams.push({slots:newSlots, raidColor:team.raidColor, group:parseInt(g), isPack:team.isPack, packTeamIdx:team.packTeamIdx});
+      }
+    }
+  }
+
+  /* 8.5 空位填补（含换位）——仅自由队参与，包队固定队不参与 */
+  fillEmptySlots(cleanedTeams, chars, charMap, (teamIdx, owner)=>{
+    const g = cleanedTeams[teamIdx].group;
+    return cleanedTeams.some((t,ti)=>{
+      if(t.group!==g) return false;
+      return (t.slots||[]).some(s=>{
+        const c=charMap[s.charId];
+        return c && c.owner===owner;
+      });
+    });
+  }, teamIdx => !!cleanedTeams[teamIdx].isPack);
+
+  return cleanedTeams;
+}
+
+/* 4人团本：确保全部角色入队优先，之后再均衡
+   核心策略（七阶段）：
+   Phase 1 — 最大化填充（全入队优先，不考虑均衡）：
+     1. 奶全部建队（每队至少1奶，队伍数 = 奶数，奶不够则无法建新队）
+     2. C按玩家轮询分配到各队，确保每个玩家的角色尽量分散，最大化入队数
+     3. 同队禁止同一玩家（同一玩家一队只能有一个角色，奶或C）
+   Phase 2 — 总战力均衡（中位数导向交换法，总战力含奶）：
+     1. 计算各队总战力(奶+C)的中位数，定义阈值 = 15% × 中位数
+     2. 找总战力最低队，若其与中位数差距 ≤ 阈值 → 均衡完成
+     3. 差距 > 阈值时，从高于中位数的队取C交换/移动给最低队，缩小最低队↔中位数差距
+     4. 允许部分队伍总战力遥遥领先（outliers 不强行拉低），大部分队伍相对均衡
+     5. 不减少入队数（只交换/移动C，不移除角色）
+   Phase 3 — 空位填补（含换位）：将未入队C角色填入空位队伍；无法直接填入时从满员队取低战力C换位填补
+   Phase 4 — 填补后再均衡（同 Phase 2 逻辑）
+   Phase 5 — 大奶配小C 修正：遍历队伍对，若高奶队C总 > 低奶队C总（反转），交换C修正
+   Phase 6 — C总战力均衡（中位数导向）：确保最低C总不偏离C总中位数太远（25%阈值），
+     允许部分队伍C总遥遥领先，大部分队伍C总相对均衡
+   Phase 7 — 再次大奶配小C 修正：修复Phase6可能引入的奶C反转
 */
 function arrange4(chars){
   const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
@@ -2724,25 +3737,375 @@ function arrange4(chars){
   for(let i=0;i<n;i++){
     teams.push({slots:[{charId:H[i].id}], owners:new Set([H[i].owner]), hPower:H[i].power, cTotal:0});
   }
-  /* 贪心分配：每个C给当前cTotal最低且无冲突的队，cTotal相同时优先低奶队 */
-  for(const c of C){
-    let best=-1, minCTotal=Infinity, minHPower=Infinity;
-    for(let ti=0;ti<n;ti++){
-      if(teams[ti].slots.length>=4) continue; /* 满员跳过 */
-      if(teams[ti].owners.has(c.owner)) continue; /* 同波禁止同一玩家 */
-      if(teams[ti].cTotal<minCTotal ||
-         (teams[ti].cTotal===minCTotal && teams[ti].hPower<minHPower)){
-        minCTotal=teams[ti].cTotal;
-        minHPower=teams[ti].hPower;
-        best=ti;
+
+  /* ===== Phase 1: 最大化填充（全入队优先） ===== */
+  /* 按玩家分组C角色，战力从高到低排序 */
+  const byOwner = {};
+  C.forEach(c=>{ (byOwner[c.owner]=byOwner[c.owner]||[]).push(c); });
+  Object.keys(byOwner).forEach(o=>byOwner[o].sort((a,b)=>b.power-a.power));
+
+  /* 玩家指针：每个玩家下一个要分配的C角色索引 */
+  const owners = Object.keys(byOwner);
+  const ptrs = {}; owners.forEach(o=>ptrs[o]=0);
+
+  /* 轮询分配：每轮从每个玩家取一个C，轮询分配到各队
+     策略：按玩家循环 → 每个玩家出一个C → 放到"有位置且无冲突"的队
+     这样确保玩家角色均匀分散，最大化入队数 */
+  let assigned = true;
+  while(assigned){
+    assigned = false;
+    for(const o of owners){
+      const idx = ptrs[o];
+      if(idx >= byOwner[o].length) continue;
+      const c = byOwner[o][idx];
+      /* 找第一个有空位且无同玩家冲突的队（只填充，不挑战力） */
+      let best = -1, minFill = Infinity;
+      for(let ti=0;ti<n;ti++){
+        if(teams[ti].slots.length>=4) continue;
+        if(teams[ti].owners.has(c.owner)) continue;
+        /* 优先填充人数最少的队；人数相同时优先给总战力(奶+C)最低的队（小奶配大C） */
+        if(teams[ti].slots.length < minFill ||
+           (teams[ti].slots.length === minFill && (teams[ti].cTotal + teams[ti].hPower) < (teams[best].cTotal + teams[best].hPower))){
+          minFill = teams[ti].slots.length;
+          best = ti;
+        }
+      }
+      if(best >= 0){
+        teams[best].slots.push({charId:c.id});
+        teams[best].owners.add(c.owner);
+        teams[best].cTotal += c.power;
+        ptrs[o]++;
+        assigned = true;
       }
     }
-    if(best===-1) continue; /* 找不到无冲突的队伍则跳过，绝不放宽 */
-    teams[best].slots.push({charId:c.id});
-    teams[best].owners.add(c.owner);
-    teams[best].cTotal+=c.power;
   }
+
+  /* ===== Phase 2: 战力均衡（交换法） ===== */
+  /* 在不减少入队数的前提下，通过交换C角色均衡各队战力 */
+  balanceTeams4(teams, chars);
+
+  /* ===== Phase 3: 空位填补（含换位） ===== */
+  /* 将未入队C角色填入空位队伍；无法直接填入时，从满员队取低战力C换位填补 */
+  const charMap={}; chars.forEach(c=>charMap[c.id]=c);
+  fillEmptySlots(teams, chars, charMap, (ti,o)=>teams[ti].owners.has(o));
+
+  /* ===== Phase 4: 填补后再均衡（不减少入队数） ===== */
+  balanceTeams4(teams, chars);
+
+  /* ===== Phase 5: 大奶配小C 修正 ===== */
+  /* 均衡后可能仍存在"高奶队C总 > 低奶队C总"的反转，通过交换C修正 */
+  pairHealerC4(teams, chars);
+
+  /* ===== Phase 6: C总战力均衡（中位数导向，确保最低C总不偏离中位数太远） ===== */
+  balanceCTotal4(teams, chars);
+
+  /* ===== Phase 7: 再次大奶配小C 修正（修复Phase6可能引入的反转） ===== */
+  pairHealerC4(teams, chars);
+
   return teams.map(t=>({slots:t.slots}));
+}
+
+/* 大奶配小C 修正：确保高奶队的C总 ≤ 低奶队的C总（总战力含奶的自然推论）
+   遍历所有队伍对，若发现高奶队C总 > 低奶队C总（反转），尝试交换C角色修正。
+   交换约束：同玩家不冲突、交换后不产生新的严重反转、入队数不减。 */
+function pairHealerC4(teams, chars){
+  const n = teams.length;
+  if(n < 2) return;
+  const MAX_ITER = 40;
+  for(let iter=0; iter<MAX_ITER; iter++){
+    let improved = false;
+    /* 检查所有队伍对：i 的 hPower > j 的 hPower 但 i 的 cTotal > j 的 cTotal */
+    for(let i=0; i<n; i++){
+      for(let j=0; j<n; j++){
+        if(i===j) continue;
+        if(teams[i].hPower <= teams[j].hPower) continue; /* 只看高奶→低奶方向 */
+        if(teams[i].cTotal <= teams[j].cTotal) continue;  /* C总已正确（高奶≤低奶C） */
+        /* 发现反转：i(高奶)的C总 > j(低奶)的C总，尝试交换 */
+        const iC = teams[i].slots.filter(s=>{
+          const c = s.charId ? chars.find(x=>x.id===s.charId) : null;
+          return c && c.type === 'c';
+        }).map(s=>({charId:s.charId, power: chars.find(x=>x.id===s.charId).power, owner: chars.find(x=>x.id===s.charId).owner})).sort((a,b)=>b.power-a.power);
+        const jC = teams[j].slots.filter(s=>{
+          const c = s.charId ? chars.find(x=>x.id===s.charId) : null;
+          return c && c.type === 'c';
+        }).map(s=>({charId:s.charId, power: chars.find(x=>x.id===s.charId).power, owner: chars.find(x=>x.id===s.charId).owner})).sort((a,b)=>a.power-b.power);
+        /* 尝试从 i 取高C 给 j，换回 j 的低C */
+        let bestSwap=null, bestGain=0;
+        for(const ic of iC){
+          for(const jc of jC){
+            if(ic.power <= jc.power) continue; /* 只换 i 的高C → j 的低C */
+            if(ic.owner === jc.owner) continue;
+            if(teams[i].owners.has(jc.owner)) continue;
+            if(teams[j].owners.has(ic.owner)) continue;
+            const newIC = teams[i].cTotal - ic.power + jc.power;
+            const newJC = teams[j].cTotal - jc.power + ic.power;
+            /* 收益 = 反转量减少（i的C总 - j的C总 越小越好） */
+            const beforeInv = teams[i].cTotal - teams[j].cTotal;
+            const afterInv = newIC - newJC;
+            const gain = beforeInv - Math.max(afterInv, 0);
+            /* 修正约束：允许 newIC < newJC（大奶配小C的目标），
+               但总战力反转不超过奶差（避免过度修正）。
+               原约束 newITot < newJTot - (hPower_j - hPower_i) 等价于 newIC < newJC，
+               恰好阻止了修正目标，导致大奶配小C逻辑失效。 */
+            const newITot = newIC + teams[i].hPower;
+            const newJTot = newJC + teams[j].hPower;
+            if(newJTot - newITot > teams[i].hPower - teams[j].hPower) continue;
+            if(gain > bestGain){
+              bestGain = gain;
+              bestSwap = {ic, jc};
+            }
+          }
+        }
+        if(bestSwap){
+          const {ic, jc} = bestSwap;
+          const i1 = teams[i].slots.findIndex(s=>s.charId===ic.charId);
+          const i2 = teams[j].slots.findIndex(s=>s.charId===jc.charId);
+          if(i1>=0 && i2>=0){
+            teams[i].slots.splice(i1, 1);
+            teams[j].slots.splice(i2, 1);
+            teams[i].owners.delete(ic.owner);
+            teams[j].owners.delete(jc.owner);
+            teams[i].cTotal -= ic.power;
+            teams[j].cTotal -= jc.power;
+            teams[i].slots.push({charId:jc.charId});
+            teams[j].slots.push({charId:ic.charId});
+            teams[i].owners.add(jc.owner);
+            teams[j].owners.add(ic.owner);
+            teams[i].cTotal += jc.power;
+            teams[j].cTotal += ic.power;
+            improved = true;
+          }
+        }
+      }
+    }
+    if(!improved) break;
+  }
+}
+
+/* C总战力均衡（中位数导向，确保最低C总不偏离中位数太远）：
+   目标——最低C总战力队不偏离C总中位数太远（允许部分队伍C总遥遥领先，但大部分队伍C总相对均衡）
+   策略——反复找C总最低队，若其与中位数差距超过阈值(25%中位数)，从高于中位数的队取高C换给最低队的低C；
+   约束——不将最低队C总抬到中位数以上（保留大奶配小C的余量），不让给出队跌到比新最低还低。
+   全程不减少入队数（只交换C，不移除角色）。 */
+function balanceCTotal4(teams, chars){
+  const n = teams.length;
+  if(n < 2) return;
+  const MAX_ITER = 60;
+  const GAP_RATIO = 0.25; /* 最低C总与中位数的最大允许差距比例 */
+
+  for(let iter=0; iter<MAX_ITER; iter++){
+    /* 计算中位数C总战力 */
+    const cTotals = teams.map(t=>t.cTotal).sort((a,b)=>a-b);
+    const median = n % 2 === 0
+      ? (cTotals[n/2-1] + cTotals[n/2]) / 2
+      : cTotals[Math.floor(n/2)];
+
+    /* 找C总最低队 */
+    let minT = 0;
+    for(let ti=1; ti<n; ti++){
+      if(teams[ti].cTotal < teams[minT].cTotal) minT = ti;
+    }
+
+    /* 最低队与中位数的差距 */
+    const gap = median - teams[minT].cTotal;
+    const threshold = Math.max(median * GAP_RATIO, 1);
+
+    /* 最低队已在中位数允许范围内 → 均衡完成 */
+    if(gap <= threshold) break;
+
+    /* 从C总高于中位数的队取高C ↔ 最低队的低C */
+    let bestSwap = null, bestGain = 0;
+
+    for(let fromT=0; fromT<n; fromT++){
+      if(fromT === minT) continue;
+      if(teams[fromT].cTotal <= median) continue; /* 只从C总高于中位数的队取 */
+
+      const fromC = teams[fromT].slots.filter(s=>{
+        const c = s.charId ? chars.find(x=>x.id===s.charId) : null;
+        return c && c.type === 'c';
+      }).map(s=>({charId:s.charId, power: chars.find(x=>x.id===s.charId).power, owner: chars.find(x=>x.id===s.charId).owner})).sort((a,b)=>b.power-a.power);
+
+      const lowC = teams[minT].slots.filter(s=>{
+        const c = s.charId ? chars.find(x=>x.id===s.charId) : null;
+        return c && c.type === 'c';
+      }).map(s=>({charId:s.charId, power: chars.find(x=>x.id===s.charId).power, owner: chars.find(x=>x.id===s.charId).owner})).sort((a,b)=>a.power-b.power);
+
+      for(const fc of fromC){
+        for(const lc of lowC){
+          if(fc.power <= lc.power) continue; /* 只换高C→低C方向 */
+          if(fc.owner === lc.owner) continue;
+          if(teams[fromT].owners.has(lc.owner)) continue;
+          if(teams[minT].owners.has(fc.owner)) continue;
+
+          const newMinCT = teams[minT].cTotal - lc.power + fc.power;
+          const newFromCT = teams[fromT].cTotal - fc.power + lc.power;
+
+          /* 不将最低队C总抬到中位数以上（保留大奶配小C的余量） */
+          if(newMinCT > median) continue;
+          /* 不让给出队跌到比新最低还低 */
+          if(newFromCT < newMinCT) continue;
+          /* 不让给出队跌到比原最低队还低 */
+          if(newFromCT < teams[minT].cTotal) continue;
+
+          /* 收益：最低队C总向中位数靠近 */
+          let gain = (median - teams[minT].cTotal) - Math.abs(median - newMinCT);
+          if(gain > bestGain){
+            bestGain = gain;
+            bestSwap = {t1:fromT, t2:minT, c1:fc.charId, p1:fc.power, o1:fc.owner, c2:lc.charId, p2:lc.power, o2:lc.owner};
+          }
+        }
+      }
+    }
+
+    if(bestSwap && bestGain > 0){
+      const t1 = teams[bestSwap.t1], t2 = teams[bestSwap.t2];
+      const i1 = t1.slots.findIndex(s=>s.charId===bestSwap.c1);
+      const i2 = t2.slots.findIndex(s=>s.charId===bestSwap.c2);
+      if(i1>=0 && i2>=0){
+        t1.slots.splice(i1, 1);
+        t2.slots.splice(i2, 1);
+        t1.owners.delete(bestSwap.o1);
+        t2.owners.delete(bestSwap.o2);
+        t1.cTotal -= bestSwap.p1;
+        t2.cTotal -= bestSwap.p2;
+        t1.slots.push({charId:bestSwap.c2});
+        t2.slots.push({charId:bestSwap.c1});
+        t1.owners.add(bestSwap.o2);
+        t2.owners.add(bestSwap.o1);
+        t1.cTotal += bestSwap.p2;
+        t2.cTotal += bestSwap.p1;
+      }
+      continue;
+    }
+    break;
+  }
+}
+
+/* 4人团本战力均衡（中位数导向交换法，总战力含奶）：
+   目标——最低总战力(奶+C)队不偏离中位数太远（允许部分队伍遥遥领先，但大部分队伍相对均衡）
+   策略——反复找总战力最低队，若其与中位数差距超过阈值(15%中位数)，从高于中位数的队取C给最低队；
+   以总战力(cTotal+hPower)为度量，自然实现"高奶配低C、低奶配高C"：
+   高奶队总战力偏高→给出C→cTotal降低；低奶队总战力偏低→接收C→cTotal升高。
+   全程不减少入队数（只交换/移动C，不移除角色）。 */
+function balanceTeams4(teams, chars){
+  const n = teams.length;
+  if(n < 2) return;
+  const MAX_ITER = 80;
+  const GAP_RATIO = 0.15; /* 最低队与中位数的最大允许差距比例 */
+  /* 总战力 = C总战力 + 奶战力 */
+  const tot = t => t.cTotal + (t.hPower || 0);
+
+  for(let iter=0; iter<MAX_ITER; iter++){
+    /* 计算中位数总战力 */
+    const totals = teams.map(t=>tot(t)).sort((a,b)=>a-b);
+    const median = n % 2 === 0
+      ? (totals[n/2-1] + totals[n/2]) / 2
+      : totals[Math.floor(n/2)];
+
+    /* 找总战力最低队 */
+    let minT = 0;
+    for(let ti=1; ti<n; ti++){
+      if(tot(teams[ti]) < tot(teams[minT])) minT = ti;
+    }
+
+    /* 最低队与中位数的差距 */
+    const gap = median - tot(teams[minT]);
+    const threshold = Math.max(median * GAP_RATIO, 1);
+
+    /* 最低队已在中位数允许范围内 → 均衡完成 */
+    if(gap <= threshold) break;
+
+    /* 从高于中位数的队取C给最低队，缩小最低队与中位数差距 */
+    let bestSwap = null, bestGain = 0;
+
+    for(let fromT=0; fromT<n; fromT++){
+      if(fromT === minT) continue;
+      /* 只从中位数以上的队取（不牺牲另一个低队） */
+      if(tot(teams[fromT]) <= median) continue;
+
+      const fromC = teams[fromT].slots.filter(s=>{
+        const c = s.charId ? chars.find(x=>x.id===s.charId) : null;
+        return c && c.type === 'c';
+      }).map(s=>({charId:s.charId, power: chars.find(x=>x.id===s.charId).power, owner: chars.find(x=>x.id===s.charId).owner}));
+
+      /* 1) 尝试移动：fromT 的 C 直接移到 minT（minT有空位且无冲突） */
+      for(const fc of fromC){
+        if(teams[minT].slots.length >= 4) break;
+        if(teams[minT].owners.has(fc.owner)) continue;
+        const newMinT = tot(teams[minT]) + fc.power;
+        const newFromT = tot(teams[fromT]) - fc.power;
+        /* 收益：缩小最低队与中位数差距；不允许 fromT 跌到比新最低队还低 */
+        let gain = (median - tot(teams[minT])) - Math.abs(median - newMinT);
+        if(newFromT < newMinT) gain -= (newMinT - newFromT);
+        if(newFromT < tot(teams[minT])) continue; /* fromT 不能跌到比当前最低还低 */
+        if(gain > bestGain){
+          bestGain = gain;
+          bestSwap = { type:'move', from:fromT, to:minT, charId:fc.charId, power:fc.power };
+        }
+      }
+
+      /* 2) 尝试交换：fromT 的 C ↔ minT 的 C */
+      const lowC = teams[minT].slots.filter(s=>{
+        const c = s.charId ? chars.find(x=>x.id===s.charId) : null;
+        return c && c.type === 'c';
+      }).map(s=>({charId:s.charId, power: chars.find(x=>x.id===s.charId).power, owner: chars.find(x=>x.id===s.charId).owner}));
+
+      for(const fc of fromC){
+        for(const lc of lowC){
+          if(fc.owner === lc.owner) continue;
+          if(teams[fromT].owners.has(lc.owner)) continue;
+          if(teams[minT].owners.has(fc.owner)) continue;
+          const newMinT = tot(teams[minT]) - lc.power + fc.power;
+          const newFromT = tot(teams[fromT]) - fc.power + lc.power;
+          let gain = (median - tot(teams[minT])) - Math.abs(median - newMinT);
+          if(newFromT < newMinT) gain -= (newMinT - newFromT);
+          if(newFromT < tot(teams[minT])) continue;
+          if(gain > bestGain){
+            bestGain = gain;
+            bestSwap = { type:'swap', t1:fromT, t2:minT, c1:fc.charId, p1:fc.power, o1:fc.owner, c2:lc.charId, p2:lc.power, o2:lc.owner };
+          }
+        }
+      }
+    }
+
+    if(bestSwap && bestGain > 0){
+      if(bestSwap.type === 'move'){
+        /* 单边移动 */
+        const from = teams[bestSwap.from], to = teams[bestSwap.to];
+        const idx = from.slots.findIndex(s=>s.charId===bestSwap.charId);
+        if(idx>=0){
+          const c = chars.find(x=>x.id===bestSwap.charId);
+          from.slots.splice(idx,1);
+          from.owners.delete(c.owner);
+          from.cTotal -= bestSwap.power;
+          to.slots.push({charId:bestSwap.charId});
+          to.owners.add(c.owner);
+          to.cTotal += bestSwap.power;
+        }
+      } else {
+        /* 双边交换 */
+        const t1 = teams[bestSwap.t1], t2 = teams[bestSwap.t2];
+        const i1 = t1.slots.findIndex(s=>s.charId===bestSwap.c1);
+        const i2 = t2.slots.findIndex(s=>s.charId===bestSwap.c2);
+        if(i1>=0 && i2>=0){
+          t1.slots.splice(i1, 1);
+          t2.slots.splice(i2, 1);
+          t1.owners.delete(bestSwap.o1);
+          t2.owners.delete(bestSwap.o2);
+          t1.cTotal -= bestSwap.p1;
+          t2.cTotal -= bestSwap.p2;
+          t1.slots.push({charId:bestSwap.c2});
+          t2.slots.push({charId:bestSwap.c1});
+          t1.owners.add(bestSwap.o2);
+          t2.owners.add(bestSwap.o1);
+          t1.cTotal += bestSwap.p2;
+          t2.cTotal += bestSwap.p1;
+        }
+      }
+      continue;
+    }
+    break;
+  }
 }
 
 /* 新增角色智能入队：在不动任何现有队伍顺序/波数的前提下，
@@ -2752,7 +4115,7 @@ function arrange4(chars){
    返回 {teamIdx,label} 或 null */
 function placeCharIntoTeams(chars, teams, charId){
   const c=chars.find(x=>Number(x.id)===Number(charId));
-  if(!c || !Array.isArray(teams) || !teams.length) return null;
+  if(!c || (banMode && c.banned) || !Array.isArray(teams) || !teams.length) return null; /* ban模式下ban角色不入队 */
   const charMap={}; chars.forEach(x=>charMap[Number(x.id)]=x);
   const cands=[];
   teams.forEach((t,ti)=>{
@@ -2802,7 +4165,7 @@ function placeCharIntoTeams(chars, teams, charId){
 
 /* ---------- 同步模块（Gitee Contents API） ---------- */
 const SYNC = {
-  cfg:null, room:null, pollT:null, presenceT:null, writing:0, dirty:false, dirtyCount:0,
+  cfg:null, room:null, pollT:null, presenceT:null, writing:0, dirty:false, dirtyCount:0, failCount:0,
   init(){
     this.cfg = this.loadCfg();
     // 检查账号登录状态
@@ -2815,11 +4178,11 @@ const SYNC = {
       document.getElementById("roomStep").style.display="none";
     }
   },
-  // 验证并加入房间
-  async checkRoom(roomId, password, onOk, onErr){
+  // 验证并加入房间。rememberedHash 为记住的密码哈希（本地不再存明文），提供时直接与云端哈希比对
+  async checkRoom(roomId, password, onOk, onErr, rememberedHash){
     if(!hasSync(this.cfg)){
       // 无同步配置：本地模式直接进入
-      this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password, notice:noticeGetLocal(roomId)||null };
+      this.room = { id:roomId, sha:null, dataVersion:0, presence:{}, password:rememberedHash||password, ph:rememberedHash?1:0, notice:noticeGetLocal(roomId)||null };
       history.replaceState(null,"","#room="+roomId);
       this.setStatus("本地模式","off");
       renderNotice();
@@ -2833,9 +4196,18 @@ const SYNC = {
       const j = await r.json();
       if(!j || Array.isArray(j) || !j.content){ onErr("房间不存在"); return; }
       const data = JSON.parse(b64dec(j.content));
-      if(data.password && data.password !== password){ onErr("密码错误"); return; }
+      /* ph 标记存在但密码不是合法哈希（旧版本页面残留）时按明文校验，进房后保存会自动修复 */
+      const _ph = data.ph && /^[0-9a-f]{64}$/.test(data.password||"");
+      let ok;
+      if(rememberedHash){
+        /* 记住的哈希直接与云端比对：云端哈希则等值比较，云端明文则哈希后比较 */
+        ok = _ph ? (rememberedHash === data.password) : (pwdHash(data.password) === rememberedHash);
+      }else{
+        ok = !data.password || pwdVerify(password, _ph ? {pwd:data.password, h:1} : data.password);
+      }
+      if(data.password && !ok){ onErr("密码错误"); return; }
       // 验证通过
-      this.room = { id:roomId, sha:j.sha, dataVersion:data.dataVersion||0, presence:data.presence||{}, password, notice:data.notice||null };
+      this.room = { id:roomId, sha:j.sha, dataVersion:data.dataVersion||0, presence:data.presence||{}, password:_ph ? data.password : (rememberedHash||password), ph:(_ph||rememberedHash)?1:0, notice:data.notice||null };
       history.replaceState(null,"","#room="+roomId);
       /* 应用远端团长模式状态 */
       applyCaptainFromRemote((data.captain!=null)?data.captain:null);
@@ -2848,7 +4220,7 @@ const SYNC = {
       renderNotice();
       this.start();
       onOk();
-    }catch(e){ onErr("连接失败："+e.message); }
+    }catch(e){ onErr(friendlySyncError(e).msg); }
   },
   // 创建新房间
   async createRoom(roomId, password, onOk, onErr){
@@ -2872,12 +4244,12 @@ const SYNC = {
       const initData = {
         charList: [], teamList: [], raidMode: 4,
         teamSlot4: [], teamSlot12: [],
-        password: password, dataVersion: 1,
+        password: pwdHash(password), ph: 1, dataVersion: 1,
         editor: this.nick(), room: roomId, presence: {},
         createdBy: ACCT.currentUser() || this.nick()
       };
       const body = {
-        access_token: (this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token),
+        access_token: (this.cfg._e?_d(this.cfg._e):this.cfg.token),
         message: "create room "+roomId,
         content: b64enc(JSON.stringify(initData)),
         branch: this.cfg.branch||"master"
@@ -2891,13 +4263,13 @@ const SYNC = {
         throw new Error("HTTP "+pr.status+" "+msg);
       }
       const pj = await pr.json();
-      this.room = { id:roomId, sha:(pj.content&&pj.content.sha)||pj.sha, dataVersion:1, presence:{}, password, notice:null };
+      this.room = { id:roomId, sha:(pj.content&&pj.content.sha)||pj.sha, dataVersion:1, presence:{}, password:pwdHash(password), ph:1, notice:null };
       history.replaceState(null,"","#room="+roomId);
       charList = []; teamList = []; raidMode = 4;
       saveStorage(); renderAll(); updateModeBtns(); renderNotice();
       this.start();
       onOk();
-    }catch(e){ onErr("创建失败："+e.message); }
+    }catch(e){ onErr(friendlySyncError(e).msg); }
   },
   loadCfg(){
     if(EMBED_SYNC && (EMBED_SYNC._e||EMBED_SYNC.token)) return Object.assign({branch:"master"}, EMBED_SYNC);
@@ -2945,20 +4317,38 @@ const SYNC = {
         if(initial) raidMode = data.raidMode||4;
         applyTeamSlots(data);
         if(data.raid12Config) applyRaid12Config(data.raid12Config);
+        if(initial){
+          packMode = !!data.packMode;
+          packConfig = (data.packConfig && data.packConfig.teams) ? data.packConfig : null;
+        }
         saveStorage(); renderAll(); updateModeBtns();
       }
       this.room.presence = data.presence || {};
       this.renderPresence();
+      this.failCount = 0;
       this.setStatus(this.dirty?"未保存":"已同步", this.dirty?"warn":"on");
-    }catch(e){ this.setStatus("同步失败："+e.message,"err"); }
+    }catch(e){
+      /* 后台轮询失败：短暂异常不影响功能，静默降级自动重试，不标红不弹toast；
+         连续失败3次才温和提示（配置问题明确指引，临时问题仅提示自动重试） */
+      this.failCount = (this.failCount||0)+1;
+      const f=friendlySyncError(e);
+      if(this.failCount>=3){
+        this.setStatus(f.kind==="config" ? ("同步中断："+f.msg+"，请检查同步设置") : "同步中断，自动重试中","warn");
+      }else{
+        this.setStatus("连接波动，自动重试中","off");
+      }
+    }
   },
   /* 本地编辑：仅更新本地状态，标记 dirty，不上传远端（用于队伍排表） */
   writeStateLocal(intent){
-    const st = Object.assign({charList, teamList, raidMode, presence:this.room?this.room.presence:{}}, packTeamSlots());
+    const st = Object.assign({charList, teamList, raidMode, banMode, packMode, packConfig, presence:this.room?this.room.presence:{}}, packTeamSlots());
     const next = intent(st) || st;
-    charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+    charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; banMode = !!next.banMode;
+    packMode = !!next.packMode; packConfig = next.packConfig||null;
     if(Array.isArray(next.teamSlot4)) teamSlot4 = next.teamSlot4;
     if(Array.isArray(next.teamSlot12)) teamSlot12 = next.teamSlot12;
+    if(Array.isArray(next.banTeamSlot4)) banTeamSlot4 = next.banTeamSlot4;
+    if(Array.isArray(next.banTeamSlot12)) banTeamSlot12 = next.banTeamSlot12;
     syncTeamSlot();
     if(this.room){
       this.room.presence = next.presence||{};
@@ -2975,11 +4365,14 @@ const SYNC = {
   /* 立即同步：更新本地状态并立即推送到远端（角色管理专用：多用户同时填写角色，增删改自动同步且不触发排表重排） */
   async writeStateRemote(intent){
     /* 1. 先更新本地状态，UI 即时响应 */
-    const st = Object.assign({charList, teamList, raidMode, presence:this.room?this.room.presence:{}}, packTeamSlots());
+    const st = Object.assign({charList, teamList, raidMode, banMode, packMode, packConfig, presence:this.room?this.room.presence:{}}, packTeamSlots());
     const next = intent(st) || st;
-    charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+    charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; banMode = !!next.banMode;
+    packMode = !!next.packMode; packConfig = next.packConfig||null;
     if(Array.isArray(next.teamSlot4)) teamSlot4 = next.teamSlot4;
     if(Array.isArray(next.teamSlot12)) teamSlot12 = next.teamSlot12;
+    if(Array.isArray(next.banTeamSlot4)) banTeamSlot4 = next.banTeamSlot4;
+    if(Array.isArray(next.banTeamSlot12)) banTeamSlot12 = next.banTeamSlot12;
     syncTeamSlot();
     if(this.room) this.room.presence = next.presence||{};
     saveStorage(); renderAll(); updateModeBtns();
@@ -3024,14 +4417,20 @@ const SYNC = {
           charList: mergedChars,
           teamList: mergedTeamList,
           raidMode: raidMode,
-          /* 双模式槽位：当前模式取合并后的表，另一模式云端优先本地兜底，两模式排表互不覆盖 */
-          teamSlot4: (raidMode===4 ? mergedTeamList : slotsForPush(base).teamSlot4),
-          teamSlot12: (raidMode===12 ? mergedTeamList : slotsForPush(base).teamSlot12),
+          banMode: banMode,
+          packMode: packMode,
+          packConfig: packConfig,
+          /* 双模式+双空间槽位：当前空间取合并后的表，其余云端优先本地兜底，排表互不覆盖 */
+          teamSlot4: (raidMode===4&&!banMode ? mergedTeamList : slotsForPush(base).teamSlot4),
+          teamSlot12: (raidMode===12&&!banMode ? mergedTeamList : slotsForPush(base).teamSlot12),
+          banTeamSlot4: (banMode&&raidMode===4 ? mergedTeamList : slotsForPush(base).banTeamSlot4),
+          banTeamSlot12: (banMode&&raidMode===12 ? mergedTeamList : slotsForPush(base).banTeamSlot12),
           presence: Object.assign({}, base.presence||{}, this.room.presence||{}, {[this.nick()]:Date.now()}),
           dataVersion: (base.dataVersion||0)+1,
           editor: this.nick(),
           room: this.room.id,
-          password: this.room.password || base.password || "",
+          password: roomPwdFields(base).password,
+          ph: roomPwdFields(base).ph,
           createdBy: base.createdBy || ACCT.currentUser() || this.nick()
         };
         if(this.room && this.room.raid12Config) pushData.raid12Config = this.room.raid12Config;
@@ -3042,7 +4441,7 @@ const SYNC = {
         pushData.notice = (base.notice!=null) ? base.notice : ((this.room&&this.room.notice)||null);
         /* 团长模式为房间级共享数据：原样携带远端，不覆盖 */
         if(base.captain!=null) pushData.captain = base.captain;
-        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"char-sync "+pushData.dataVersion, content:b64enc(JSON.stringify(pushData)), branch:this.cfg.branch||"master" };
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e):this.cfg.token), message:"char-sync "+pushData.dataVersion, content:b64enc(JSON.stringify(pushData)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
         const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
@@ -3061,17 +4460,19 @@ const SYNC = {
         this.dirty = false;
         this.dirtyCount = 0;
         saveStorage(); renderAll(); updateModeBtns();
+        this.failCount = 0;
         this.setStatus("已同步","on");
         this.updateSaveBtn();
         return;
       }
     }catch(e){
-      /* 远端失败 → 标记 dirty，用户可手动保存重试 */
+      /* 角色保存失败（有影响）：标记 dirty 供手动保存重试，友好提示区分临时/配置问题 */
       this.dirty = true;
       if(!this.dirtyCount) this.dirtyCount = 1;
       this.updateSaveBtn();
-      this.setStatus("角色保存失败，请手动保存："+e.message,"err");
-      showToast("⚠️ 保存失败，请点击「保存到云端」重试");
+      const f=friendlySyncError(e);
+      this.setStatus(f.kind==="config" ? ("角色保存失败："+f.msg+"，请检查同步设置") : "角色保存失败，请稍后重试","err");
+      showToast(f.kind==="config" ? ("⚠️ "+f.msg+"，请检查同步设置后重试") : "⚠️ 保存失败，请点击「保存到云端」重试");
     }
     finally{ this.writing--; }
   },
@@ -3080,10 +4481,11 @@ const SYNC = {
     const list = Array.isArray(prev) ? prev.slice() : [];
     list.push({
       v: next.dataVersion, t: Date.now(), by: next.editor || this.nick(),
-      raid: next.raidMode, teams: (next.teamList||[]).length, chars: (next.charList||[]).length,
-      /* 快照含双模式槽位：回溯时两模式排表完整还原 */
-      snap: { charList: next.charList, teamList: next.teamList, raidMode: next.raidMode,
-              teamSlot4: next.teamSlot4, teamSlot12: next.teamSlot12 }
+      raid: next.raidMode, ban: !!next.banMode, teams: (next.teamList||[]).length, chars: (next.charList||[]).length,
+      /* 快照含双模式+双空间槽位：回溯时两模式/两空间排表完整还原 */
+      snap: { charList: next.charList, teamList: next.teamList, raidMode: next.raidMode, banMode: !!next.banMode,
+              teamSlot4: next.teamSlot4, teamSlot12: next.teamSlot12,
+              banTeamSlot4: next.banTeamSlot4, banTeamSlot12: next.banTeamSlot12 }
     });
     while(list.length > 30) list.shift();
     return list;
@@ -3119,19 +4521,22 @@ const SYNC = {
           dataVersion: (base.dataVersion||0)+1,
           editor: this.nick(),
           room: this.room.id,
-          password: this.room.password || base.password || "",
+          password: roomPwdFields(base).password,
+          ph: roomPwdFields(base).ph,
           createdBy: base.createdBy || ACCT.currentUser() || this.nick(),
           history: []
         };
         if(base.raid12Config) next.raid12Config = base.raid12Config;
-        /* 双模式槽位原样携带：清空历史不得连带丢失另一模式排表 */
+        /* 双模式+双空间槽位原样携带：清空历史不得连带丢失另一模式/另一空间排表 */
         if(Array.isArray(base.teamSlot4)) next.teamSlot4 = base.teamSlot4;
         if(Array.isArray(base.teamSlot12)) next.teamSlot12 = base.teamSlot12;
+        if(Array.isArray(base.banTeamSlot4)) next.banTeamSlot4 = base.banTeamSlot4;
+        if(Array.isArray(base.banTeamSlot12)) next.banTeamSlot12 = base.banTeamSlot12;
         /* 公告为房间级共享数据：清空历史不得连带清空公告 */
         next.notice = (base.notice!=null) ? base.notice : ((this.room&&this.room.notice)||null);
         /* 团长模式：清空历史不得连带清除团长状态 */
         if(base.captain!=null) next.captain = base.captain;
-        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"clear-history "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e):this.cfg.token), message:"clear-history "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
         const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
@@ -3151,8 +4556,9 @@ const SYNC = {
         return;
       }
     }catch(e){
-      this.setStatus("清空失败："+e.message,"err");
-      showToast("⚠️ 清空失败："+e.message);
+      const f=friendlySyncError(e);
+      this.setStatus(f.kind==="config" ? ("清空失败："+f.msg+"，请检查同步设置") : "清空失败，请稍后重试","err");
+      showToast(f.kind==="config" ? ("⚠️ "+f.msg+"，请检查同步设置后重试") : "⚠️ 清空失败，请稍后重试");
     }
     finally{ this.writing--; }
   },
@@ -3185,7 +4591,8 @@ const SYNC = {
           dataVersion: (base.dataVersion||0)+1,
           editor: this.nick(),
           room: this.room.id,
-          password: this.room.password || base.password || "",
+          password: roomPwdFields(base).password,
+          ph: roomPwdFields(base).ph,
           createdBy: base.createdBy || ACCT.currentUser() || this.nick(),
           history: Array.isArray(base.history)?base.history:[],
           notice
@@ -3196,7 +4603,7 @@ const SYNC = {
         if(Array.isArray(base.teamSlot12)) next.teamSlot12 = base.teamSlot12;
         /* 团长模式：保存公告不得影响团长状态 */
         if(base.captain!=null) next.captain = base.captain;
-        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"notice "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e):this.cfg.token), message:"notice "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
         const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
@@ -3216,8 +4623,9 @@ const SYNC = {
         return true;
       }
     }catch(e){
-      this.setStatus("公告保存失败："+e.message,"err");
-      showToast("⚠️ 公告保存失败："+e.message);
+      const f=friendlySyncError(e);
+      this.setStatus(f.kind==="config" ? ("公告保存失败："+f.msg+"，请检查同步设置") : "公告保存失败，请稍后重试","err");
+      showToast(f.kind==="config" ? ("⚠️ "+f.msg+"，请检查同步设置后重试") : "⚠️ 公告保存失败，请稍后重试");
       return false;
     }
     finally{ this.writing--; }
@@ -3248,7 +4656,8 @@ const SYNC = {
           dataVersion: (base.dataVersion||0)+1,
           editor: this.nick(),
           room: this.room.id,
-          password: this.room.password || base.password || "",
+          password: roomPwdFields(base).password,
+          ph: roomPwdFields(base).ph,
           createdBy: base.createdBy || ACCT.currentUser() || this.nick(),
           history: Array.isArray(base.history)?base.history:[]
         };
@@ -3260,7 +4669,7 @@ const SYNC = {
         /* 团长字段：mode=null 表示关闭；否则写入 {user,cid,ts,waveSel}（cid=本机客户端ID，区分同昵称多设备） */
         if(mode && mode.user) next.captain = {user:mode.user, cid:(mode.cid||CLI_ID), ts:mode.ts||Date.now(), waveSel:(mode.waveSel===undefined?null:mode.waveSel)};
         else next.captain = null;
-        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"captain "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e):this.cfg.token), message:"captain "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
         const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
@@ -3281,8 +4690,9 @@ const SYNC = {
         return true;
       }
     }catch(e){
-      this.setStatus("团长状态同步失败："+e.message,"err");
-      if(!silent) showToast("⚠️ 团长状态同步失败："+e.message);
+      const f=friendlySyncError(e);
+      this.setStatus(f.kind==="config" ? ("团长状态同步失败："+f.msg+"，请检查同步设置") : "团长状态同步失败，请稍后重试","err");
+      if(!silent) showToast(f.kind==="config" ? ("⚠️ "+f.msg+"，请检查同步设置后重试") : "⚠️ 团长状态同步失败，请稍后重试");
     }
     finally{ this.writing--; }
     return false;
@@ -3328,14 +4738,18 @@ const SYNC = {
           charList: mergedChars,
           teamList: teamList,
           raidMode: raidMode,
-          /* 双模式槽位：当前模式取本地表（本次保存对象），另一模式云端优先本地兜底，两模式排表互不覆盖 */
-          teamSlot4: (raidMode===4 ? teamList : slotsForPush(base).teamSlot4),
-          teamSlot12: (raidMode===12 ? teamList : slotsForPush(base).teamSlot12),
+          banMode: banMode,
+          /* 双模式+双空间槽位：当前空间取本地表（本次保存对象），其余云端优先本地兜底，排表互不覆盖 */
+          teamSlot4: (raidMode===4&&!banMode ? teamList : slotsForPush(base).teamSlot4),
+          teamSlot12: (raidMode===12&&!banMode ? teamList : slotsForPush(base).teamSlot12),
+          banTeamSlot4: (banMode&&raidMode===4 ? teamList : slotsForPush(base).banTeamSlot4),
+          banTeamSlot12: (banMode&&raidMode===12 ? teamList : slotsForPush(base).banTeamSlot12),
           presence: Object.assign({}, base.presence||{}, this.room.presence||{}, {[this.nick()]:Date.now()}),
           dataVersion: (base.dataVersion||0)+1,
           editor: this.nick(),
           room: this.room.id,
-          password: this.room.password || base.password || "",
+          password: roomPwdFields(base).password,
+          ph: roomPwdFields(base).ph,
           createdBy: base.createdBy || ACCT.currentUser() || this.nick()
         };
         if(this.room && this.room.raid12Config) next.raid12Config = this.room.raid12Config;
@@ -3346,7 +4760,7 @@ const SYNC = {
         /* 团长模式：手动保存原样携带远端团长状态，不覆盖 */
         if(base.captain!=null) next.captain = base.captain;
         else if(this.room && this.room.captain) next.captain = this.room.captain;
-        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"save "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e):this.cfg.token), message:"save "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
         const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
@@ -3365,13 +4779,17 @@ const SYNC = {
         /* 应用合并后的角色列表（含其他用户新增的），排表保持本地 */
         charList = mergedChars;
         saveStorage(); renderAll();
+        this.failCount = 0;
         this.setStatus("已保存","on");
         this.updateSaveBtn();
         showToast("✅ 已保存到云端");
         return;
       }
     }catch(e){
-      this.setStatus("保存失败："+e.message,"err");
+      /* 手动保存失败（有影响）：保留 dirty 供重试，友好提示区分临时/配置问题 */
+      const f=friendlySyncError(e);
+      this.setStatus(f.kind==="config" ? ("保存失败："+f.msg+"，请检查同步设置") : "保存失败，请稍后重试","err");
+      showToast(f.kind==="config" ? ("⚠️ "+f.msg+"，请检查同步设置后重试") : "⚠️ 保存失败，请稍后重试");
     }
     finally{ this.writing--; }
   },
@@ -3380,22 +4798,28 @@ const SYNC = {
     opts = opts||{};
     if(!this.room){
       // 无房间：纯本地操作，不走同步
-      const st = Object.assign({charList, teamList, raidMode, presence:{}}, packTeamSlots());
+      const st = Object.assign({charList, teamList, raidMode, banMode, packMode, packConfig, presence:{}}, packTeamSlots());
       const next = intent(st) || st;
-      charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4;
+      charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; banMode = !!next.banMode;
+      packMode = !!next.packMode; packConfig = next.packConfig||null;
       if(Array.isArray(next.teamSlot4)) teamSlot4 = next.teamSlot4;
       if(Array.isArray(next.teamSlot12)) teamSlot12 = next.teamSlot12;
+      if(Array.isArray(next.banTeamSlot4)) banTeamSlot4 = next.banTeamSlot4;
+      if(Array.isArray(next.banTeamSlot12)) banTeamSlot12 = next.banTeamSlot12;
       syncTeamSlot();
       saveStorage(); renderAll(); updateModeBtns();
       return;
     }
     if(!hasSync(this.cfg)){
       // 本地模式：直接对本地状态应用
-      const st = Object.assign({charList, teamList, raidMode, presence:this.room.presence||{}}, packTeamSlots());
+      const st = Object.assign({charList, teamList, raidMode, banMode, packMode, packConfig, presence:this.room.presence||{}}, packTeamSlots());
       const next = intent(st) || st;
-      charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; this.room.presence = next.presence||{};
+      charList = next.charList; teamList = next.teamList; raidMode = next.raidMode||4; banMode = !!next.banMode; this.room.presence = next.presence||{};
+      packMode = !!next.packMode; packConfig = next.packConfig||null;
       if(Array.isArray(next.teamSlot4)) teamSlot4 = next.teamSlot4;
       if(Array.isArray(next.teamSlot12)) teamSlot12 = next.teamSlot12;
+      if(Array.isArray(next.banTeamSlot4)) banTeamSlot4 = next.banTeamSlot4;
+      if(Array.isArray(next.banTeamSlot12)) banTeamSlot12 = next.banTeamSlot12;
       syncTeamSlot();
       saveStorage(); renderAll(); updateModeBtns();
       return;
@@ -3414,11 +4838,12 @@ const SYNC = {
         next.editor = this.nick();
         next.room = this.room.id;
         next.presence = Object.assign({}, base.presence||{}, next.presence||{}, {[this.nick()]:Date.now()});
-        next.password = this.room.password || base.password || "";
+        next.password = roomPwdFields(base).password;
+        next.ph = roomPwdFields(base).ph;
         if(!next.createdBy) next.createdBy = base.createdBy || ACCT.currentUser() || this.nick();
         /* 版本记录规则：仅手动点击「保存到云端」才追加历史，心跳/后台同步仅原样携带 */
         next.history = Array.isArray(base.history) ? base.history : [];
-        const body = { access_token:(this.cfg._e?_d(this.cfg._e,"busha2026"):this.cfg.token), message:"sync "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
+        const body = { access_token:(this.cfg._e?_d(this.cfg._e):this.cfg.token), message:"sync "+next.dataVersion, content:b64enc(JSON.stringify(next)), branch:this.cfg.branch||"master" };
         if(sha) body.sha = sha;
         const method = sha ? "PUT" : "POST";
         const pr = await fetch(this.url("rooms/"+this.room.id+".json")+"?access_token="+this.tok(), {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
@@ -3434,11 +4859,17 @@ const SYNC = {
         this.room.presence = next.presence;
         /* 心跳仅同步在线状态：绝不把远端数据回灌本地（防止覆盖本地查看模式与编辑中状态） */
         this.renderPresence();
+        this.failCount = 0;
         this.setStatus("已同步","on");
         return;
       }
     }catch(e){
-      this.setStatus("写入失败："+e.message,"err");
+      /* 心跳/后台同步失败：不影响本地数据，静默降级自动重试，不标红不弹toast（连续失败才温和提示） */
+      this.failCount = (this.failCount||0)+1;
+      const f=friendlySyncError(e);
+      if(this.failCount>=3){
+        this.setStatus(f.kind==="config" ? ("同步中断："+f.msg+"，请检查同步设置") : "同步中断，自动重试中","warn");
+      }
       /* 本地回退：Gitee 失败时仍更新本地状态，确保拖拽等操作即时生效 */
       try{
         const st = {charList, teamList, raidMode, presence:this.room?this.room.presence:{}};
@@ -3614,7 +5045,7 @@ function captainShowTakeoverPopup(byUser){
 }
 
 /* ---------- 渲染 ---------- */
-function renderAll(){ renderCharList(); renderTeamTable(); updateStat(); SYNC.renderPresence(); updateCaptainUI(); 
+function renderAll(){ renderCharList(); renderTeamTable(); updateStat(); SYNC.renderPresence(); updateCaptainUI(); updateBanUI(); updatePackUI();
   const badge=document.getElementById("syncBadge");
   if(SYNC.room){ if(badge) badge.textContent="房间 "+SYNC.room.id; }
   else { if(badge) badge.textContent="未加入房间"; }
@@ -3627,9 +5058,12 @@ function updateModeBtns(){
     else{ b.classList.remove("active"); b.style.background="transparent"; b.style.color="var(--mut)"; }
   });
   const autoBtn=document.getElementById("autoArrange");
-  autoBtn.textContent = raidMode===12 ? "一键排表（12人红黄绿）" : "一键均衡排完所有角色";
+  autoBtn.textContent = banMode
+    ? (raidMode===12 ? "一键排表（Ban·12人红黄绿）" : "一键排表（Ban·4人）")
+    : (raidMode===12 ? (packMode?"一键排表（12人·包队）":"一键排表（12人红黄绿）") : "一键均衡排完所有角色");
   const cfg=document.getElementById("raid12Config");
   if(cfg) cfg.style.display = raidMode===12 ? "flex" : "none";
+  updatePackUI();
 }
 
 function updateStat(){
@@ -3654,35 +5088,55 @@ function renderCharList(){
   sortedOwners.forEach(owner=>{
     const chars=groups[owner].slice().sort((a,b)=>b.power-a.power);
     const used=chars.filter(c=>usedIds.has(c.id)).length;
+    const bannedCnt=chars.filter(c=>c.banned).length;
     const hdr=document.createElement("div");
     hdr.className="owner-header";
     hdr.innerHTML=`<label style="display:flex;align-items:center;gap:6px;cursor:pointer">
       <input type="checkbox" class="owner-select-all" data-owner="${escapeHtml(owner)}" style="width:16px;height:16px;cursor:pointer">
       <span>${escapeHtml(owner)}</span>
     </label>
-    <span class="cnt">${chars.length}个角色 · ${used}已配置 / ${chars.length-used}未配置</span>
+    <span class="cnt">${chars.length}个角色 · ${used}已配置 / ${chars.length-used}未配置${bannedCnt?' · <b style="color:var(--red)">'+bannedCnt+'已ban</b>':''}</span>
     <button class="owner-toggle" data-toggle="${escapeHtml(owner)}" title="缩略/展开">▼</button>
-    <button class="sm danger batch-del-btn" data-batch-del="${escapeHtml(owner)}" style="margin-left:auto;display:none">批量删除</button>`;
+    <button class="sm danger batch-del-btn" data-batch-del="${escapeHtml(owner)}" style="margin-left:auto;display:none">批量删除</button>
+    ${banMode?`<button class="sm batch-ban-btn" data-batch-ban="${escapeHtml(owner)}" title="批量ban除该玩家全部角色（不参与一键排表）">🚫 批量ban</button>
+    <button class="sm batch-ban-btn" data-batch-ban-sel="${escapeHtml(owner)}" title="批量ban除该玩家已勾选的角色（不参与一键排表）">🚫 批量ban选中</button>`:''}`;
     wrap.appendChild(hdr);
     const charWrap=document.createElement("div");
     charWrap.className="owner-chars";
     charWrap.dataset.ownerWrap=owner;
     chars.forEach(c=>{
       const div=document.createElement("div");
-      div.className=`card ${c.type} ${usedIds.has(c.id)?"used":""}`;
+      const isUnassigned = !usedIds.has(c.id) && !c.banned;
+      div.className=`card ${c.type} ${usedIds.has(c.id)?"used":""} ${c.banned?"banned":""} ${isUnassigned?"unassigned":""}`;
       /* 选中玩家复合特效：搜索高亮（金系）/ 点击高亮（主题色系）应用到角色管理卡 */
       const ol=(c.owner||"").toLowerCase();
       if(hlQ && ol.includes(hlQ)) div.classList.add("highlight");
       if(clickHL && ol===clickHL.toLowerCase()) div.classList.add("click-hl");
+      /* 未入队原因提示 */
+      let unassignedReason="";
+      if(isUnassigned){
+        const hCount=charList.filter(x=>x.type==="N" && !x.banned).length;
+        if(hCount===0) unassignedReason="无奶角色可建队";
+        else{
+          const ownerTeams=teamList.filter(t=>t.slots.some(s=>{const ch=charList.find(x=>x.id===s.charId); return ch && ch.owner===c.owner;})).length;
+          const fullTeams=teamList.filter(t=>t.slots.length>=4).length;
+          if(ownerTeams>=teamList.length && teamList.length>0) unassignedReason=`该玩家已占满${teamList.length}个队伍位置`;
+          else if(fullTeams>=teamList.length && teamList.length>0) unassignedReason="所有队伍已满员";
+          else if(c.power===0) unassignedReason="战力为0的混子号，按战力排序排末位";
+          else unassignedReason="未排入队伍（队伍无空位或同波同玩家冲突）";
+        }
+        div.title=unassignedReason;
+      }
       div.innerHTML=`
         <div style="display:flex;align-items:flex-start;gap:8px">
           <input type="checkbox" class="char-checkbox" data-char-id="${c.id}" data-owner="${escapeHtml(c.owner)}" style="margin-top:4px;width:16px;height:16px;cursor:pointer;flex-shrink:0">
           <div style="flex:1;min-width:0">
-            <h4><span class="type-tag ${c.type}">${c.type==="c"?"C":"奶"}</span>${escapeHtml(c.owner)}·${escapeHtml(c.name)} <span class="pwr">${c.power}</span></h4>
+            <h4><span class="type-tag ${c.type}">${c.type==="c"?"C":"奶"}</span>${escapeHtml(c.owner)}·${escapeHtml(c.name)}${c.banned?'<span class="ban-stamp">🚫ban</span>':''}${isUnassigned?`<span class="ban-stamp" style="color:var(--mut);border-color:var(--mut)">未入队</span>`:''} <span class="pwr">${c.power}</span></h4>
             <div class="meta">A:${escapeHtml(c.a||"-")} B:${escapeHtml(c.b||"-")}</div>
             <div style="margin-top:6px;display:flex;gap:6px">
               <button class="sm" data-edit="${c.id}">编辑</button>
               <button class="sm danger" data-del="${c.id}">删除</button>
+              ${banMode?`<button class="sm ban-btn ${c.banned?"on":""}" data-ban="${c.id}" title="${c.banned?"取消ban除该角色":"ban除该角色（不参与一键排表）"}">${c.banned?"解除ban":"🚫ban"}</button>`:''}
             </div>
           </div>
         </div>`;
@@ -3692,6 +5146,9 @@ function renderCharList(){
   });
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editChar(Number(b.dataset.edit)));
   document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delChar(Number(b.dataset.del)));
+  document.querySelectorAll("[data-ban]").forEach(b=>b.onclick=()=>toggleCharBan(Number(b.dataset.ban)));
+  document.querySelectorAll("[data-batch-ban]").forEach(b=>b.onclick=()=>batchBanOwner(b.dataset.batchBan));
+  document.querySelectorAll("[data-batch-ban-sel]").forEach(b=>b.onclick=()=>batchBanOwnerSelected(b.dataset.batchBanSel));
 
   /* 缩略/展开按钮（按玩家组） */
   document.querySelectorAll(".owner-toggle").forEach(btn=>{
@@ -3799,9 +5256,11 @@ function updateGlobalBatchUI(){
   const cnt=checked.length;
   const cntEl=document.getElementById("batchSelCnt");
   const delBtn=document.getElementById("globalBatchDel");
+  const banBtn=document.getElementById("globalBatchBan");
   const selAllBtn=document.getElementById("globalSelectAll");
   if(cntEl) cntEl.textContent=`已选 ${cnt} 个`;
   if(delBtn){ delBtn.disabled=cnt===0; delBtn.style.opacity=cnt===0?".4":"1"; }
+  if(banBtn){ banBtn.style.display=banMode?"inline-block":"none"; banBtn.disabled=cnt===0; banBtn.style.opacity=cnt===0?".4":"1"; }
   if(selAllBtn){
     const allCbs=document.querySelectorAll(".char-checkbox");
     const allChecked=allCbs.length>0&&Array.from(allCbs).every(c=>c.checked);
@@ -4123,8 +5582,9 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     /* 4人模式彻底忽略12人残留的 raidColor/group 字段，杜绝切模式后出现红黄绿队 */
     const rColor = isRaid12 ? (team.raidColor || raidColors[tIdx%3]) : null;
     if(isRaid12 && rColor){ curWaveColors.push(rColor); }
+    const isPackTeam = isRaid12 && !!team.isPack;
     const block=document.createElement("div");
-    block.className = "team-block" + (rColor ? " raid-"+rColor : "") + viewClass + (currentWaveHL===curGroup ? " wave-active" : "");
+    block.className = "team-block" + (rColor ? " raid-"+rColor : "") + (isPackTeam ? " pack-team" : "") + viewClass + (currentWaveHL===curGroup ? " wave-active" : "");
     block.draggable=true;
     block.dataset.teamDrag=tIdx;
     block.dataset.waveNum=curGroup;
@@ -4135,7 +5595,7 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     const waveNum = isRaid12 ? curGroup : (tIdx+1);
     const teamLabel = rColor ? `第${waveNum}波-${raidLabels[rColor]}` : `第${tIdx+1}波`;
     const hDisp = hcount>0 ? hmax : 0;
-    let html=`<div class="team-title"><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${rColor?`<span class="raid-tag ${rColor}">第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${rColor?'':teamLabel}（${owners.size}人）${currentWaveHL===curGroup?'<span class="wave-fight">⚔ 攻坚中</span>':''}
+    let html=`<div class="team-title"><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${rColor?`<span class="raid-tag ${rColor}">第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${isPackTeam?'<span class="pack-stamp">📦包队</span>':''}${rColor?'':teamLabel}（${owners.size}人）${currentWaveHL===curGroup?'<span class="wave-fight">⚔ 攻坚中</span>':''}
       <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hDisp}</b> <span style="font-size:0.8em;color:var(--mut)">（C总${csum} + 奶${hDisp}${hcount>1?`(${hcount}奶最高)`:''}）</span> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></span>${isUltra?'':`<button class="del-team-btn" draggable="false" data-t="${tIdx}" title="删除此队伍" style="background:none;border:none;color:var(--mut);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;line-height:1;margin-left:auto">✕</button>`}</div><div class="team-grid">`;
     /* 补齐空位到4人，支持用户手动分配角色 */
     const slotsForRender = team.slots.slice();
@@ -4366,6 +5826,278 @@ async function delChar(id){
   });
 }
 
+/* ---------- Ban玩法：角色/玩家ban除 ---------- */
+/* 更新ban玩法UI：开关状态、已ban计数、排表横幅、统计 */
+function updateBanUI(){
+  const sw=document.getElementById("banModeSwitch");
+  if(sw) sw.checked=banMode;
+  /* 排表页工具栏开关与角色管理开关保持一致 */
+  const swT=document.getElementById("banModeSwitchTable");
+  if(swT) swT.checked=banMode;
+  const bar=document.getElementById("banModeBar");
+  if(bar) bar.classList.toggle("on", banMode);
+  const badge=document.getElementById("banCountBadge");
+  const cnt=charList.filter(c=>c.banned).length;
+  if(badge){ badge.style.display=cnt>0?"inline-block":"none"; badge.textContent=`已ban ${cnt} 角色`; }
+  const hint=document.getElementById("banModeHint");
+  if(hint) hint.textContent=banMode?"当前处于Ban玩法独立空间：被ban角色/玩家不参与4人/12人一键排表":"开启后进入独立排表空间，可手动ban除角色/玩家，被ban者不参与4人/12人一键排表";
+  const banner=document.getElementById("banBanner");
+  if(banner){
+    banner.style.display=banMode?"flex":"none";
+    const bt=document.getElementById("banBannerText");
+    if(bt) bt.textContent=`被ban角色/玩家不参与一键排表（已ban ${cnt} 角色）`;
+  }
+  /* 非ban模式：角色管理隐藏全局批量ban按钮 */
+  const gBan=document.getElementById("globalBatchBan");
+  if(gBan) gBan.style.display=banMode?"inline-block":"none";
+  updateStat();
+}
+/* 切换单个角色ban状态；ban模式下被ban角色从当前排表移除占位 */
+async function toggleCharBan(id){
+  const numId=Number(id);
+  const c=charList.find(x=>Number(x.id)===numId);
+  if(!c) return;
+  const toBan=!c.banned;
+  pushHistory();
+  SYNC.writeStateRemote(st=>{
+    st.charList.forEach(x=>{ if(Number(x.id)===numId) x.banned=toBan; });
+    if(banMode && toBan && st.teamList && st.teamList.length>0){
+      /* ban模式下：被ban角色从当前排表清空占位，不改动其他队伍顺序与波数 */
+      st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId && Number(s.charId)===numId) s.charId=null; }));
+    }
+    return st;
+  });
+  showToast(toBan?`🚫 已ban除 ${c.name}（不参与一键排表）`:`✅ 已解除 ${c.name} 的ban`);
+}
+/* 批量ban除某玩家全部角色 */
+async function batchBanOwner(owner){
+  if(!owner) return;
+  const ids=charList.filter(c=>(c.owner||"")===owner).map(c=>Number(c.id));
+  if(!ids.length) return;
+  const already=charList.filter(c=>ids.includes(Number(c.id))&&c.banned).length;
+  const toBan=already<ids.length; /* 有未ban的则执行ban，全部已ban则执行解除 */
+  const label=toBan?"ban除":"解除ban";
+  if(!confirm(`确认批量${label}玩家「${owner}」的 ${ids.length} 个角色？${toBan?"（ban后不参与4人/12人一键排表）":""}`)) return;
+  pushHistory();
+  SYNC.writeStateRemote(st=>{
+    st.charList.forEach(c=>{ if(ids.includes(Number(c.id))) c.banned=toBan; });
+    if(banMode && toBan && st.teamList && st.teamList.length>0){
+      st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId && ids.includes(Number(s.charId))) s.charId=null; }));
+    }
+    return st;
+  });
+  showToast(toBan?`🚫 已批量ban除玩家「${owner}」全部角色`:`✅ 已批量解除玩家「${owner}」的ban`);
+}
+/* 批量ban除某玩家已勾选的角色（玩家组头部按钮，无需滑到顶部） */
+async function batchBanOwnerSelected(owner){
+  if(!owner) return;
+  const cbs=document.querySelectorAll(`.char-checkbox[data-owner="${owner.replace(/"/g,'&quot;')}"]:checked`);
+  const ids=Array.from(cbs).map(c=>Number(c.dataset.charId));
+  if(!ids.length){ showToast("请先勾选该玩家下的角色"); return; }
+  const already=charList.filter(c=>ids.includes(Number(c.id))&&c.banned).length;
+  const toBan=already<ids.length; /* 有未ban的则执行ban，全部已ban则执行解除 */
+  const label=toBan?"ban除":"解除ban";
+  if(!confirm(`确认批量${label}玩家「${owner}」勾选的 ${ids.length} 个角色？${toBan?"（ban后不参与4人/12人一键排表）":""}`)) return;
+  pushHistory();
+  SYNC.writeStateRemote(st=>{
+    st.charList.forEach(c=>{ if(ids.includes(Number(c.id))) c.banned=toBan; });
+    if(banMode && toBan && st.teamList && st.teamList.length>0){
+      st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId && ids.includes(Number(s.charId))) s.charId=null; }));
+    }
+    return st;
+  });
+  showToast(toBan?`🚫 已批量ban除玩家「${owner}」勾选的 ${ids.length} 个角色`:`✅ 已批量解除玩家「${owner}」勾选角色的ban`);
+}
+/* 批量ban除选中的角色 */
+async function batchBanSelected(){
+  const cbs=document.querySelectorAll(".char-checkbox:checked");
+  const ids=Array.from(cbs).map(c=>Number(c.dataset.charId));
+  if(!ids.length) return;
+  const already=charList.filter(c=>ids.includes(Number(c.id))&&c.banned).length;
+  const toBan=already<ids.length;
+  if(!confirm(`确认批量${toBan?"ban除":"解除ban"}选中的 ${ids.length} 个角色？${toBan?"（ban后不参与4人/12人一键排表）":""}`)) return;
+  pushHistory();
+  SYNC.writeStateRemote(st=>{
+    st.charList.forEach(c=>{ if(ids.includes(Number(c.id))) c.banned=toBan; });
+    if(banMode && toBan && st.teamList && st.teamList.length>0){
+      st.teamList.forEach(t=>t.slots.forEach(s=>{ if(s.charId && ids.includes(Number(s.charId))) s.charId=null; }));
+    }
+    return st;
+  });
+  showToast(toBan?`🚫 已批量ban除 ${ids.length} 个角色`:`✅ 已批量解除 ${ids.length} 个角色的ban`);
+}
+/* 退出ban模式（仅ban空间横幅按钮）：立即退出ban玩法空间，切换为非ban模式排表（保留已ban标记，不解除ban） */
+function exitBanMode(){
+  if(!banMode) return;
+  switchBanMode(false);
+  showToast("已退出Ban玩法空间，切换为非ban模式排表");
+}
+/* 切换ban玩法空间：进入/退出独立排表空间（本地视图偏好，不触发未保存提示） */
+function switchBanMode(on){
+  on=!!on;
+  if(on===banMode) return;
+  syncTeamSlot(); /* 切走前把当前空间表写回槽位 */
+  banMode=on;
+  teamList=currentSlotTable();
+  /* 目标空间槽位为空：自动排表兜底（ban空间排表同样排除已ban角色） */
+  if(!teamList.length) teamList=arrange(charList, raidMode);
+  saveStorage();
+  renderAll(); updateModeBtns(); updateBanUI();
+}
+
+/* ---------- 包队模式 ---------- */
+/* 包队配置摘要（用于横幅/徽标显示） */
+function packConfigSummary(){
+  if(!packConfig || !packConfig.teams || !packConfig.teams.length) return "";
+  return packConfig.teams.map((t,i)=>`队${i+1}：${t.join("、")}`).join(" ｜ ");
+}
+/* 更新包队UI：开关状态、徽标、横幅、配置按钮 */
+function updatePackUI(){
+  const bar=document.getElementById("packModeBar");
+  if(bar){
+    /* 包队模式仅12人团本可用：4人团本隐藏开关栏 */
+    bar.style.display = raidMode===12 ? "flex" : "none";
+    bar.classList.toggle("on", packMode);
+  }
+  const sw=document.getElementById("packModeSwitch");
+  if(sw) sw.checked=packMode;
+  const badge=document.getElementById("packCountBadge");
+  if(badge){
+    if(packConfig && packConfig.teams && packConfig.teams.length){
+      badge.style.display="inline-block";
+      badge.textContent=`已包 ${packConfig.teams.length} 队`;
+    } else {
+      badge.style.display="none";
+    }
+  }
+  const cfgBtn=document.getElementById("packConfigBtn");
+  if(cfgBtn) cfgBtn.style.display = packMode ? "inline-block" : "none";
+  const hint=document.getElementById("packModeHint");
+  if(hint){
+    hint.textContent = packMode
+      ? `当前包队：${packConfigSummary()||"未配置"}`
+      : "仅12人团本可用：固定1-2个四人队伍，按波内强度对比分配红黄绿队";
+  }
+  const banner=document.getElementById("packBanner");
+  if(banner){
+    /* 包队横幅仅12人团本显示（4人团本不适用） */
+    banner.style.display = (packMode && raidMode===12) ? "flex" : "none";
+    const bt=document.getElementById("packBannerText");
+    if(bt) bt.textContent = `固定包队按波内强度对比分配红黄绿队：${packConfigSummary()||"未配置"}`;
+  }
+  /* 排表页自动排表按钮标签 */
+  const autoBtn=document.getElementById("autoArrange");
+  if(autoBtn){
+    autoBtn.textContent = banMode
+      ? (raidMode===12 ? "一键排表（Ban·12人红黄绿）" : "一键排表（Ban·4人）")
+      : (raidMode===12 ? (packMode?"一键排表（12人·包队）":"一键排表（12人红黄绿）") : "一键均衡排完所有角色");
+  }
+}
+/* 打开包队配置弹窗并填充玩家下拉 */
+function openPackModal(){
+  if(raidMode!==12){ showToast("⚠️ 包队模式仅适用于12人团本"); return; }
+  populatePackSelects();
+  /* 回显当前配置 */
+  const radios=document.querySelectorAll('input[name="packCount"]');
+  const count = (packConfig && packConfig.teams && packConfig.teams.length) ? packConfig.teams.length : 1;
+  radios.forEach(r=>{ r.checked = Number(r.value)===count; });
+  document.getElementById("packTeam2").style.display = count===2 ? "" : "none";
+  if(packConfig && packConfig.teams){
+    packConfig.teams.forEach((team,ti)=>{
+      team.forEach((owner,si)=>{
+        const sel=document.getElementById(`packSel_${ti}_${si}`);
+        if(sel) sel.value=owner;
+      });
+    });
+  }
+  document.getElementById("packModalMsg").textContent="";
+  openModal("packModal");
+}
+/* 填充包队玩家下拉（全部玩家，含当前已选）；下拉不存在时动态创建 */
+function populatePackSelects(){
+  const owners=[...new Set(charList.map(c=>c.owner).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"zh"));
+  const opts='<option value="">选择玩家…</option>'+owners.map(o=>'<option value="'+escapeHtml(o)+'">'+escapeHtml(o)+'</option>').join("");
+  for(let ti=0;ti<2;ti++){
+    const container=document.getElementById(ti===0?"packTeam1Selects":"packTeam2Selects");
+    for(let si=0;si<4;si++){
+      let sel=document.getElementById(`packSel_${ti}_${si}`);
+      if(!sel){
+        sel=document.createElement("select");
+        sel.id=`packSel_${ti}_${si}`;
+        sel.style.cssText="flex:1;min-width:90px;padding:5px 6px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px";
+        if(container) container.appendChild(sel);
+      }
+      const cur=sel.value;
+      sel.innerHTML=opts;
+      if(cur && owners.includes(cur)) sel.value=cur;
+    }
+  }
+}
+/* 保存包队配置：校验每队4个不同玩家、两队不重叠、玩家有角色 */
+function savePackConfig(){
+  const count = Number(document.querySelector('input[name="packCount"]:checked').value) || 1;
+  const teams=[];
+  for(let ti=0;ti<count;ti++){
+    const team=[];
+    for(let si=0;si<4;si++){
+      const sel=document.getElementById(`packSel_${ti}_${si}`);
+      const v = sel ? sel.value.trim() : "";
+      if(!v){ showToast(`⚠️ 队伍${ti+1}第${si+1}位未选择玩家`); return; }
+      team.push(v);
+    }
+    if(new Set(team).size!==4){ showToast(`⚠️ 队伍${ti+1}存在重复玩家，请选择4个不同玩家`); return; }
+    teams.push(team);
+  }
+  /* 两队不重叠 */
+  if(count===2){
+    const all=teams.flat();
+    if(new Set(all).size!==8){ showToast("⚠️ 两个队伍不能包含相同玩家"); return; }
+  }
+  /* 每个玩家至少有1个角色 */
+  for(const team of teams){
+    for(const o of team){
+      if(!charList.some(c=>c.owner===o)){ showToast(`⚠️ 玩家「${o}」没有角色，无法包队`); return; }
+    }
+  }
+  pushHistory();
+  packConfig={teamCount:count, teams};
+  packMode=true;
+  saveStorage();
+  /* 保存后重新排表：包队模式立即生效 */
+  SYNC.writeStateLocal(st=>{
+    st.packConfig=packConfig; st.packMode=true;
+    st.teamList=arrange(st.charList, raidMode, st.raid12Config);
+    return st;
+  });
+  closeModal("packModal");
+  showToast(`📦 已启用包队模式：${count}个固定队伍，按波内强度分配红黄绿队`);
+}
+/* 切换包队模式开关：开启时打开配置弹窗 */
+function switchPackMode(on){
+  on=!!on;
+  if(on===packMode) return;
+  if(on){
+    if(raidMode!==12){ showToast("⚠️ 包队模式仅适用于12人团本"); return; }
+    openPackModal();
+    return;
+  }
+  /* 关闭包队模式：保留配置，可随时重新开启 */
+  pushHistory();
+  packMode=false;
+  saveStorage();
+  SYNC.writeStateLocal(st=>{
+    st.packMode=false;
+    st.teamList=arrange(st.charList, raidMode, st.raid12Config);
+    return st;
+  });
+  showToast("已退出包队模式（保留配置，可随时重新开启）");
+}
+/* 退出包队模式（排表页横幅按钮） */
+function exitPackMode(){
+  if(!packMode) return;
+  switchPackMode(false);
+}
+
 /* ---------- 顶栏动作 ---------- */
 /* 从DOM读取12人模式配置 */
 function readRaid12Config(){
@@ -4440,7 +6172,7 @@ function exportData(){
   if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
   const rows=charList.map(c=>({
     "归属玩家":c.owner, "角色名称":c.name, "战力数值":c.power,
-    "类型":c.type==="c"?"C":c.type, "A套":c.a||"", "B套":c.b||""
+    "类型":c.type==="c"?"C":c.type, "A套":c.a||"", "B套":c.b||"", "Ban状态":c.banned?"已ban":"正常"
   }));
   const ws=XLSX.utils.json_to_sheet(rows);
   const wb=XLSX.utils.book_new();
@@ -4518,7 +6250,10 @@ async function doImport(){
       if(type==="healer"||type==="n") type="N"; if(type!=="c"&&type!=="N") type="c";
       const a=(r["A套"]||r["a"]||"").toString().trim();
       const b=(r["B套"]||r["b"]||"").toString().trim();
-      return {owner,name,power,type,a,b};
+      /* Ban状态列：已ban/ban/是/1/true/禁 均视为ban */
+      const banRaw=(r["Ban状态"]||r["ban"]||r["banned"]||"").toString().trim();
+      const banned=/ban|已ban|是|1|true|禁/i.test(banRaw);
+      return {owner,name,power,type,a,b,banned};
     }).filter(c=>c.owner&&c.name);
     if(!arr.length){ alert("未找到有效数据，请检查列名是否包含：归属玩家、角色名称"); return; }
     // 分配ID
@@ -4784,43 +6519,98 @@ async function doJoinRoom(){
   const remember=document.getElementById("rememberRoom").checked;
   const msg=document.getElementById("loginMsg");
   if(!rid){ msg.textContent="请输入房间号"; return; }
+  const rooms=getRememberedRooms();
+  const remembered = rooms[rid];
+  /* 密码为空但有记住的哈希：直接用哈希进房，不再需要明文 */
+  if(!pwd && remembered && remembered.ph){
+    msg.textContent = "验证中…";
+    await SYNC.checkRoom(rid, "", ()=>{
+      closeModal("loginModal"); msg.textContent=""; document.getElementById("joinRoomPwd").value="";
+    }, (err)=>{ msg.textContent = "✗ "+err; }, remembered.pwd);
+    return;
+  }
   if(!pwd){ msg.textContent="请输入密码"; return; }
   msg.textContent = "验证中…";
   await SYNC.checkRoom(rid, pwd,
     ()=>{
       closeModal("loginModal"); msg.textContent=""; document.getElementById("joinRoomPwd").value="";
-      /* 记住房间：勾选则保存到本地 */
+      /* 记住房间：勾选则保存哈希到本地 */
       if(remember) saveRememberedRoom(rid, pwd);
       else removeRememberedRoom(rid);
     },
     (err)=>{ msg.textContent = "✗ "+err; }
   );
 }
-/* 记住房间：本地存储 */
-function getRememberedRooms(){ try{ return JSON.parse(localStorage.getItem(LS_REMEMBER))||{}; }catch(e){ return {}; } }
-function saveRememberedRoom(rid, pwd){
-  const rooms=getRememberedRooms();
-  rooms[rid]={pwd, ts:Date.now()};
-  /* 最多记住 20 个房间，超出按时间清理 */
-  const keys=Object.keys(rooms);
-  if(keys.length>20){
-    keys.sort((a,b)=>(rooms[a].ts||0)-(rooms[b].ts||0));
-    for(let i=0;i<keys.length-20;i++) delete rooms[keys[i]];
+/* 记住房间：按账号隔离存储（v2 格式 {账号:{房间:{pwd,ph,ts}}}）。
+   密码以加盐 SHA-256 哈希保存，不再存明文。
+   同一账号同一浏览器刷新自动进入；切换账号/重新登录会清除该账号的记住记录，需重新输入密码；
+   换电脑登录因 localStorage 独立，天然需要重新输入。 */
+function rememberStore(){
+  let s={};
+  try{ s=JSON.parse(localStorage.getItem(LS_REMEMBER_V2))||{}; }catch(e){ s={}; }
+  /* 兼容旧数据：无 v2 数据时从旧键迁移（旧格式 {房间:{...}} 归入当前账号） */
+  if(Object.keys(s).length===0){
+    let old={};
+    try{ old=JSON.parse(localStorage.getItem(LS_REMEMBER))||{}; }catch(e){ old={}; }
+    if(old && typeof old==="object" && Object.keys(old).length){
+      const user=ACCT.currentUser();
+      if(user){ s[user]=old; try{ localStorage.setItem(LS_REMEMBER_V2, JSON.stringify(s)); }catch(e){} }
+      try{ localStorage.removeItem(LS_REMEMBER); }catch(e){}
+    }
   }
-  localStorage.setItem(LS_REMEMBER, JSON.stringify(rooms));
+  return s;
+}
+function rememberSave(s){ try{ localStorage.setItem(LS_REMEMBER_V2, JSON.stringify(s)); }catch(e){} }
+function getRememberedRooms(){
+  const user=ACCT.currentUser();
+  if(!user) return {};
+  const s=rememberStore();
+  const rooms=s[user]||{};
+  /* 自愈：无 ph 明文升级为哈希；ph:1 但内容不是合法哈希的损坏条目重新哈希 */
+  let changed=false;
+  for(const k in rooms){
+    const r=rooms[k];
+    if(!r || typeof r.pwd!=="string" || !r.pwd){ delete rooms[k]; changed=true; continue; }
+    if(!r.ph){ r.pwd=pwdHash(r.pwd); r.ph=1; changed=true; }
+    else if(!/^[0-9a-f]{64}$/.test(r.pwd)){ r.pwd=pwdHash(r.pwd); changed=true; }
+  }
+  if(changed) rememberSave(s);
+  return rooms;
+}
+function saveRememberedRoom(rid, pwd){
+  const user=ACCT.currentUser();
+  if(!user) return;
+  const s=rememberStore();
+  if(!s[user]) s[user]={};
+  s[user][rid]={pwd:pwdHash(pwd), ph:1, ts:Date.now()};
+  /* 最多记住 20 个房间，超出按时间清理 */
+  const keys=Object.keys(s[user]);
+  if(keys.length>20){
+    keys.sort((a,b)=>(s[user][a].ts||0)-(s[user][b].ts||0));
+    for(let i=0;i<keys.length-20;i++) delete s[user][keys[i]];
+  }
+  rememberSave(s);
 }
 function removeRememberedRoom(rid){
-  const rooms=getRememberedRooms();
-  delete rooms[rid];
-  localStorage.setItem(LS_REMEMBER, JSON.stringify(rooms));
+  const user=ACCT.currentUser();
+  if(!user) return;
+  const s=rememberStore();
+  if(!s[user]) return;
+  delete s[user][rid];
+  rememberSave(s);
 }
-/* 自动填充已记住房间，或自动加入 */
+function clearRememberedRooms(user){
+  const s=rememberStore();
+  if(user) delete s[user];
+  rememberSave(s);
+}
+/* 自动填充已记住房间，或自动加入（记住的密码为哈希，不填回输入框，直接勾选记住） */
 function tryAutoFillRememberedRoom(){
   const rid=document.getElementById("joinRoomId").value.trim();
   const rooms=getRememberedRooms();
   /* 优先匹配已填写的房间号 */
   if(rid && rooms[rid]){
-    document.getElementById("joinRoomPwd").value=rooms[rid].pwd;
+    document.getElementById("joinRoomPwd").value="";
     document.getElementById("rememberRoom").checked=true;
     return true;
   }
@@ -4829,11 +6619,68 @@ function tryAutoFillRememberedRoom(){
   if(keys.length===1){
     const r=keys[0];
     document.getElementById("joinRoomId").value=r;
-    document.getElementById("joinRoomPwd").value=rooms[r].pwd;
+    document.getElementById("joinRoomPwd").value="";
     document.getElementById("rememberRoom").checked=true;
     return true;
   }
   return false;
+}
+/* 刷新后自动回到已记住的房间：URL 带房间号且已记住 → 直接进入；
+   只有一个记住房间 → 直接进入；多个 → 不自动进入，由用户选择 */
+async function autoJoinRemembered(){
+  const user=ACCT.currentUser();
+  if(!user) return false;
+  const rooms=getRememberedRooms();
+  const keys=Object.keys(rooms);
+  if(!keys.length) return false;
+  const m=location.hash.match(/room=([^&]+)/);
+  let target=null;
+  if(m){
+    const rid=decodeURIComponent(m[1]);
+    if(rooms[rid]) target=rid;
+  }
+  if(!target && keys.length===1) target=keys[0];
+  if(!target) return false;
+  const msg=document.getElementById("loginMsg");
+  if(msg) msg.textContent="自动进入房间 "+target+"…";
+  await SYNC.checkRoom(target, "", ()=>{
+    closeModal("loginModal");
+    if(msg) msg.textContent="";
+    document.getElementById("joinRoomPwd").value="";
+  }, (err)=>{
+    if(msg) msg.textContent="✗ "+err;
+  }, rooms[target].pwd);
+  return true;
+}
+/* 记住房间快捷列表：多房间时一键进入 */
+function renderRememberedList(){
+  const wrap=document.getElementById("rememberedList");
+  const chips=document.getElementById("rememberedChips");
+  if(!wrap||!chips) return;
+  const rooms=getRememberedRooms();
+  const keys=Object.keys(rooms);
+  if(!keys.length){ wrap.style.display="none"; return; }
+  wrap.style.display="block";
+  chips.innerHTML="";
+  keys.forEach(rid=>{
+    const b=document.createElement("button");
+    b.type="button";
+    b.className="sm";
+    b.textContent=rid;
+    b.style.cssText="cursor:pointer";
+    b.onclick=async()=>{
+      document.getElementById("joinRoomId").value=rid;
+      document.getElementById("joinRoomPwd").value="";
+      document.getElementById("rememberRoom").checked=true;
+      const msg=document.getElementById("loginMsg");
+      if(msg) msg.textContent="进入房间 "+rid+"…";
+      await SYNC.checkRoom(rid, "", ()=>{
+        closeModal("loginModal");
+        if(msg) msg.textContent="";
+      }, (err)=>{ if(msg) msg.textContent="✗ "+err; }, rooms[rid].pwd);
+    };
+    chips.appendChild(b);
+  });
 }
 async function doCreateRoom(){
   const rid=document.getElementById("createRoomId").value.trim();
@@ -4856,8 +6703,8 @@ async function doCreateRoom(){
 function downloadTemplate(){
   if(typeof XLSX==="undefined"){ alert("Excel库未加载，请刷新页面重试"); return; }
   const example=[
-    { "归属玩家":"鸟", "角色名称":"剑魂", "战力数值":15226, "类型":"C", "A套":"黄金乡", "B套":"黄金乡" },
-    { "归属玩家":"鸟", "角色名称":"缪斯", "战力数值":40328, "类型":"N", "A套":"黄金乡", "B套":"" }
+    { "归属玩家":"鸟", "角色名称":"剑魂", "战力数值":15226, "类型":"C", "A套":"黄金乡", "B套":"黄金乡", "Ban状态":"正常" },
+    { "归属玩家":"鸟", "角色名称":"缪斯", "战力数值":40328, "类型":"N", "A套":"黄金乡", "B套":"", "Ban状态":"已ban" }
   ];
   const ws=XLSX.utils.json_to_sheet(example);
   const wb=XLSX.utils.book_new();
@@ -4914,10 +6761,78 @@ function bindTab(){
 }
 
 /* ---------- 管理员模块 ---------- */
+/* 同步 SHA-256（管理员密码加盐哈希，源码不存明文密码） */
+function sha256(ascii){
+  function rr(v,a){ return (v>>>a)|(v<<(32-a)); }
+  const maxWord=Math.pow(2,32);
+  let result="";
+  const words=[], asciiBitLength=ascii.length*8;
+  let hash=sha256.h=sha256.h||[], k=sha256.k=sha256.k||[], primeCounter=k.length;
+  const isComposite={};
+  for(let candidate=2; primeCounter<64; candidate++){
+    if(!isComposite[candidate]){
+      for(let i=0;i<313;i+=candidate) isComposite[i]=candidate;
+      hash[primeCounter]=(Math.pow(candidate,.5)*maxWord)|0;
+      k[primeCounter++]=(Math.pow(candidate,1/3)*maxWord)|0;
+    }
+  }
+  ascii+="\x80";
+  while(ascii.length%64-56) ascii+="\x00";
+  for(let i=0;i<ascii.length;i++){
+    const j=ascii.charCodeAt(i);
+    if(j>>8) return "";
+    words[i>>2]|=j<<((3-i)%4)*8;
+  }
+  words[words.length]=((asciiBitLength/maxWord)|0);
+  words[words.length]=(asciiBitLength);
+  for(let j=0;j<words.length;){
+    const w=words.slice(j,j+=16), oldHash=hash.slice(0,8);
+    for(let i=0;i<64;i++){
+      const w15=w[i-15], w2=w[i-2];
+      const a=hash[0], e=hash[4];
+      const temp1=hash[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&hash[5])^((~e)&hash[6]))+k[i]+(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      const temp2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(temp1+temp2)|0].concat(hash);
+      hash[4]=(hash[4]+temp1)|0;
+    }
+    for(let i=0;i<8;i++) hash[i]=(hash[i]+oldHash[i])|0;
+  }
+  for(let i=0;i<8;i++){
+    for(let j=3;j+1;j--){
+      const b=(hash[i]>>(j*8))&255;
+      result+=((b<16)?0:"")+b.toString(16);
+    }
+  }
+  return result;
+}
+/* 密码哈希工具：加盐 SHA-256 + base64 归一化（兼容中文密码）。
+   存储格式：用户 {pwd:哈希, h:1}；房间 {password:哈希, ph:1}。
+   h/ph 标记表示已哈希；无标记视为旧明文，登录/进房时自动迁移。 */
+const PWD_SALT = "busha_pwd_salt_v2";
+function pwdHash(p){ return sha256(PWD_SALT + btoa(unescape(encodeURIComponent(String(p))))); }
+function pwdVerify(input, stored){
+  if(!stored) return false;
+  if(stored.h) return pwdHash(input) === stored.pwd;
+  return stored === input;
+}
+/* 房间密码字段：返回 {password, ph}。云端已有值优先（旧明文或损坏的 ph 标记自动升级为哈希），
+   云端无则用当前会话值（新房间已存哈希，直接保留）。ph=1 表示 password 已是合法哈希。 */
+function roomPwdFields(base){
+  const stored=(base&&base.password)||"";
+  const storedPh=(base&&base.ph)||0;
+  if(stored){
+    const isHash = storedPh && /^[0-9a-f]{64}$/.test(stored);
+    if(isHash) return {password:stored, ph:1};
+    return {password:pwdHash(stored), ph:1};
+  }
+  const cur=(SYNC.room&&SYNC.room.password)||"";
+  if(cur) return {password:cur, ph:(SYNC.room&&SYNC.room.ph)?1:0};
+  return {password:"", ph:0};
+}
 const ADMIN = {
-  user:"Wenby", pass:"mics", active:false,
+  user:"Wenby", pass:"7771eb8409a578689e893e60fe795519f5a1bdf1460590df59bb91ae50737fe7", active:false,
   login(u,p){
-    if(u===this.user && p===this.pass){ this.active=true; return true; }
+    if(u===this.user && sha256("2f97c3119352b4fb"+p)===this.pass){ this.active=true; return true; }
     return false;
   },
   async fetchRooms(){
@@ -4959,7 +6874,7 @@ const ADMIN = {
   async deleteRoom(roomId, sha){
     if(!hasSync(SYNC.cfg)) return false;
     try{
-      const body={access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token),message:"admin delete room "+roomId,sha,branch:SYNC.cfg.branch||"master"};
+      const body={access_token:(SYNC.cfg._e?_d(SYNC.cfg._e):SYNC.cfg.token),message:"admin delete room "+roomId,sha,branch:SYNC.cfg.branch||"master"};
       const r=await fetch(SYNC.url("rooms/"+roomId+".json")+"?access_token="+SYNC.tok(),{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
       return r.ok;
     }catch(e){ return false; }
@@ -4981,7 +6896,7 @@ const ADMIN = {
       const j=await r.json();
       if(!j || !j.content){ alert("房间数据异常"); return; }
       const data=JSON.parse(b64dec(j.content));
-      SYNC.room={id:roomId,sha:j.sha,dataVersion:data.dataVersion||0,presence:data.presence||{},password:data.password||"",notice:data.notice||null};
+      SYNC.room={id:roomId,sha:j.sha,dataVersion:data.dataVersion||0,presence:data.presence||{},password:data.password||"",ph:data.ph?1:0,notice:data.notice||null};
       history.replaceState(null,"","#room="+roomId);
       /* 应用远端团长模式状态 */
       applyCaptainFromRemote((data.captain!=null)?data.captain:null);
@@ -5014,11 +6929,11 @@ const ADMIN = {
       const checkR=await fetch(SYNC.url("rooms/"+newId+".json")+"?access_token="+SYNC.tok()+"&ref="+SYNC.br());
       if(checkR.status!==404) return "exists";
       // 3. 创建新房间
-      const body={access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token),message:"admin rename "+oldId+" -> "+newId,content:b64enc(JSON.stringify(data)),branch:SYNC.cfg.branch||"master"};
+      const body={access_token:(SYNC.cfg._e?_d(SYNC.cfg._e):SYNC.cfg.token),message:"admin rename "+oldId+" -> "+newId,content:b64enc(JSON.stringify(data)),branch:SYNC.cfg.branch||"master"};
       const pr=await fetch(SYNC.url("rooms/"+newId+".json")+"?access_token="+SYNC.tok(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
       if(!pr.ok) return false;
       // 4. 删除旧房间
-      const delBody={access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token),message:"admin delete old room "+oldId,sha,branch:SYNC.cfg.branch||"master"};
+      const delBody={access_token:(SYNC.cfg._e?_d(SYNC.cfg._e):SYNC.cfg.token),message:"admin delete old room "+oldId,sha,branch:SYNC.cfg.branch||"master"};
       await fetch(SYNC.url("rooms/"+oldId+".json")+"?access_token="+SYNC.tok(),{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify(delBody)});
       return true;
     }catch(e){ return false; }
@@ -5206,23 +7121,30 @@ const THEME_FALL={
   jade:     {shape:"dot",   n:12, size:[4,9],   op:[.2,.44],  dur:[12,22], spin:[120,420], palette:["#5eead4","#2dd4bf","#94f5e2"], glow:"rgba(94,234,212,.45)"},
   ocean:    {shape:"bubble",n:14, size:[6,15],  op:[.55,.85], dur:[10,20], spin:[0,0],      dir:"up", palette:["#0e7ac4","#1a8fd0","#0c6aa8"], glow:"rgba(12,106,168,.55)"},
   maple:    {shape:"petal", n:16, size:[9,19],  op:[.6,.9],   dur:[9,19],  spin:[160,540], palette:["#ea580c","#c2410c","#d97706","#b91c1c"], pl1:"#ffe8cc", pl2:"#b91c1c", pl3:"rgba(255,255,255,.85)", pl4:"rgba(245,158,11,.8)", glow:"rgba(234,88,12,.4)"},
-  sakura:   {shape:"petal", n:16, size:[9,19],  op:[.38,.8],  dur:[9,19],  spin:[160,540], palette:["#ff9ec4","#f783ac","#ffc9de","#fa5c8d"], pl1:"#ffe3ee", pl2:"#f783ac", pl3:"rgba(255,255,255,.9)", pl4:"rgba(255,179,209,.85)", glow:"rgba(255,158,196,.35)"}
+  sakura:   {shape:"petal", n:16, size:[9,19],  op:[.38,.8],  dur:[9,19],  spin:[160,540], palette:["#ff9ec4","#f783ac","#ffc9de","#fa5c8d"], pl1:"#ffe3ee", pl2:"#f783ac", pl3:"rgba(255,255,255,.9)", pl4:"rgba(255,179,209,.85)", glow:"rgba(255,158,196,.35)"},
+  nature:   {shape:"leaf",  n:18, size:[12,22], op:[.45,.85], dur:[14,26], spin:[140,480], palette:["#55a630","#6fbf5f","#84cc7a","#99d995"], pl1:"#eaf8e3", pl2:"#3f8f3a", pl3:"rgba(255,255,255,.85)", pl4:"rgba(140,210,120,.75)", glow:"rgba(111,191,95,.35)"},
+  mario:    {shape:"coin",  n:16, size:[13,22], op:[.55,.9],  dur:[10,20], spin:[300,720], palette:["#fbbf24","#f59e0b","#fcd34d","#d97706"], pl1:"#ffe9a8", pl2:"#d97706", pl3:"#b45309", glow:"rgba(251,191,36,.45)"},
+  taichu:   {shape:"star",  n:20, size:[5,12],  op:[.4,.85],  dur:[9,19],  spin:[180,540], palette:["#38bdf8","#60a5fa","#7dd3fc","#fbbf24","#93c5fd"], glow:"rgba(56,189,248,.6)"}
 };
 function setupThemeFall(){
   const theme=document.documentElement.getAttribute("data-theme")||"dark";
   const cfg=THEME_FALL[theme];
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches;
-  /* 主题未配置粒子或系统要求减少动态：移除粒子层 */
-  if(!cfg || reduced){
+  const animOff = document.documentElement.classList.contains("anim-off");
+  /* 主题未配置粒子/系统要求减少动态/动画开关关闭：移除粒子层 */
+  if(!cfg || reduced || animOff){
     if(_themeFallLayer){ _themeFallLayer.remove(); _themeFallLayer=null; }
     return;
   }
-  /* 主题切换时重建（形状/配色/方向不同），同主题已存在则跳过 */
-  if(_themeFallLayer && _themeFallLayer.dataset.theme===theme) return;
+  /* 主题切换时重建（形状/配色/方向不同），同主题已存在则跳过
+     注意：标记属性用 data-fall-theme，绝不能用 data-theme——
+     galaxy/jade/ocean/maple/sakura 五套主题的背景规则是 [data-theme="X"]{background:...}
+     该选择器匹配任意元素，若粒子层带 data-theme 会整层刷上不透明主题背景盖住页面 */
+  if(_themeFallLayer && _themeFallLayer.dataset.fallTheme===theme) return;
   if(_themeFallLayer){ _themeFallLayer.remove(); _themeFallLayer=null; }
   const layer=document.createElement("div");
   layer.className="theme-fall"+(cfg.dir==="up"?" dir-up":"");
-  layer.dataset.theme=theme;
+  layer.dataset.fallTheme=theme;
   layer.setAttribute("aria-hidden","true");
   const rr=(a,b)=>a+Math.random()*(b-a); /* 范围随机 */
   for(let i=0;i<cfg.n;i++){
@@ -5244,7 +7166,7 @@ function setupThemeFall(){
     pt.style.setProperty("--spin",spin+"deg");
     pt.style.setProperty("--pc",cfg.palette[(Math.random()*cfg.palette.length)|0]);
     if(cfg.glow) pt.style.setProperty("--pg",cfg.glow);
-    if(cfg.shape==="petal"){ /* 花瓣渐变端点（petal 专属） */
+    if(cfg.shape==="petal" || cfg.shape==="leaf" || cfg.shape==="coin"){ /* 花瓣/树叶/金币渐变端点（专属） */
       pt.style.setProperty("--pl1",cfg.pl1); pt.style.setProperty("--pl2",cfg.pl2);
       pt.style.setProperty("--pl3",cfg.pl3); pt.style.setProperty("--pl4",cfg.pl4);
     }
@@ -5259,6 +7181,354 @@ function setupThemeFall(){
   }
   document.body.appendChild(layer);
   _themeFallLayer=layer;
+}
+
+/* ═══ 森野主题背景场景 ═══
+   仅在 nature 主题下注入：草地层 + 随机草叶（风中摇曳）+ 树木/灌木剪影；
+   固定定位 z-index:0 位于内容之下，pointer-events:none 不拦截交互；
+   动画由 CSS 变量 --bdur/--bdel 驱动，anim-off 或系统减少动态时暂停 */
+let _natureScene=null;
+function setupNatureScene(){
+  const theme=document.documentElement.getAttribute("data-theme")||"dark";
+  if(theme!=="nature"){
+    if(_natureScene){ _natureScene.remove(); _natureScene=null; }
+    return;
+  }
+  if(_natureScene) return; /* 已存在则跳过 */
+  const sc=document.createElement("div");
+  sc.className="nature-scene";
+  sc.setAttribute("aria-hidden","true");
+  /* 草地层 */
+  const grass=document.createElement("div");
+  grass.className="ns-grass";
+  sc.appendChild(grass);
+  /* 草叶：随机位置/高度/摇摆时长/延迟，营造疏密错落的草地 */
+  const rr=(a,b)=>a+Math.random()*(b-a);
+  for(let i=0;i<46;i++){
+    const b=document.createElement("i");
+    b.className="ns-blade";
+    const left=rr(0,100).toFixed(2);
+    const h=rr(16,52).toFixed(1);
+    const dur=rr(2.6,4.6).toFixed(2);
+    const del=(-Math.random()*4).toFixed(2);
+    b.style.left=left+"%";
+    b.style.height=h+"px";
+    b.style.setProperty("--bdur",dur+"s");
+    b.style.setProperty("--bdel",del+"s");
+    b.style.opacity=rr(.5,.95).toFixed(2);
+    sc.appendChild(b);
+  }
+  /* 树木剪影：SVG 树干+树冠，随机位置/大小/深浅 */
+  const trees=[
+    {x:2,  s:150, o:.9,  w:150, h:210},
+    {x:13, s:95,  o:.72, w:120, h:160},
+    {x:84, s:170, o:.92, w:170, h:230},
+    {x:93, s:110, o:.7,  w:130, h:175}
+  ];
+  trees.forEach(t=>{
+    const tr=document.createElement("div");
+    tr.className="ns-tree";
+    tr.style.left=t.x+"%";
+    tr.style.width=t.s+"px";
+    tr.style.opacity=t.o;
+    tr.innerHTML=`<svg viewBox="0 0 ${t.w} ${t.h}" xmlns="http://www.w3.org/2000/svg">
+      <rect x="${t.w*.44}" y="${t.h*.38}" width="${t.w*.12}" height="${t.h*.62}" rx="3" fill="#6b4a2f"/>
+      <ellipse cx="${t.w*.5}" cy="${t.h*.3}" rx="${t.w*.34}" ry="${t.h*.2}" fill="#3f8f3a"/>
+      <ellipse cx="${t.w*.28}" cy="${t.h*.42}" rx="${t.w*.24}" ry="${t.h*.16}" fill="#4d9e46"/>
+      <ellipse cx="${t.w*.72}" cy="${t.h*.42}" rx="${t.w*.24}" ry="${t.h*.16}" fill="#4d9e46"/>
+      <ellipse cx="${t.w*.5}" cy="${t.h*.34}" rx="${t.w*.3}" ry="${t.h*.18}" fill="#55a630"/>
+    </svg>`;
+    sc.appendChild(tr);
+  });
+  /* 灌木丛：随机位置/大小 */
+  for(let i=0;i<7;i++){
+    const bu=document.createElement("div");
+    bu.className="ns-bush";
+    const s=rr(40,90).toFixed(0);
+    bu.style.left=rr(0,96).toFixed(2)+"%";
+    bu.style.width=s+"px";
+    bu.style.height=(s*.5).toFixed(0)+"px";
+    bu.style.opacity=rr(.55,.9).toFixed(2);
+    sc.appendChild(bu);
+  }
+  document.body.appendChild(sc);
+  _natureScene=sc;
+}
+
+/* ═══ 马里奥主题背景场景 ═══
+   仅在 mario 主题下注入：地面砖块 + 金币/问号砖块/蘑菇/水管元素；
+   固定定位 z-index:0 位于内容之下，pointer-events:none 不拦截交互；
+   金币浮动动画由 CSS 变量 --cdur/--cdel 驱动，anim-off 或系统减少动态时暂停 */
+let _marioScene=null;
+function setupMarioScene(){
+  const theme=document.documentElement.getAttribute("data-theme")||"dark";
+  if(theme!=="mario"){
+    if(_marioScene){ _marioScene.remove(); _marioScene=null; }
+    return;
+  }
+  if(_marioScene) return; /* 已存在则跳过 */
+  const sc=document.createElement("div");
+  sc.className="mario-scene";
+  sc.setAttribute("aria-hidden","true");
+  const rr=(a,b)=>a+Math.random()*(b-a);
+  /* 地面砖块层 */
+  const ground=document.createElement("div");
+  ground.className="ms-ground";
+  sc.appendChild(ground);
+  /* 金币：随机位置/大小/浮动时长 */
+  for(let i=0;i<9;i++){
+    const c=document.createElement("i");
+    c.className="ms-coin";
+    const s=rr(16,30).toFixed(0);
+    c.style.left=rr(2,92).toFixed(2)+"%";
+    c.style.bottom=rr(16,58).toFixed(0)+"vh";
+    c.style.width=s+"px"; c.style.height=s+"px";
+    c.style.setProperty("--cdur",rr(2.4,4.2).toFixed(2)+"s");
+    c.style.setProperty("--cdel",(-Math.random()*3).toFixed(2)+"s");
+    c.style.opacity=rr(.5,.95).toFixed(2);
+    sc.appendChild(c);
+  }
+  /* 问号砖块：随机位置 */
+  const blocks=[
+    {x:8,  b:30, s:34},
+    {x:24, b:44, s:30},
+    {x:62, b:26, s:36},
+    {x:80, b:48, s:30}
+  ];
+  blocks.forEach(t=>{
+    const b=document.createElement("div");
+    b.className="ms-block";
+    b.style.left=t.x+"%";
+    b.style.bottom=t.b+"vh";
+    b.style.width=t.s+"px"; b.style.height=t.s+"px";
+    sc.appendChild(b);
+  });
+  /* 蘑菇：SVG 红蘑菇剪影 */
+  const mushrooms=[
+    {x:16, b:15, s:40},
+    {x:72, b:15, s:34}
+  ];
+  mushrooms.forEach(t=>{
+    const m=document.createElement("div");
+    m.className="ms-mushroom";
+    m.style.left=t.x+"%";
+    m.style.bottom=t.b+"vh";
+    m.style.width=t.s+"px";
+    m.innerHTML=`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="20" cy="14" rx="19" ry="13" fill="#e52521"/>
+      <circle cx="12" cy="10" r="4" fill="#fff"/>
+      <circle cx="22" cy="7" r="3.5" fill="#fff"/>
+      <circle cx="30" cy="13" r="3" fill="#fff"/>
+      <rect x="16" y="22" width="8" height="14" rx="3" fill="#f5e6c8"/>
+      <rect x="13" y="24" width="14" height="4" rx="2" fill="#d9c9a8"/>
+    </svg>`;
+    sc.appendChild(m);
+  });
+  /* 水管：绿色水管 */
+  const pipes=[
+    {x:44, w:46, h:13},
+    {x:88, w:38, h:10}
+  ];
+  pipes.forEach(t=>{
+    const p=document.createElement("div");
+    p.className="ms-pipe";
+    p.style.left=t.x+"%";
+    p.style.width=t.w+"px";
+    p.style.height=t.h+"vh";
+    sc.appendChild(p);
+  });
+  document.body.appendChild(sc);
+  _marioScene=sc;
+}
+
+/* ═══ 樱花主题背景场景 ═══
+   仅在 sakura 主题下注入：樱花树 + 樱花枝 + 飘浮爱心/星光；
+   固定定位 z-index:0 位于内容之下，pointer-events:none 不拦截交互；
+   爱心/星光动画由 CSS 变量驱动，anim-off 或系统减少动态时暂停 */
+let _sakuraScene=null;
+function setupSakuraScene(){
+  const theme=document.documentElement.getAttribute("data-theme")||"dark";
+  if(theme!=="sakura"){
+    if(_sakuraScene){ _sakuraScene.remove(); _sakuraScene=null; }
+    return;
+  }
+  if(_sakuraScene) return; /* 已存在则跳过 */
+  const sc=document.createElement("div");
+  sc.className="sakura-scene";
+  sc.setAttribute("aria-hidden","true");
+  const rr=(a,b)=>a+Math.random()*(b-a);
+  /* 樱花枝：左上/右上两枝，SVG 枝干+樱花 */
+  const branchSVG=`<svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 150 C40 120 70 90 90 55 C100 35 110 20 130 8" fill="none" stroke="#8a5a44" stroke-width="5" stroke-linecap="round"/>
+    <path d="M60 100 C80 95 100 96 112 104" fill="none" stroke="#8a5a44" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M95 62 C112 58 128 60 138 70" fill="none" stroke="#8a5a44" stroke-width="3" stroke-linecap="round"/>
+    <g fill="#ffb7d5">
+      <circle cx="130" cy="8" r="9"/><circle cx="140" cy="20" r="8"/><circle cx="122" cy="18" r="7"/>
+      <circle cx="112" cy="104" r="8"/><circle cx="124" cy="110" r="7"/><circle cx="138" cy="70" r="8"/><circle cx="128" cy="62" r="7"/>
+    </g>
+    <g fill="#ff9ec4">
+      <circle cx="130" cy="8" r="5"/><circle cx="140" cy="20" r="4.5"/><circle cx="122" cy="18" r="4"/>
+      <circle cx="112" cy="104" r="4.5"/><circle cx="124" cy="110" r="4"/><circle cx="138" cy="70" r="4.5"/><circle cx="128" cy="62" r="4"/>
+    </g>
+    <g fill="#ffe3ee">
+      <circle cx="126" cy="4" r="3"/><circle cx="136" cy="16" r="2.6"/><circle cx="118" cy="14" r="2.4"/>
+      <circle cx="108" cy="100" r="2.6"/><circle cx="120" cy="106" r="2.2"/><circle cx="134" cy="66" r="2.6"/><circle cx="124" cy="58" r="2.2"/>
+    </g>
+  </svg>`;
+  const branches=[
+    {x:-2,  w:200, o:.9},
+    {x:76,  w:190, o:.82}
+  ];
+  branches.forEach(t=>{
+    const br=document.createElement("div");
+    br.className="sk-branch";
+    br.style.left=t.x+"%";
+    br.style.width=t.w+"px";
+    br.style.opacity=t.o;
+    br.innerHTML=branchSVG;
+    sc.appendChild(br);
+  });
+  /* 樱花树背景：树干+粉色树冠，SVG 绘制（底部左右各一棵，营造浪漫樱花氛围） */
+  const treeSVG=`<svg viewBox="0 0 240 260" xmlns="http://www.w3.org/2000/svg">
+    <!-- 树干 -->
+    <path d="M120 260 C116 210 112 180 108 150 C104 120 106 96 112 78" fill="none" stroke="#8a5a44" stroke-width="16" stroke-linecap="round"/>
+    <path d="M112 130 C90 118 72 118 58 126" fill="none" stroke="#8a5a44" stroke-width="9" stroke-linecap="round"/>
+    <path d="M112 108 C132 96 150 96 166 104" fill="none" stroke="#8a5a44" stroke-width="9" stroke-linecap="round"/>
+    <path d="M112 84 C122 70 134 62 148 58" fill="none" stroke="#8a5a44" stroke-width="7" stroke-linecap="round"/>
+    <!-- 树冠：粉色樱花簇 -->
+    <g fill="#ffb7d5">
+      <circle cx="112" cy="52" r="34"/><circle cx="60" cy="92" r="30"/><circle cx="168" cy="78" r="32"/>
+      <circle cx="112" cy="112" r="30"/><circle cx="58" cy="128" r="26"/><circle cx="170" cy="122" r="26"/>
+    </g>
+    <g fill="#ff9ec4">
+      <circle cx="96" cy="38" r="22"/><circle cx="52" cy="80" r="20"/><circle cx="150" cy="62" r="22"/>
+      <circle cx="120" cy="96" r="20"/><circle cx="70" cy="116" r="18"/><circle cx="156" cy="108" r="18"/>
+    </g>
+    <g fill="#ffe3ee">
+      <circle cx="88" cy="30" r="12"/><circle cx="48" cy="72" r="11"/><circle cx="140" cy="52" r="12"/>
+      <circle cx="108" cy="84" r="11"/><circle cx="64" cy="104" r="10"/><circle cx="148" cy="96" r="10"/>
+    </g>
+    <!-- 落花点缀 -->
+    <g fill="#ffb7d5">
+      <circle cx="40" cy="180" r="5"/><circle cx="70" cy="205" r="4"/><circle cx="185" cy="190" r="5"/>
+      <circle cx="160" cy="215" r="4"/><circle cx="210" cy="170" r="4"/>
+    </g>
+  </svg>`;
+  const trees=[
+    {x:-6,  w:300, o:.92},
+    {x:72,  w:260, o:.82}
+  ];
+  trees.forEach(t=>{
+    const tr=document.createElement("div");
+    tr.className="sk-tree";
+    tr.style.left=t.x+"%";
+    tr.style.width=t.w+"px";
+    tr.style.opacity=t.o;
+    tr.innerHTML=treeSVG;
+    sc.appendChild(tr);
+  });
+  /* 飘浮爱心：随机位置/大小/浮动时长 */
+  for(let i=0;i<8;i++){
+    const h=document.createElement("i");
+    h.className="sk-heart";
+    const s=rr(10,20).toFixed(0);
+    h.style.left=rr(4,90).toFixed(2)+"%";
+    h.style.top=rr(12,66).toFixed(0)+"vh";
+    h.style.width=s+"px"; h.style.height=s+"px";
+    h.style.setProperty("--hdur",rr(2.8,4.6).toFixed(2)+"s");
+    h.style.setProperty("--hdel",(-Math.random()*3).toFixed(2)+"s");
+    h.style.opacity=rr(.4,.85).toFixed(2);
+    sc.appendChild(h);
+  }
+  /* 星光：随机位置/大小/闪烁时长 */
+  for(let i=0;i<10;i++){
+    const sp=document.createElement("i");
+    sp.className="sk-spark";
+    const s=rr(3,7).toFixed(1);
+    sp.style.left=rr(2,95).toFixed(2)+"%";
+    sp.style.top=rr(8,60).toFixed(0)+"vh";
+    sp.style.width=s+"px"; sp.style.height=s+"px";
+    sp.style.setProperty("--sdur",rr(2,3.6).toFixed(2)+"s");
+    sp.style.setProperty("--sdel",(-Math.random()*2.5).toFixed(2)+"s");
+    sc.appendChild(sp);
+  }
+  document.body.appendChild(sc);
+  _sakuraScene=sc;
+}
+
+/* ═══ 太初蓝主题背景场景 ═══
+   仅在 taichu 主题下注入：流动蓝色光晕 + 上升星芒光点 + 金色光点 + 旋转光环；
+   参考DNF太初装备光效，固定定位 z-index:0 位于内容之下，pointer-events:none 不拦截交互；
+   动画由 CSS 变量驱动，anim-off 或系统减少动态时暂停 */
+let _taichuScene=null;
+function setupTaichuScene(){
+  const theme=document.documentElement.getAttribute("data-theme")||"dark";
+  if(theme!=="taichu"){
+    if(_taichuScene){ _taichuScene.remove(); _taichuScene=null; }
+    return;
+  }
+  if(_taichuScene) return; /* 已存在则跳过 */
+  const sc=document.createElement("div");
+  sc.className="taichu-scene";
+  sc.setAttribute("aria-hidden","true");
+  const rr=(a,b)=>a+Math.random()*(b-a);
+  /* 流动蓝色光晕：随机位置/大小/脉动时长 */
+  for(let i=0;i<6;i++){
+    const g=document.createElement("i");
+    g.className="tc-glow";
+    const s=rr(180,420).toFixed(0);
+    g.style.left=rr(2,88).toFixed(2)+"%";
+    g.style.top=rr(6,70).toFixed(0)+"vh";
+    g.style.width=s+"px"; g.style.height=s+"px";
+    g.style.setProperty("--gdur",rr(5,9).toFixed(2)+"s");
+    g.style.setProperty("--gdel",(-Math.random()*6).toFixed(2)+"s");
+    sc.appendChild(g);
+  }
+  /* 上升星芒光点：随机位置/大小/浮动时长 */
+  for(let i=0;i<14;i++){
+    const st=document.createElement("i");
+    st.className="tc-star";
+    const s=rr(8,20).toFixed(1);
+    st.style.left=rr(2,95).toFixed(2)+"%";
+    st.style.top=rr(8,72).toFixed(0)+"vh";
+    st.style.width=s+"px"; st.style.height=s+"px";
+    st.style.setProperty("--sdur",rr(4,7).toFixed(2)+"s");
+    st.style.setProperty("--sdel",(-Math.random()*5).toFixed(2)+"s");
+    st.style.setProperty("--sc",Math.random()<.3?"#fbbf24":"#38bdf8");
+    st.style.setProperty("--scg",Math.random()<.3?"rgba(251,191,36,.55)":"rgba(56,189,248,.55)");
+    st.style.opacity=rr(.4,.9).toFixed(2);
+    sc.appendChild(st);
+  }
+  /* 金色光点：随机位置/大小 */
+  for(let i=0;i<10;i++){
+    const gd=document.createElement("i");
+    gd.className="tc-gold";
+    const s=rr(4,9).toFixed(1);
+    gd.style.left=rr(2,95).toFixed(2)+"%";
+    gd.style.top=rr(6,66).toFixed(0)+"vh";
+    gd.style.width=s+"px"; gd.style.height=s+"px";
+    gd.style.setProperty("--gdur2",rr(3.4,5.6).toFixed(2)+"s");
+    gd.style.setProperty("--gdel2",(-Math.random()*4).toFixed(2)+"s");
+    sc.appendChild(gd);
+  }
+  /* 旋转光环：太初装备神圣光环元素 */
+  const rings=[
+    {x:10, t:18, s:90},
+    {x:84, t:12, s:70},
+    {x:60, t:30, s:56}
+  ];
+  rings.forEach(t=>{
+    const r=document.createElement("i");
+    r.className="tc-ring";
+    r.style.left=t.x+"%";
+    r.style.top=t.t+"vh";
+    r.style.width=t.s+"px"; r.style.height=t.s+"px";
+    r.style.setProperty("--rdur",rr(12,20).toFixed(2)+"s");
+    r.style.setProperty("--rdel",(-Math.random()*10).toFixed(2)+"s");
+    sc.appendChild(r);
+  });
+  document.body.appendChild(sc);
+  _taichuScene=sc;
 }
 
 /* ---------- 初始化 ---------- */
@@ -5325,6 +7595,51 @@ function init(){
   document.getElementById("importData").onclick=()=>openModal("importModal");
   document.getElementById("closeImport").onclick=()=>closeModal("importModal");
   document.getElementById("doImport").onclick=doImport;
+
+  /* ═══ Ban玩法：开关 + 批量ban选中 ═══ */
+  const banSwitch=document.getElementById("banModeSwitch");
+  if(banSwitch){
+    banSwitch.checked=banMode;
+    banSwitch.onchange=()=>switchBanMode(banSwitch.checked);
+  }
+  /* 排表页工具栏ban开关：与角色管理开关保持一致，两边均可打开/关闭ban玩法 */
+  const banSwitchTable=document.getElementById("banModeSwitchTable");
+  if(banSwitchTable){
+    banSwitchTable.checked=banMode;
+    banSwitchTable.onchange=()=>switchBanMode(banSwitchTable.checked);
+  }
+  const gBatchBan=document.getElementById("globalBatchBan");
+  if(gBatchBan) gBatchBan.onclick=batchBanSelected;
+  const exitBanModeBtn=document.getElementById("exitBanModeBtn");
+  if(exitBanModeBtn) exitBanModeBtn.onclick=exitBanMode;
+  updateBanUI();
+
+  /* ═══ 包队模式：开关 + 配置弹窗 + 横幅 ═══ */
+  const packSwitch=document.getElementById("packModeSwitch");
+  if(packSwitch){
+    packSwitch.checked=packMode;
+    packSwitch.onchange=()=>switchPackMode(packSwitch.checked);
+  }
+  const packConfigBtn=document.getElementById("packConfigBtn");
+  if(packConfigBtn) packConfigBtn.onclick=openPackModal;
+  const packBannerConfigBtn=document.getElementById("packBannerConfigBtn");
+  if(packBannerConfigBtn) packBannerConfigBtn.onclick=openPackModal;
+  const exitPackModeBtn=document.getElementById("exitPackModeBtn");
+  if(exitPackModeBtn) exitPackModeBtn.onclick=exitPackMode;
+  document.getElementById("savePackConfig").onclick=savePackConfig;
+  document.getElementById("closePack").onclick=()=>{
+    closeModal("packModal");
+    /* 若用户取消且未保存配置：回滚开关状态，避免开关勾选与packMode不一致 */
+    const sw=document.getElementById("packModeSwitch");
+    if(sw && sw.checked && !packMode) sw.checked=false;
+  };
+  /* 包队数量单选：切换队伍2显示 */
+  document.querySelectorAll('input[name="packCount"]').forEach(r=>{
+    r.onchange=()=>{
+      document.getElementById("packTeam2").style.display = r.value==="2" ? "" : "none";
+    };
+  });
+  updatePackUI();
 
   document.getElementById("exitRoom").onclick=exitRoom;
   document.getElementById("saveBtn").onclick=()=>SYNC.flushToRemote();
@@ -5399,6 +7714,58 @@ function init(){
     this.value="";
     if(f) noticeUploadImage(f);
   };
+  /* QQ公告式富文本编辑器事件：
+     1) 粘贴图片 → 拦截走贴图管道（压缩→内联显示→上传替换链接）
+     2) 粘贴文本 → 强制纯文本插入，防外部 HTML/样式污染
+     3) 回车 → 统一插 <br>（避免浏览器默认插 div 造成结构混乱，Md 转换只需处理 BR） */
+  const noticeEditorEl=document.getElementById("noticeEditor");
+  if(noticeEditorEl){
+    noticeEditorEl.addEventListener("paste",function(e){
+      const items=e.clipboardData&&e.clipboardData.items;
+      if(items){
+        for(let i=0;i<items.length;i++){
+          const it=items[i];
+          if(it.kind==="file" && it.type && it.type.indexOf("image/")===0){
+            e.preventDefault();
+            const f=it.getAsFile();
+            if(f){ showToast("📋 已捕获粘贴图片，处理中…"); noticeUploadImage(f); }
+            return;
+          }
+        }
+      }
+      /* 非图片粘贴：取纯文本手动插入（丢弃格式） */
+      const txt=e.clipboardData&&e.clipboardData.getData("text/plain");
+      if(txt){
+        e.preventDefault();
+        noticeInsertText(txt);
+      }
+    });
+    noticeEditorEl.addEventListener("keydown",function(e){
+      if(e.key==="Enter" && !e.shiftKey && !e.ctrlKey && !e.metaKey){
+        e.preventDefault();
+        document.execCommand("insertLineBreak");
+      }
+    });
+  }
+  /* 查看区公告图片点击放大（事件委托，弹窗内所有公告图生效） */
+  const noticeViewBox=document.getElementById("noticeView");
+  if(noticeViewBox){
+    noticeViewBox.addEventListener("click",function(e){
+      if(e.target && e.target.tagName==="IMG" && e.target.dataset.noticeImg){
+        noticeViewImg(e.target.dataset.noticeImg);
+      }
+    });
+  }
+  /* 编辑区内贴图双击放大（单击保留原生选中/删除，避免干扰编辑） */
+  const noticeEdBox=document.getElementById("noticeEditor");
+  if(noticeEdBox){
+    noticeEdBox.addEventListener("dblclick",function(e){
+      if(e.target && e.target.tagName==="IMG" && e.target.dataset.noticeImg && e.target.src){
+        e.preventDefault();
+        noticeViewImg(e.target.src);
+      }
+    });
+  }
   document.getElementById("openShengyan").onclick=()=>{
     window.open("http://shengyan.xyz","_blank","noopener");
   };
@@ -5409,7 +7776,10 @@ function init(){
   document.getElementById("doAcctRegister").onclick=doAcctRegister;
   document.getElementById("doAcctLogin").onclick=doAcctLogin;
   document.getElementById("acctLogout").onclick=()=>{
+    const user=ACCT.currentUser();
     ACCT.clearSession();
+    /* 切换账号/重新登录：清除该账号的记住房间，需重新输入密码 */
+    if(user) clearRememberedRooms(user);
     showAcctStep();
   };
   document.getElementById("myRoomsBtn").onclick=async()=>{
@@ -5429,7 +7799,7 @@ function init(){
     const rid=this.value.trim();
     const rooms=getRememberedRooms();
     if(rid && rooms[rid]){
-      document.getElementById("joinRoomPwd").value=rooms[rid].pwd;
+      document.getElementById("joinRoomPwd").value="";
       document.getElementById("rememberRoom").checked=true;
     } else {
       document.getElementById("joinRoomPwd").value="";
@@ -5451,6 +7821,8 @@ function init(){
   // 历史版本
   document.getElementById("openHistory").onclick=()=>{ renderHistory(); openModal("historyModal"); };
   document.getElementById("closeHistory").onclick=()=>closeModal("historyModal");
+  const histFilter=document.getElementById("historyFilter");
+  if(histFilter) histFilter.onchange=renderHistory;
   const clrHistBtn=document.getElementById("clearHistoryBtn");
   if(clrHistBtn){ clrHistBtn.onclick=()=>SYNC.clearHistory(); }
 
@@ -5459,12 +7831,36 @@ function init(){
   const savedTheme=localStorage.getItem("busha_theme")||"dark";
   document.documentElement.setAttribute("data-theme", savedTheme);
   themeSelect.value=savedTheme;
+  /* 动画开关：状态持久化，须在 setupThemeFall 之前挂类（否则首帧粒子层先建后被隐藏） */
+  const animSwitch=document.getElementById("animSwitch");
+  const applyAnimOff=(off)=>{
+    document.documentElement.classList.toggle("anim-off", off);
+    localStorage.setItem("busha_anim_off", off?"1":"0");
+  };
+  const savedAnimOff=localStorage.getItem("busha_anim_off")==="1";
+  applyAnimOff(savedAnimOff);
+  if(animSwitch){
+    animSwitch.checked=!savedAnimOff;
+    animSwitch.onchange=()=>{
+      applyAnimOff(!animSwitch.checked);
+      setupThemeFall(); /* 开关变化时重建/移除粒子层 */
+      showToast(animSwitch.checked?"🎬 动画已开启":"⏸️ 动画已暂停");
+    };
+  }
   setupThemeFall();
+  setupNatureScene();
+  setupMarioScene();
+  setupSakuraScene();
+  setupTaichuScene();
   themeSelect.onchange=()=>{
     const v=themeSelect.value;
     document.documentElement.setAttribute("data-theme", v);
     localStorage.setItem("busha_theme", v);
     setupThemeFall();
+    setupNatureScene();
+    setupMarioScene();
+    setupSakuraScene();
+    setupTaichuScene();
   };
 
   // 管理员
@@ -5518,10 +7914,26 @@ function init(){
   // 不在登录前渲染数据，登录后由 checkRoom/createRoom 触发 renderAll
   const syncBadgeEl=document.getElementById("syncBadge");
   if(syncBadgeEl) syncBadgeEl.textContent="未加入房间";
-  // 检查是否有已登录会话，有则直接进入房间步骤
+  // 检查是否有已登录会话：有记住房间则自动进入，否则展示房间步骤
   if(ACCT.isLoggedIn()){
     showRoomStep();
+    autoJoinRemembered();
   }
+  /* 自测钩子：URL 带 ?selftest=1 时进入本地测试模式（仅开发验证用，正常访问无影响） */
+  try{
+    if(new URLSearchParams(location.search).get("selftest")==="1"){
+      SYNC.cfg=null;
+      SYNC.room={id:"selftest",sha:null,dataVersion:0,presence:{},password:null,ph:0,notice:null};
+      charList=[
+        {id:1,owner:"测试甲",name:"角色A",power:50000,type:"c",a:"黄金乡",b:"",banned:false},
+        {id:2,owner:"测试甲",name:"角色B",power:48000,type:"N",a:"",b:"",banned:false},
+        {id:3,owner:"测试乙",name:"角色C",power:52000,type:"c",a:"",b:"",banned:false}
+      ];
+      teamList=[]; banMode=false;
+      saveStorage(); renderAll(); updateModeBtns();
+      const lm=document.getElementById("loginModal"); if(lm) lm.classList.remove("show");
+    }
+  }catch(e){ console.error("selftest hook:",e); }
 }
 init();
 
@@ -5557,10 +7969,174 @@ function noticeTime(t){
 /* 公告渲染：XSS 安全的轻量 Markdown（图片/链接/加粗/换行），表情即普通字符 */
 function noticeRenderMd(text){
   let s=escapeHtml(String(text||""));
-  s=s.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g, (m,alt,src)=>`<img src="${src}" alt="${alt}" title="${alt}" style="max-width:100%;border-radius:6px;margin:6px 0;border:1px solid var(--line)" loading="lazy">`);
+  s=s.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g, (m,alt,src)=>`<img src="${src}" alt="${alt}" title="${alt}" style="max-width:100%;border-radius:6px;margin:6px 0;border:1px solid var(--line)" loading="lazy" data-notice-img="${src}">`);
   s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--blue)">$1</a>');
   s=s.replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>");
   return s.replace(/\r?\n/g,"<br>");
+}
+/* 判断 Gitee raw 签名链接是否已过期（解码 metadata 里的 expire_at）。
+   Gitee raw 会 302 到带签名的 CDN，过期后 CDN 返回 200 favicon 占位（onerror 不触发），
+   因此必须在客户端主动解析过期时间提前判定。 */
+function noticeGiteeUrlExpired(src){
+  if(!src || src.indexOf("gitee")<0) return false;
+  try{
+    const m=/[?&]metadata=([^&]+)/.exec(src);
+    if(!m){
+      /* 非签名直链（gitee.com/.../raw/...）：首次访问会 302 拿签名，无法本地判断，
+         交由 onload naturalWidth 检测兜底 */
+      return false;
+    }
+    const json=JSON.parse(atob(m[1].replace(/-/g,"+").replace(/_/g,"/")));
+    if(json && json.expire_at){
+      return Math.floor(Date.now()/1000) > json.expire_at;
+    }
+  }catch(e){}
+  return false;
+}
+/* 把一张失效图片替换为带提示文字的占位 span（在查看区/编辑器内均安全）。
+   用 span 而非保留无 src 的 img，彻底避免浏览器原生裂图图标。 */
+function noticeMarkImgBroken(img, alt){
+  if(!img || img.dataset.broken==="1") return;
+  img.dataset.broken="1";
+  const label="🖼️ 图片已失效"+(alt?("："+alt):"")+"（请重新贴图）";
+  const span=document.createElement("span");
+  span.className="notice-img-broken";
+  span.textContent=label;
+  span.dataset.alt=alt||"";
+  if(img.parentNode){ img.parentNode.replaceChild(span, img); }
+}
+/* 主动扫描容器内所有公告图片：
+   1) Gitee 签名链接已过期 → 直接标记失效（不发请求）
+   2) 外链/直链加载后 naturalWidth 过小（favicon 伪装）→ 标记失效
+   3) 加载失败（onerror）→ 标记失效
+   dataURL 内嵌图永不过期，跳过检测。 */
+function noticeScanImages(container){
+  if(!container) return;
+  const imgs=container.querySelectorAll("img[data-notice-img]");
+  imgs.forEach(img=>{
+    const src=img.getAttribute("src")||"";
+    if(img.dataset.broken==="1") return;
+    if(src.indexOf("data:image/")===0) return; /* 内嵌 dataURL：永久有效 */
+    const alt=img.getAttribute("alt")||"攻略配图";
+    /* 1) Gitee 签名链接：过期直接判定 */
+    if(noticeGiteeUrlExpired(src)){ noticeMarkImgBroken(img, alt); return; }
+    /* 2) 已加载完成的图：检查尺寸，过小视为占位图标；
+          非签名直链 302 后 img.src 变成带 metadata 的最终 CDN，再判一次过期 */
+    const checkSize=()=>{
+      if(img.dataset.broken==="1") return;
+      if(noticeGiteeUrlExpired(img.src||"")){ noticeMarkImgBroken(img, alt); return; }
+      const w=img.naturalWidth, h=img.naturalHeight;
+      if(w && h && w<=32 && h<=32){ noticeMarkImgBroken(img, alt); }
+    };
+    if(img.complete && img.naturalWidth){ checkSize(); }
+    else{
+      img.addEventListener("load", checkSize);
+      img.addEventListener("error", ()=>noticeMarkImgBroken(img, alt));
+    }
+  });
+}
+/* 公告图片点击放大（查看区/编辑预览共用）：事件委托绑定大图弹窗 */
+function noticeViewImg(src){
+  const el=document.getElementById("noticeImgViewEl");
+  if(!el||!src) return;
+  el.src=src;
+  openModal("noticeImgViewModal");
+}
+/* 编辑态图片预览 → 已由 QQ 公告式富文本编辑器取代（图片直接内联显示） */
+/* ═══ 富文本编辑器核心（QQ公告式）═══
+   存储格式不变（Markdown 文本），编辑时双向转换：
+   进入编辑 noticeMdToEditorHtml(text)；保存时 noticeEditorToMd() */
+function noticeMdToEditorHtml(text){
+  let s=escapeHtml(String(text||""));
+  s=s.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|data:image\/[^)\s]+)\)/g,(m,alt,src)=>`<img src="${src}" alt="${alt}" title="${alt}" data-notice-img="${src}">`);
+  s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2">$1</a>');
+  s=s.replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>");
+  return s.replace(/\r?\n/g,"<br>");
+}
+/* 图片加载失败兜底（兼容旧调用）：实际检测由 noticeScanImages 统一处理。
+   保留空函数避免历史引用报错。 */
+function noticeImgOnerror(alt){ return ""; }
+/* DOM → Markdown：遍历编辑器节点（文本/BR/IMG/STRONG/A/DIV），
+   IMG 转图片语法，加粗/链接还原为 Md，空行压缩 */
+function noticeEditorToMd(){
+  const el=document.getElementById("noticeEditor");
+  if(!el) return "";
+  let out="";
+  const walk=(node)=>{
+    if(node.nodeType===3){ out+=node.nodeValue||""; return; }
+    if(node.nodeType!==1) return;
+    const tag=node.tagName;
+    if(tag==="BR"){ out+="\n"; return; }
+    /* 失效图片占位 span：跳过，不写入公告（避免保存"图片已失效"提示文字） */
+    if(tag==="SPAN" && node.classList && node.classList.contains("notice-img-broken")){ return; }
+    if(tag==="IMG"){
+      /* src 优先；data-cloud 为云端备份地址兜底；裂图占位（无 src）则跳过，避免写入死链 */
+      const src=node.getAttribute("src")||node.getAttribute("data-cloud")||"";
+      if(!src) return;
+      out+="\n!["+(node.getAttribute("alt")||"攻略配图")+"]("+src+")\n";
+      return;
+    }
+    if(tag==="B"||tag==="STRONG"){ out+="**"; node.childNodes.forEach(walk); out+="**"; return; }
+    if(tag==="A"){
+      const save=out; out="";
+      node.childNodes.forEach(walk);
+      const inner=out; out=save;
+      out+="["+(inner||node.textContent||"链接")+"]("+(node.getAttribute("href")||"")+")";
+      return;
+    }
+    if(tag==="DIV"||tag==="P"){ out+="\n"; node.childNodes.forEach(walk); out+="\n"; return; }
+    node.childNodes.forEach(walk);
+  };
+  el.childNodes.forEach(walk);
+  return out.replace(/\n{3,}/g,"\n\n").replace(/^\n+|\n+$/g,"");
+}
+/* 光标处插入内联图片（QQ公告式），返回 img 节点供上传后替换 src */
+function noticeInsertImg(src,alt){
+  const el=document.getElementById("noticeEditor");
+  if(!el) return null;
+  el.focus();
+  const img=document.createElement("img");
+  img.src=src; img.alt=alt||"贴图"; img.title=alt||"贴图";
+  img.dataset.noticeImg=src; /* 复用查看区点击放大逻辑 */
+  /* 失效检测统一走 noticeScanImages：外链加载后校验尺寸/错误，dataURL 跳过 */
+  if(src.indexOf("data:image/")!==0){
+    img.addEventListener("load",()=>{
+      if(img.naturalWidth && img.naturalWidth<=32 && img.naturalHeight<=32){
+        noticeMarkImgBroken(img, img.alt||"贴图");
+      }
+    });
+    img.addEventListener("error",()=>noticeMarkImgBroken(img, img.alt||"贴图"));
+  }
+  /* 删掉选区内容（若用户选中了文字再贴图） */
+  const sel=window.getSelection();
+  if(sel && sel.rangeCount && !sel.isCollapsed){
+    sel.deleteFromDocument();
+  }
+  let range;
+  if(sel && sel.rangeCount && el.contains(sel.anchorNode)){
+    range=sel.getRangeAt(0);
+    range.insertNode(img);
+    range.setStartAfter(img); range.setEndAfter(img);
+  }else{
+    /* 无光标信息则追加到末尾 */
+    el.appendChild(img);
+    range=document.createRange();
+    range.setStartAfter(img); range.setEndAfter(img);
+  }
+  sel.removeAllRanges(); sel.addRange(range);
+  /* 图片后补换行，方便继续输入文字 */
+  const br=document.createElement("br");
+  range.insertNode(br);
+  range.setStartAfter(br); range.setEndAfter(br);
+  sel.removeAllRanges(); sel.addRange(range);
+  return img;
+}
+/* 编辑器内插入纯文本（表情/粘贴文本统一入口，防 HTML 污染） */
+function noticeInsertText(txt){
+  const el=document.getElementById("noticeEditor");
+  if(!el) return;
+  el.focus();
+  document.execCommand("insertText",false,txt);
 }
 /* 渲染公告视图 + 顶栏红点（未读提示），编辑态互不影响 */
 function renderNotice(){
@@ -5579,6 +8155,7 @@ function renderNotice(){
   if(!view) return;
   if(n && n.text){
     view.innerHTML=noticeRenderMd(n.text);
+    noticeScanImages(view); /* 主动检测失效 Gitee/外链图片，替换为占位 */
     if(meta) meta.textContent="最近更新："+noticeTime(n.updatedAt)+(n.updatedBy?(" · by "+n.updatedBy):"");
   }else{
     view.innerHTML='<span class="muted">暂无公告，点击「✏️ 编辑」发布第一条公告 / 攻略玩法</span>';
@@ -5594,13 +8171,22 @@ function openNotice(){
 function noticeEnterEdit(){
   if(!SYNC.room){ showToast("⚠️ 请先加入房间再编辑公告"); return; }
   const n=SYNC.room&&SYNC.room.notice;
-  document.getElementById("noticeText").value=(n&&n.text)||"";
+  const editor=document.getElementById("noticeEditor");
+  /* Markdown → 富文本（图片转内联 img，QQ公告式所见即所得） */
+  editor.innerHTML=noticeMdToEditorHtml((n&&n.text)||"");
+  noticeScanImages(editor); /* 编辑态同样主动检测失效外链/Gitee临时图 */
   document.getElementById("noticeEditWrap").style.display="block";
   document.getElementById("noticeView").style.display="none";
   document.getElementById("noticeEditBtn").style.display="none";
   document.getElementById("noticeSave").style.display="inline-block";
   document.getElementById("noticeCancelEdit").style.display="inline-block";
-  document.getElementById("noticeText").focus();
+  /* 光标落末尾 */
+  editor.focus();
+  const range=document.createRange();
+  range.selectNodeContents(editor);
+  range.collapse(false);
+  const sel=window.getSelection();
+  sel.removeAllRanges(); sel.addRange(range);
 }
 function noticeExitEdit(){
   document.getElementById("noticeEditWrap").style.display="none";
@@ -5611,19 +8197,13 @@ function noticeExitEdit(){
   document.getElementById("noticeEmojiPanel").style.display="none";
 }
 async function noticeSaveNow(){
-  const txt=document.getElementById("noticeText").value;
+  const txt=noticeEditorToMd(); /* 富文本 DOM → Markdown 文本，存储格式不变 */
   const ok=await SYNC.saveNotice(txt);
   if(ok){ noticeExitEdit(); }
 }
-/* 在光标处插入文本（表情/图片语法） */
+/* 在光标处插入文本（表情等纯文本；富文本编辑器内用 execCommand） */
 function noticeInsert(txt){
-  const ta=document.getElementById("noticeText");
-  if(!ta) return;
-  const st=ta.selectionStart||0, en=ta.selectionEnd||0;
-  ta.value=ta.value.slice(0,st)+txt+ta.value.slice(en);
-  const pos=st+txt.length;
-  ta.focus();
-  ta.setSelectionRange(pos,pos);
+  noticeInsertText(txt);
 }
 /* 表情面板（含红黄绿队伍色标） */
 const NOTICE_EMOJIS=Array.from("😀😁😂🤣😃😄😅😆😉😊😋😎🤩😍🥰😘🤗🤔😐😴😪😢😭😤😡🤬😱🥶🥵🤢🥴👻💀🤡👽🤖🎃😺😹😻🙈🙉🙊🐶🐱🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🐔🐧🦅🦉🐺🐴🦄🐝🦋🐢🐍🐙🦀🐠🐟🐬🐳🦈🐊🐘🌵🌲🌳🌱🌿🍀💐🌷🌹🌺🌸🌼🌻🌞🌙⭐🌟✨⚡🔥💥🌈☀⛅🌧❄☃💧💦🕹🎮🎲🎯🎁🎉🎊🏆🥇⚽🏀🏓🏸🎱🎽🏅❗❓💯❌⭕✅✔️🚫⚠️🆕🆒🆗1️⃣2️⃣3️⃣🔴🟡🟢🔵🟣⚫⚪🟥🟨🟩🚩🏴");
@@ -5638,7 +8218,7 @@ function noticeInsertImageLink(){
   if(!url) return;
   const u=url.trim();
   if(!/^(https?:\/\/|data:image\/)/i.test(u)){ showToast("⚠️ 链接需以 http(s):// 开头"); return; }
-  noticeInsert("\n![贴图]("+u+")\n");
+  noticeInsertImg(u,"贴图"); /* 直接内联显示图片 */
 }
 /* 贴图压缩：长边 ≤900px，JPEG 82%，避免超出仓库单文件体积限制 */
 function noticeCompressImage(file){
@@ -5663,30 +8243,42 @@ function noticeCompressImage(file){
     img.src=url;
   });
 }
-/* 贴图上传：云端模式上传到房间仓库 assets 目录；本地模式直接内嵌压缩图 */
+/* 贴图插入核心：压缩后始终以 dataURL 内联显示并随公告保存（永不过期）。
+   Gitee 上传仅作后台归档备份，云端 raw 链接是带签名的临时 CDN 地址（约3小时过期，
+   过期后会 302 跳到 favicon.ico 导致裂图），因此绝不能作为 img.src 长期保存。 */
 async function noticeUploadImage(file){
   const tip=document.getElementById("noticeUploading");
   try{
     const dataUrl=await noticeCompressImage(file);
+    const img=noticeInsertImg(dataUrl,"攻略配图");
+    if(!img) return;
+    img.dataset.embed="1"; /* 标记为内嵌图，便于保存/调试识别 */
     if(!hasSync(SYNC.cfg) || !SYNC.room){
-      noticeInsert("\n![贴图]("+dataUrl+")\n");
-      showToast("✅ 贴图已压缩插入（本地模式内嵌保存）");
+      showToast("✅ 贴图已压缩插入（内嵌保存）");
       return;
     }
+    /* 云端模式：后台静默上传备份，但 src 始终保留 dataURL，不替换为临时 raw 链接 */
     if(tip) tip.style.display="inline";
-    const b64=dataUrl.split(",")[1];
-    const path="assets/"+SYNC.room.id+"/"+Date.now()+".jpg";
-    const body={ access_token:(SYNC.cfg._e?_d(SYNC.cfg._e,"busha2026"):SYNC.cfg.token), message:"notice-img "+path, content:b64, branch:SYNC.cfg.branch||"master" };
-    const pr=await fetch(SYNC.url(path)+"?access_token="+SYNC.tok(), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
-    if(!pr.ok){ const e=await pr.json().catch(()=>({})); throw new Error("HTTP "+pr.status+" "+(e.message||"")); }
-    const raw=`https://gitee.com/${SYNC.cfg.owner}/${SYNC.cfg.repo}/raw/${encodeURIComponent(SYNC.cfg.branch||"master")}/${path}`;
-    noticeInsert("\n![攻略配图]("+raw+")\n");
-    showToast("✅ 贴图已上传并插入");
+    noticeCloudBackupImage(dataUrl, img).catch(()=>{});
   }catch(e){
-    showToast("⚠️ 贴图上传失败："+e.message+"，可改用「图片链接」");
+    showToast("⚠️ 贴图处理失败："+e.message);
   }finally{
     if(tip) tip.style.display="none";
   }
+}
+/* 后台上传图片到 Gitee assets 目录作归档（不影响显示，失败静默） */
+async function noticeCloudBackupImage(dataUrl, img){
+  const b64=dataUrl.split(",")[1];
+  /* 路径分段编码：房间 ID（可能是中文/特殊字符）单独 encodeURIComponent；
+     Gitee 服务端会按 UTF-8 解码存储，与 raw 访问链路一致 */
+  const path="assets/"+encodeURIComponent(String(SYNC.room.id))+"/"+Date.now()+".jpg";
+  const body={ access_token:(SYNC.cfg._e?_d(SYNC.cfg._e):SYNC.cfg.token), message:"notice-img "+path, content:b64, branch:SYNC.cfg.branch||"master" };
+  const pr=await fetch(SYNC.url(path)+"?access_token="+SYNC.tok(), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  if(!pr.ok){ const e=await pr.json().catch(()=>({})); throw new Error("HTTP "+pr.status+" "+(e.message||"")); }
+  /* 云端地址仅记录到 data-cloud 供排查/未来引用，src 保持 dataURL 不变 */
+  const raw=`https://gitee.com/${SYNC.cfg.owner}/${SYNC.cfg.repo}/raw/${encodeURIComponent(SYNC.cfg.branch||"master")}/${path}`;
+  if(img){ img.dataset.cloud=raw; img.title="攻略配图（已云端备份）"; }
+  showToast("✅ 贴图已插入并云端备份");
 }
 
 /* 未保存修改浮动提示条 / Toast 通知 */
@@ -5721,19 +8313,28 @@ function renderHistory(){
   const box=document.getElementById("historyList");
   if(!box) return;
   const h=(SYNC.room && SYNC.room.history)||[];
+  const filter=(document.getElementById("historyFilter")||{}).value||"";
+  const filtered = filter ? h.filter(e=> filter==="ban" ? !!e.ban : !e.ban) : h;
+  const cntEl=document.getElementById("historyFilterCnt");
+  if(cntEl) cntEl.textContent=filter?`筛选出 ${filtered.length} 条`:`共 ${h.length} 条`;
   if(!h.length){
     box.innerHTML='<div class="muted" style="padding:16px;text-align:center">暂无历史版本，手动点击「保存到云端」后才会记录版本</div>';
     return;
   }
-  box.innerHTML=h.slice().reverse().map((e)=>{
+  if(!filtered.length){
+    box.innerHTML='<div class="muted" style="padding:16px;text-align:center">该空间暂无历史版本</div>';
+    return;
+  }
+  box.innerHTML=filtered.slice().reverse().map((e)=>{
     const d=new Date(e.t||0);
     const pad=n=>String(n).padStart(2,"0");
     const time=`${d.getMonth()+1}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     const isCur=(SYNC.room.dataVersion===e.v);
     const curTag=isCur?' <span class="badge" style="padding:1px 7px;font-size:11px;color:var(--green);border-color:var(--green)">当前</span>':'';
+    const banTag=e.ban?' <span class="badge" style="padding:1px 7px;font-size:11px;color:var(--red);border-color:var(--red)">🛡️Ban</span>':'';
     return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap">
       <span style="min-width:42px;font-weight:700;color:var(--blue2)">v${e.v}</span>
-      <span style="flex:1;font-size:12px">${time} · ${escapeHtml(e.by||"-")} · ${(e.raid===12)?"12人":"4人"} · ${e.teams||0}队/${e.chars||0}角色${curTag}</span>
+      <span style="flex:1;font-size:12px">${time} · ${escapeHtml(e.by||"-")} · ${(e.raid===12)?"12人":"4人"} · ${e.teams||0}队/${e.chars||0}角色${banTag}${curTag}</span>
       <button class="sm secondary" onclick="doRollback(${h.indexOf(e)})">↩ 回溯</button>
     </div>`;
   }).join("");
@@ -5749,19 +8350,28 @@ function doRollback(idx){
     charList=snap.charList.map(c=>{ if(c.type==="healer") c.type="N"; return c; });
   }
   if(snap.raidMode===4||snap.raidMode===12){ raidMode=snap.raidMode; }
-  /* 新快照带双模式槽位：两模式排表完整还原（含形态自愈）；旧快照仅回溯当次保存的模式表 */
-  if(Array.isArray(snap.teamSlot4) || Array.isArray(snap.teamSlot12)){
+  /* 新快照带双模式+双空间槽位：两模式/两空间排表完整还原（含形态自愈）；
+     视图偏好（当前ban空间/模式）保持不变，按当前空间装载对应槽位；
+     旧快照仅回溯当次保存的模式表 */
+  const hasSlots = Array.isArray(snap.teamSlot4) || Array.isArray(snap.teamSlot12)
+    || Array.isArray(snap.banTeamSlot4) || Array.isArray(snap.banTeamSlot12);
+  if(hasSlots){
     teamSlot4 = Array.isArray(snap.teamSlot4)?snap.teamSlot4:[];
     teamSlot12 = Array.isArray(snap.teamSlot12)?snap.teamSlot12:[];
+    banTeamSlot4 = Array.isArray(snap.banTeamSlot4)?snap.banTeamSlot4:[];
+    banTeamSlot12 = Array.isArray(snap.banTeamSlot12)?snap.banTeamSlot12:[];
     healTeamSlots();
+    teamList = currentSlotTable();
+    if(!teamList.length) teamList = arrange(charList, raidMode);
+  } else {
+    teamList=snap.teamList;
   }
-  teamList=snap.teamList;
   SYNC.dirty=true;
   SYNC.dirtyCount=(SYNC.dirtyCount||0)+1;
   saveStorage(); renderAll(); updateModeBtns();
   SYNC.updateSaveBtn();
   SYNC.setStatus("未保存","warn");
-  showToast(`🕘 已回溯到 v${e.v}，点击「保存到云端」后才会生效`);
+  showToast(`🕘 已回溯到 v${e.v}${e.ban?"（Ban玩法空间）":""}，点击「保存到云端」后才会生效`);
   closeModal("historyModal");
 }
 /* 未保存修改时，关闭/刷新/切换网页提醒用户 */
