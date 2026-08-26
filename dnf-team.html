@@ -630,6 +630,7 @@ button{background:var(--blue);color:#fff;border:none;padding:8px 14px;border-rad
 button:hover{filter:brightness(1.1)}
 button.secondary{background:var(--panel2);color:var(--txt)}
 button.danger{background:var(--red)}
+button.cancel-arr{background:var(--panel2);color:#f59e0b;border:1px solid #f59e0b}
 button.success{background:var(--green)}
 button.sm{padding:4px 9px;font-size:12px;border-radius:5px}
 input,select,textarea{width:100%;padding:7px 9px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:6px;font-size:13px}
@@ -841,6 +842,14 @@ textarea{width:100%;height:130px;background:var(--panel2);color:var(--txt);borde
 .wave-label[draggable="true"]{cursor:grab;user-select:none}
 .wave-label.dragging{opacity:.5}
 .wave-label.drag-over .wnum{box-shadow:0 0 0 2px var(--blue)}
+/* 4人一览：紧凑可拖动的「第N波（4人）」波次标签 → 整波拖拽插入把手 */
+.team-block.view-ultra .team-title .wtag{
+  display:inline-flex;align-items:center;background:var(--blue);color:#fff;
+  padding:2px 10px;border-radius:10px;font-size:11px;font-weight:bold;
+  cursor:grab;user-select:none;white-space:nowrap;line-height:1.5
+}
+.team-block.view-ultra .team-title .wtag.dragging{opacity:.5}
+.team-block.view-ultra .team-title .wtag.drag-over{box-shadow:0 0 0 2px var(--yellow)}
 /* 当前选中波次高亮（单击波次标签或队伍卡片框体切换）——红色攻坚系：粗描边+光晕+呼吸动画+「攻坚中」标记，其余队伍保持清晰 */
 @keyframes wavePulse{
   0%,100%{box-shadow:0 0 0 4px var(--wave-stroke),0 0 0 7px rgba(var(--wg),.30),0 0 26px 6px rgba(var(--wg),.55)}
@@ -944,7 +953,8 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
 .team-block.view-ultra .slot.u-tip-show .u-tip{opacity:1;transform:translateX(-50%) translateY(0)}
 /* 一览模式：长按拖拽 */
 .team-block.view-ultra .slot.ultra-drag-src{cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y}
-.team-block.view-ultra .slot.ultra-drag-src:active{cursor:grabbing}
+/* 长按达到阈值后（未移动）的提示：细虚线描边，无拖动；松开即取消 */
+.team-block.view-ultra .slot.ultra-drag-armed{outline:1px dashed rgba(59,130,246,.5);outline-offset:-1px}
 .team-block.view-ultra .slot.ultra-drag-ghosting{outline:2px dashed var(--blue);opacity:.45;transform:scale(.96);transition:opacity .1s,transform .1s}
 .team-block.view-ultra.ultra-drop-target{border-color:var(--blue2);box-shadow:0 0 0 2px rgba(59,130,246,.45);transition:.1s}
 .team-block.view-ultra.ultra-drop-empty{border-color:#34d399;box-shadow:0 0 0 2px rgba(52,211,153,.4)}
@@ -1064,6 +1074,7 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
       <button class="sm secondary" id="undoBtn" disabled style="opacity:.4">↩ 撤销</button>
       <button class="sm secondary" id="redoBtn" disabled style="opacity:.4">↪ 重做</button>
       <button id="autoArrange">一键均衡排完所有角色</button>
+      <button class="secondary cancel-arr" id="cancelArr" style="display:none">不保存，回退到线上编队</button>
       <button class="secondary" id="addTeam">+ 新建队伍</button>
       <button class="secondary" id="clearTeams">清空排表</button>
       <button class="secondary" id="exportData">导出Excel</button>
@@ -1105,6 +1116,17 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
         绿队<select id="captainGreen" title="绿队固定队长"></select>
       </label>
       <span style="font-size:11px;color:var(--mut);white-space:nowrap">一键排表时，各波次对应颜色队伍固定包含该玩家角色</span>
+    </div>
+  </div>
+
+  <!-- 4人团本专属配置 -->
+  <div id="raid4Config" style="display:none;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:10px;flex-direction:column;gap:10px">
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px">
+      <span style="font-size:13px;font-weight:bold;color:var(--text);white-space:nowrap">C总战力门槛：</span>
+      <label style="font-size:12px;color:var(--mut);white-space:nowrap;display:flex;align-items:center;gap:4px">
+        每队C总战力≥<input type="number" id="thresholdC4" placeholder="留空=不限" style="width:90px;padding:3px 6px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px">
+      </label>
+      <span style="font-size:11px;color:var(--mut);white-space:nowrap">填写后，4人团本按此门槛自动编排；未达门槛的队伍会标记⚠并提醒是否降低门槛</span>
     </div>
   </div>
 
@@ -1342,6 +1364,31 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
     <div class="modal-box" style="max-width:700px;max-height:80vh;overflow-y:auto">
       <h3>📋 版本更新日志</h3>
       <div class="changelog-content" style="margin-top:15px">
+      <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.37.0</span>
+            <span class="ver-date">2026-08-26</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>4人排表补编遗留C规范化</b>（取代 v1.36.0 的「没奶单C补入已有队伍」）：修复原逻辑把剩余C直接塞满员队造成的<b>超员>4人队</b>。现严格按规范「优先填入不足4人的队伍空位(标准队保持1奶3C) → 无法容纳时新建纯C收尾队(每队≤4人、玩家唯一)」，杜绝超员且全角色零遗漏</li>
+            <li><b>新增4人排表最终校验</b>`validateTeams4`：一键排表后自动断言「全角色入队 / 同队玩家唯一 / 角色不重复 / 标准队=1奶3C / 每队≤4人」，异常时控制台告警并弹窗提示</li>
+            <li><b>4人冲突修正(步骤5)强化</b>：修复方案B「队间同型交换」唯一性误判——原用 Set 去重会漏算同队重复玩家，导致本可交换解决的冲突被误判无解、退而裁队；改为「槽位数==去重数」逐位校验后，可行输入下标准队能稳定保持 1奶3C 不再被裁</li>
+            <li>4人排表输出为队伍增加 `isStd` 标记，供区分标准队与补编队</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.36.0</span>
+            <span class="ver-date">2026-08-26</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>单角色拖拽改为「长按+移动」才启动</b>：单击 / 轻触 / 长按但不移动均不再触发拖动，彻底消除误触；长按角色卡片（约0.5秒）出现细虚线提示，移动后启动半透明拖拽（跟随「归属·角色(战力)」浮层，源卡片半透明置底），松手执行对调/填入/弹窗取消</li>
+            <li><b>恢复 4 人团本整波拖动</b>：一览（紧凑）视图恢复原有「横排堆叠、排满换行」的网格布局（不再一波一行）；每支队伍标题内置可拖动的「第N波（4人）」标签，单击可高亮攻坚波次，拖动标签到其他波前即可<b>插入排序</b>，与 12 人整队拖动方式清晰区分</li>
+            <li><b>12 人团本整队拖动同步恢复</b>：一览（紧凑）视图下红/黄/绿队伍拖拽对调（交换位置与颜色）恢复可用，与整波拖动互不冲突</li>
+            <li><b>4 人团本新增「C总战力门槛」</b>：填写后按门槛自动编排；未达门槛的队伍自动标记「⚠C总未达X」，并弹窗询问是否将门槛自动降至全部队伍可达值后重新编排</li>
+            <li><b>4 人团本修复「没奶单C」队伍</b>：明确无奶不单独建队；一键排表后剩余零散 C 不再自成无奶队伍，而是按既有匹配逻辑（C总均衡、玩家唯一）补入不含该玩家的已有队伍中</li>
+          </ul>
+        </div>
         <div class="version-entry">
           <div class="version-header">
             <span class="ver-tag">v1.35.1</span>
@@ -1368,6 +1415,19 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
                 <br>· 目标波无该玩家且无空位 → 弹窗<b>提示并取消</b>操作
                 <br>· 拖拽过程视觉反馈：目标波按「可对调(橙)/可填入(绿)/无法放置(蓝)」实时变色，跟随光标显示拖拽浮层；拖拽期间抑制误触发的玩家高亮</li>
             <li><b>团长模式兼容</b>：一览拖拽仅在团长模式下允许，非团长操作会提示并沿用团长权限控制</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
+            <span class="ver-tag">v1.35.0</span>
+            <span class="ver-date">2026-08-26</span>
+          </div>
+          <ul class="changes-list">
+            <li><b>4人团本排表算法全面重构</b>：修复 4 人一键排表可直接调用的核心算法（原调用函数缺失导致崩溃），实现完整规范——硬约束「同队玩家唯一 / 全角色无遗漏 / 角色不重复 / 标准队(1奶3C)最大化」，均衡策略「混子C跟大C、C组下限优先、大奶↔小C反向配对」</li>
+            <li>算法步骤：蛇形分组 + 混子插入(替换低战力C入大C组) + 同玩家冲突修正 + 补编(2奶2C/1奶+C/纯C/纯奶) + 标准队C总微调均衡</li>
+            <li><b>冲突修正强化</b>：检测扩展到含奶在内的全槽位同玩家，优先资源替换/队间同类型交换；当输入本身不可行（如某玩家独占奶与其C、无法凑成互不重复满编）时，自动移出重复角色（优先移C保留奶）回补编，保证「同队玩家唯一」任何情况下都成立</li>
+            <li><b>优化一键排表「不保存回退」按钮</b>：点击「不保存，回退到线上编队」直接回退到排表前的线上编队版本，不再弹出二次确认；回退后仍需点击「保存到云端」才会写回云端</li>
+            <li>排表已保存到云端后自动隐藏「不保存回退」按钮：当前编队即最新线上版本，避免误导用户回退到旧版本</li>
           </ul>
         </div>
         <div class="version-entry">
@@ -2697,7 +2757,7 @@ function arrange(chars, mode, opts){
     }
     return arrange12(active, opts||{});
   }
-  return arrange4(active);
+  return arrange4New(active, opts);
 }
 
 /* 空位填补（含换位）：排表完成后，将未入队C角色尽可能填入空位队伍
@@ -3883,6 +3943,355 @@ function arrange12WithPack(chars, opts){
       —— 允许同玩家C交换（同一玩家不同队间高低C互换），保证最低C总与中位数差距可控
    约束：同队禁止同一玩家；玩家C数超过可用队伍时，超出部分（最低战力C）无法入队
 */
+/* 4人团本自动排表算法（完整规范实现）
+   硬约束：同队玩家唯一；全角色无遗漏；角色不重复；标准队(1奶3C)最大化。
+   均衡：混子C跟大C；C组下限优先；大奶<->小C反向配对。 */
+function arrange4New(chars, opts){
+  opts = opts || {};
+  const thresholdC = (typeof opts.thresholdC==="number" && !isNaN(opts.thresholdC)) ? opts.thresholdC : null;
+  const charMap={}; chars.forEach(c=>charMap[c.id]=c);
+  const H = chars.filter(c=>c.type==="N").slice().sort((a,b)=>b.power-a.power); // 奶降序
+  const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power); // C降序
+  const Hcnt=H.length, Ccnt=C.length;
+  const ST = Math.min(Hcnt, Math.floor(Ccnt/3)); // 标准队数最大化
+  const isMix = c=>c.power<=1000;                 // 混子阈值
+  const topN = Math.max(1, Math.round(Ccnt*0.2)); // 顶级大C数量(前20%)
+
+  const mk=()=>({slots:[], cTotal:0});
+  const groups=[]; for(let i=0;i<ST;i++) groups.push(mk());
+
+  /* ---- 基础C池(ST*3个C) 蛇形分组；混子插入池须与基础池去重 ---- */
+  const nonMix=C.filter(c=>!isMix(c));
+  let base=nonMix.slice(0,ST*3);
+  let baseMix=[]; // 被借用到基础池的混子（不再参与插入）
+  if(ST>0 && base.length<ST*3){
+    baseMix=C.filter(isMix).slice(0,ST*3-base.length);
+    base=base.concat(baseMix);
+  }
+  const baseMixSet=new Set(baseMix.map(c=>c.id));
+  base.forEach((c,idx)=>{
+    const pos=idx%ST, round=Math.floor(idx/ST);
+    const g=(round%2===0)?pos:(ST-1-pos);
+    groups[g].slots.push(c); groups[g].cTotal+=c.power;
+  });
+
+  /* ---- 混子插入：含顶级大C的组，替换最低非大C ---- */
+  const topSet=new Set(C.slice(0,topN).map(c=>c.id));
+  const gHasTop=g=>g.slots.some(c=>topSet.has(c.id));
+  const gMix=g=>g.slots.filter(isMix).length;
+  const replaced=[];
+  const mixPool=C.filter(isMix).filter(c=>!baseMixSet.has(c.id));
+  for(const m of mixPool){
+    if(ST===0) { replaced.push(m); continue; }
+    let cand=groups.filter(g=>gHasTop(g)&&gMix(g)===0);
+    if(!cand.length) cand=groups.filter(gHasTop);
+    if(!cand.length) cand=groups.filter(g=>g.slots.some(c=>!topSet.has(c.id)));
+    if(!cand.length) cand=groups;
+    cand=cand.slice().sort((a,b)=>((gMix(a)*100000+a.cTotal)-(gMix(b)*100000+b.cTotal)));
+    let t=null, idx=-1, low=Infinity;
+    for(const g of cand){
+      let ri=-1, rl=Infinity;
+      g.slots.forEach((c,i)=>{ if(!topSet.has(c.id)&&c.power<rl){ rl=c.power; ri=i; } });
+      if(ri<0) continue;
+      const newOwners=new Set(g.slots.map(c=>c.owner));
+      newOwners.delete(g.slots[ri].owner); newOwners.add(m.owner);
+      if(newOwners.size!==3) continue; // 引入重复玩家则弃
+      const trial=g.cTotal-g.slots[ri].power+m.power;
+      if(trial<low){ low=trial; t=g; idx=ri; }
+    }
+    if(!t){ replaced.push(m); continue; }
+    const old=t.slots[idx];
+    t.slots[idx]=m; t.cTotal=t.cTotal-old.power+m.power;
+    replaced.push(old);
+  }
+
+  /* ---- 组内C玩家去重：蛇形后通过跨组交换保证每组3C玩家各异 ---- */
+  for(let iter=0;iter<200;iter++){
+    let bg=null;
+    for(const g of groups){ const s=new Set(g.slots.map(c=>c.owner)); if(s.size!==g.slots.length){bg=g;break;} }
+    if(!bg) break;
+    let done=false;
+    for(let i=0;i<bg.slots.length&&!done;i++){
+      const x=bg.slots[i];
+      for(let j=0;j<groups.length&&!done;j++){
+        const g2=groups[j]; if(g2===bg)continue;
+        for(let k=0;k<g2.slots.length;k++){
+          const y=g2.slots[k];
+          if(x.owner===y.owner)continue;
+          const bO=new Set(bg.slots.map(c=>c.owner)), tO=new Set(g2.slots.map(c=>c.owner));
+          bO.delete(x.owner); bO.add(y.owner);
+          tO.delete(y.owner); tO.add(x.owner);
+          if(bO.size===3&&tO.size===3){ bg.slots[i]=y; g2.slots[k]=x; done=true; break; }
+        }
+      }
+    }
+    if(!done) break;
+  }
+
+  /* ---- 反向配对（owner感知）：奶降序 <-> C组升序；跳过与组内C同玩家的奶 ---- */
+  const healsDesc=H.slice();
+  const cAsc=groups.slice().sort((a,b)=>a.cTotal-b.cTotal);
+  const standardTeams=[];
+  const usedHeal=new Set();
+  for(let i=0;i<ST;i++){
+    const g=cAsc[i];
+    const gOwners=new Set(g.slots.map(c=>c.owner));
+    let pick=null;
+    /* 优先：最强可用奶，且owner不在本组3C；退化：最强未用奶 */
+    for(const h of healsDesc){ if(usedHeal.has(h.id))continue; if(gOwners.has(h.owner))continue; pick=h; break; }
+    if(!pick){ for(const h of healsDesc){ if(!usedHeal.has(h.id)){ pick=h; break; } } }
+    if(!pick) break;
+    usedHeal.add(pick.id);
+    standardTeams.push({slots:[{charId:pick.id}].concat(g.slots.map(c=>({charId:c.id}))), cTotal:g.cTotal, healPower:pick.power});
+  }
+
+  /* ---- 步骤5：同玩家冲突修正 ----
+     优先队间交换；无法交换时用未用池(replaced/remain)对换重复位的C，保证强消除 */
+  function dupOwners(t){
+    const seen={},dup=[];
+    t.slots.forEach(s=>{const c=charMap[s.charId]; if(c){ if(seen[c.owner]&&!dup.includes(c.owner))dup.push(c.owner); seen[c.owner]=1; }});
+    return dup;
+  }
+  function teamOwners(t){ return new Set(t.slots.map(s=>charMap[s.charId].owner)); }
+
+  /* 未用池：标准队之外的C与奶（供冲突替换） */
+  const stdUsedC=new Set();
+  const stdUsedAll=new Set();
+  standardTeams.forEach(t=>t.slots.forEach(s=>{ const c=charMap[s.charId]; if(c){ stdUsedAll.add(s.charId); if(c.type==='c') stdUsedC.add(s.charId); } }));
+  let unusedC=C.filter(c=>!stdUsedC.has(c.id));
+  let unusedH=H.filter(h=>!stdUsedAll.has(h.id));
+  const slotPool=(c)=> (c&&c.type==='N') ? unusedH : unusedC;
+  const dropFromPool=(y)=>{ if(y.type==='N') unusedH=unusedH.filter(z=>z.id!==y.id); else unusedC=unusedC.filter(z=>z.id!==y.id); };
+  const addToPool=(c)=>{ if(!c) return; if(c.type==='N') unusedH.push(c); else unusedC.push(c); };
+  const lastOut=new Map(); /* 每个队伍最近换出的字符，防乒乓 */
+
+  for(let iter=0;iter<300;iter++){
+    let bad=null;
+    for(const t of standardTeams){ if(dupOwners(t).length){bad=t;break;} }
+    if(!bad) break;
+    const bOwners=teamOwners(bad);
+    /* 定位重复位（任意槽位，含奶） */
+    let dupSlot=-1; const oc={};
+    bad.slots.forEach((s,i)=>{ const c=charMap[s.charId]; if(!c)return; oc[c.owner]=(oc[c.owner]||0)+1; if(oc[c.owner]>=2&&dupSlot<0) dupSlot=i; });
+    if(dupSlot<0) break;
+    const outSet=lastOut.get(bad)||new Set();
+    /* 方案A/A2：用未用池替换为 owner 不在本队、且非同类型最近换出过的字符（战力最接近） */
+    let best=null, bestDiff=Infinity, bestSlot=-1;
+    for(let i=0;i<bad.slots.length;i++){
+      const cc=charMap[bad.slots[i].charId]; if(!cc) continue;
+      for(const y of slotPool(cc)){
+        if(bOwners.has(y.owner)) continue;
+        if(outSet.has(y.id)) continue; // 防乒乓
+        const d=Math.abs(y.power-cc.power);
+        if(d<bestDiff){ bestDiff=d; best=y; bestSlot=i; }
+      }
+    }
+    if(best){
+      const z=charMap[bad.slots[bestSlot].charId];
+      bad.slots[bestSlot]={charId:best.id};
+      if(z&&z.type==='c') bad.cTotal-=z.power; if(best.type==='c') bad.cTotal+=best.power;
+      dropFromPool(best); addToPool(z);
+      lastOut.set(bad, new Set(outSet).add(z.id)); // 本次换出 z 不再立刻换回
+      continue;
+    }
+    /* 方案B：队间同类型成对交换，使双方owner唯一（保持1奶3C结构）。
+       修复：原用 Set 做 bO.delete(cx.owner) 会在 cx 与队内其他槽位「同人重复」时，
+       把该 owner 从集合里整段抹去→漏数到 3，误判交换不可行而落入方案C裁队。
+       现改为「槽位数 == 去重后数」逐位统计，正确识别本可消除重复的交换。 */
+    const _swapUniq=(aArr,aSkip,aAdd,bArr,bSkip,bAdd)=>{
+      const cnt=(arr,skipI,addOw)=>{const m=new Map();arr.forEach((s,idx)=>{if(idx===skipI)return;const cc=charMap[s.charId];if(!cc)return;m.set(cc.owner,(m.get(cc.owner)||0)+1);});m.set(addOw,(m.get(addOw)||0)+1);const v=[...m.values()];return v.length===arr.length&&v.every(x=>x===1);};
+      return cnt(aArr,aSkip,aAdd)&&cnt(bArr,bSkip,bAdd);
+    };
+    let done=false;
+    for(let i=0;i<bad.slots.length&&!done;i++){
+      const cx=charMap[bad.slots[i].charId]; if(!cx) continue;
+      for(let j=0;j<standardTeams.length&&!done;j++){
+        const t2=standardTeams[j]; if(t2===bad) continue;
+        for(let k=0;k<t2.slots.length;k++){
+          const cy=charMap[t2.slots[k].charId]; if(!cy||cy.type!==cx.type) continue;
+          if(!_swapUniq(bad.slots,i,cy.owner,t2.slots,k,cx.owner)) continue;
+          const s1=bad.slots[i], s2=t2.slots[k];
+          bad.slots[i]=s2; t2.slots[k]=s1;
+          if(cx.type==='c'){ bad.cTotal=bad.cTotal-cx.power+cy.power; t2.cTotal=t2.cTotal-cy.power+cx.power; }
+          done=true; break;
+        }
+      }
+    }
+    if(done) continue;
+    /* 方案C：无可用替换资源（输入在本结构下不可行）——移除重复角色，保证“同队玩家唯一”。
+       优先移除 C、保留奶；若重复位是奶且队内另有同人C，则移除该C。被移除者回补编池，标记“未入队”。 */
+    let remIdx=dupSlot;
+    const sz=charMap[bad.slots[dupSlot].charId];
+    if(sz&&sz.type==='N'){
+      bad.slots.forEach((s,i)=>{ const cc=charMap[s.charId]; if(cc&&cc.type==='c'&&cc.owner===sz.owner) remIdx=i; });
+    }
+    const rm=charMap[bad.slots[remIdx].charId];
+    bad.slots.splice(remIdx,1);
+    if(rm&&rm.type==='c') bad.cTotal-=rm.power;
+    addToPool(rm);
+    lastOut.delete(bad);
+    continue;
+  }
+  /* 收敛未用池变化对补编的影响：在remP基础上并上换出的字符 */
+  /* 收敛未用池变化对补编的影响：按标准队当前实际占用重算补编池 */
+  stdUsedAll.clear(); stdUsedC.clear();
+  standardTeams.forEach(t=>t.slots.forEach(s=>{ const c=charMap[s.charId]; if(c){ stdUsedAll.add(s.charId); if(c.type==='c') stdUsedC.add(s.charId); } }));
+  let remH=H.filter(h=>!stdUsedAll.has(h.id));
+  let remP=C.filter(c=>!stdUsedC.has(c.id)).sort((a,b)=>b.power-a.power);
+  const sup=[];
+
+  function pickDistinct(list, n, forbid){
+    const res=[]; const used=new Set(forbid||[]);
+    for(const c of list){ if(res.length>=n) break; if(!used.has(c.owner)){ res.push(c); used.add(c.owner); } }
+    return res;
+  }
+  function remove(c){ const i=remH.indexOf(c); if(i<0){const j=remP.indexOf(c); if(j>=0)remP.splice(j,1);} else remH.splice(i,1); }
+
+  // 优先 2奶2C
+  while(remH.length>=2 && remP.length>=2){
+    const hs=pickDistinct(remH,2,[]);
+    if(hs.length<2) break;
+    const cs=pickDistinct(remP,2,[hs[0].owner,hs[1].owner]);
+    if(cs.length<2) break;
+    sup.push({slots:hs.concat(cs).map(c=>({charId:c.id}))});
+    remove(hs[0]); remove(hs[1]); remove(cs[0]); remove(cs[1]);
+  }
+  // 1奶+≥2C（优先3C）
+  while(remH.length && remP.length){
+    const h=pickDistinct(remH,1,[])[0];
+    const cs=pickDistinct(remP,3,[h.owner]);
+    const n=Math.max(1,Math.min(3,cs.length));
+    if(n===0) break;
+    sup.push({slots:[{charId:h.id}].concat(cs.slice(0,n).map(c=>({charId:c.id})))});
+    remove(h); cs.slice(0,n).forEach(remove);
+  }
+  // 纯奶队
+  while(remH.length){
+    const hs=pickDistinct(remH,4,[]);
+    if(hs.length===0) break;
+    sup.push({slots:hs.map(c=>({charId:c.id}))});
+    hs.forEach(remove);
+  }
+  // 兜底：极端情况下仍剩余的奶（带奶，允许单独存在）
+  while(remH.length) { sup.push({slots:[{charId:remH[0].id}]}); remove(remH[0]); }
+  /* 剩余 C 归置（规范化：杜绝把剩余 C 塞进满员队导致超员>4人）：
+     规则1：优先填入「不足4人」的已有队伍（标准队保持1奶3C不变；补编队1奶2C→补成1奶3C），
+            要求同队玩家唯一；无空位可容纳时，本轮 C 保留。
+     规则2：剩余仍未入队的 C，新建「纯C收尾队」，每队 ≤4 人、玩家唯一，彻底避免遗漏。 */
+  const __c4CT = t => t.slots.reduce((s,x)=>{ const c=charMap[x.charId]; return s+(c&&c.type==='c'?c.power:0); },0);
+  const __c4Owners = t => new Set(t.slots.map(s=>{ const c=charMap[s.charId]; return c?c.owner:null; }).filter(Boolean));
+  const __c4Size = t => (t.slots||[]).length;
+  const fitPool = standardTeams.concat(sup);
+  let fi=0;
+  while(fi<remP.length){
+    const c=remP[fi];
+    let best=null, bestCT=Infinity;
+    for(const t of fitPool){
+      if(__c4Size(t)>=4) continue;              /* 只收空位，杜绝超员 */
+      if(__c4Owners(t).has(c.owner)) continue;  /* 同队玩家唯一 */
+      const ct=__c4CT(t);
+      if(ct<bestCT){ bestCT=ct; best=t; }
+    }
+    if(best){ best.slots.push({charId:c.id}); remove(c); continue; }
+    fi++;
+  }
+  while(remP.length){
+    const t={slots:[]}; const owners=new Set(); let j=0;
+    while(j<remP.length && t.slots.length<4){
+      const c=remP[j];
+      if(!owners.has(c.owner)){ t.slots.push({charId:c.id}); owners.add(c.owner); remove(c); }
+      else j++;
+    }
+    if(t.slots.length) sup.push(t);
+    else break; // 无可入队角色（理论不可达）
+  }
+
+  /* ---- 步骤7：标准队C总微调（轻量，最多40轮，保持玩家唯一） ---- */
+  const csOf=t=>t.slots.map(s=>charMap[s.charId]).filter(x=>x&&x.type==='c');
+  const dedupOK=(t)=>new Set(t.slots.map(s=>charMap[s.charId].owner)).size===t.slots.length;
+  for(let it=0; it<40; it++){
+    let hi=0, lo=0;
+    for(let i=1;i<standardTeams.length;i++){
+      if(standardTeams[i].cTotal>standardTeams[hi].cTotal) hi=i;
+      if(standardTeams[i].cTotal<standardTeams[lo].cTotal) lo=i;
+    }
+    if(hi===lo) break;
+    const spread=standardTeams[hi].cTotal-standardTeams[lo].cTotal;
+    if(spread<=0||(standardTeams[lo].cTotal&&spread/standardTeams[lo].cTotal<=0.15)) break;
+    let best=null, bestGain=-1;
+    const a=csOf(standardTeams[hi]), b=csOf(standardTeams[lo]);
+    for(const x of a) for(const y of b){
+      if(x.owner===y.owner) continue;
+      const loOwners=new Set(standardTeams[lo].slots.map(s=>charMap[s.charId].owner));
+      const hiOwners=new Set(standardTeams[hi].slots.map(s=>charMap[s.charId].owner));
+      if(loOwners.has(x.owner)||hiOwners.has(y.owner)) continue;
+      const gain=x.power-y.power; // hi减x加y，lo减y加x -> 拉近
+      if(gain>bestGain){ bestGain=gain; best={x,y}; }
+    }
+    if(!best||bestGain<=0) break;
+    const hiS=standardTeams[hi], loS=standardTeams[lo];
+    const ix=hiS.slots.findIndex(s=>s.charId===best.x.id);
+    const iy=loS.slots.findIndex(s=>s.charId===best.y.id);
+    if(ix<0||iy<0) break;
+    [hiS.slots[ix],loS.slots[iy]]=[loS.slots[iy],hiS.slots[ix]];
+    hiS.cTotal=hiS.cTotal-best.x.power+best.y.power;
+    loS.cTotal=loS.cTotal-best.y.power+best.x.power;
+  }
+
+  /* ---- 门槛（可选）：标记C总战力低于门槛的队伍，返回标注供前端渲染/提醒 ---- */
+  const computeCT = tm => tm.slots.reduce((s,x)=>{ const c=charMap[x.charId]; return s + (c&&c.type==='c'?c.power:0); },0);
+  const finalTeams=[];
+  const stdWrap=standardTeams.map(t=>({t:t, std:true}));
+  const supWrap=sup.map(t=>({t:t, std:false}));
+  stdWrap.concat(supWrap).forEach(({t,std})=>{
+    const cTotal=computeCT(t);           /* 空队/纯奶队C总为0 */
+    const obj={slots:t.slots, teamCTotal:cTotal, isStd:std};
+    if(thresholdC!==null){
+      obj.thresholdC=thresholdC;
+      obj.belowThr = cTotal < thresholdC;
+    }
+    finalTeams.push(obj);
+  });
+  return finalTeams;
+}
+
+/* 4人团本专用最终校验：排表完成后调用，验证「全角色入队/玩家唯一/角色去重/标准队1奶3C/每队≤4人」
+   返回 { ok, uncovered, dupChar, dupOwner, badStd, over4 }
+   硬性违规会写入 console.warn，并返回统计供调用方提示 */
+function validateTeams4(teams, chars){
+  const cMap={}; (chars||[]).forEach(c=>cMap[c.id]=c);
+  const r={ ok:true, uncovered:[], dupChar:[], dupOwner:[], badStd:[], over4:[], teamCount:0 };
+  const seen=new Set(); /* 全表角色去重 */
+  (teams||[]).forEach((t,tIdx)=>{
+    const slots=(t.slots||[]).filter(s=>s.charId);
+    r.teamCount++;
+    /* 每队 ≤4 人 */
+    if(slots.length>4) r.over4.push({idx:tIdx,size:slots.length});
+    /* 同队玩家唯一 */
+    const owners=new Set(); const ownerNames=new Map();
+    slots.forEach((s,si)=>{
+      const c=cMap[s.charId];
+      if(!c) return;
+      if(seen.has(s.charId)) r.dupChar.push(s.charId);
+      seen.add(s.charId);
+      if(owners.has(c.owner)){ r.dupOwner.push({idx:tIdx,owner:c.owner,slot:si}); r.ok=false; }
+      owners.add(c.owner); ownerNames.set(c.owner,c.owner);
+    });
+    /* 标准队结构：恰好 1 奶 + 3 C */
+    if(t.isStd){
+      const hN=slots.filter(s=>cMap[s.charId]&&cMap[s.charId].type==='N').length;
+      const cN=slots.filter(s=>cMap[s.charId]&&cMap[s.charId].type==='c').length;
+      if(hN!==1||cN!==3) r.badStd.push({idx:tIdx,h:hN,c:cN});
+    }
+  });
+  /* 角色覆盖：所有 C / 奶 均已入队 */
+  (chars||[]).forEach(c=>{
+    if(!seen.has(c.id)){ r.uncovered.push(c); r.ok=false; }
+  });
+  if(!r.teamCount) r.ok=false;
+  return r;
+}
+
 function arrange4(chars){
   const BIG = 14000;
   const SMALL = 6000;
@@ -4913,6 +5322,7 @@ const SYNC = {
         this.failCount = 0;
         this.setStatus("已保存","on");
         this.updateSaveBtn();
+        hideCancelArrBtn(); /* 排表已写回云端，当前编队即线上版本，隐藏“不保存回退”按钮 */
         showToast("✅ 已保存到云端");
         return;
       }
@@ -5194,8 +5604,15 @@ function updateModeBtns(){
     : (raidMode===12 ? (packMode?"一键排表（12人·包队）":"一键排表（12人红黄绿）") : "一键均衡排完所有角色");
   const cfg=document.getElementById("raid12Config");
   if(cfg) cfg.style.display = raidMode===12 ? "flex" : "none";
+  const cfg4=document.getElementById("raid4Config");
+  if(cfg4) cfg4.style.display = (raidMode===4) ? "flex" : "none";
   updatePackUI();
 }
+
+/* 4人C总门槛：本地持久化 + 初始化 */
+const LS_THR4="busha_thr4";
+function saveThresholdC4(){ try{ localStorage.setItem(LS_THR4, document.getElementById("thresholdC4").value); }catch(e){} }
+function initThresholdC4(){ try{ const v=localStorage.getItem(LS_THR4); if(v!=null) document.getElementById("thresholdC4").value=v; }catch(e){} }
 
 function updateStat(){
   const all=charList.length, c=charList.filter(x=>x.type==="c").length, h=charList.filter(x=>x.type==="N").length;
@@ -5583,20 +6000,27 @@ function renderTeamTable(){
       });
     }
   }
+  /* 波次标签拖动：整波插入排序（4人/12人，所有视图均生效） */
+  bindWaveLabelDrag();
   if(isUltra){
-    /* 一览模式：长按角色卡片可拖拽到其他波数（对调/填入/弹窗取消） */
-    bindUltraCharDrag();
-    /* 一览模式下禁用 team-block 的 HTML5 拖拽，避免与角色长按冲突 */
-    document.querySelectorAll("[data-team-drag]").forEach(b=>{ b.draggable=false; });
+    if(isRaid12){
+      /* 12人一览：保留整队对调拖拽（队与队交换位置/颜色） */
+      bindTeamBlockDrag(true);
+    } else {
+      /* 4人一览：长按角色卡片跨波拖拽（对调/填入/弹窗取消） */
+      bindUltraCharDrag();
+      /* 4人一览禁用 team-block 的 HTML5 拖拽，避免与角色长按冲突（整波拖动走波次标签） */
+      document.querySelectorAll("[data-team-drag]").forEach(b=>{ b.draggable=false; });
+    }
   } else {
-    bindTeamDragHandlers(isRaid12);
+    /* 常规/紧凑视图：整队拖动（4人插入 / 12人对调） */
+    bindTeamBlockDrag(isRaid12);
   }
 }
 
-function bindTeamDragHandlers(isRaid12){
+/* 整队拖拽（HTML5）：4人=插入排序 doMoveTeam；12人=对调 doSwapTeams12 */
+function bindTeamBlockDrag(isRaid12){
   const blocks=document.querySelectorAll("[data-team-drag]");
-  const waveLabels=document.querySelectorAll("[data-wave-drag]");
-
   blocks.forEach(block=>{
     block.addEventListener("dragstart",function(e){
       /* 团长模式：非团长禁止拖拽队伍 */
@@ -5637,9 +6061,11 @@ function bindTeamDragHandlers(isRaid12){
       }
     });
   });
+}
 
-  /* 波数拖拽：12人模式 + 4人模式均支持插入排序 */
-  waveLabels.forEach(wl=>{
+/* 波次标签拖拽（HTML5）：4人=整波插入 doMoveWave；12人=整波插入 doMoveWave（含组内队顺序） */
+function bindWaveLabelDrag(){
+  document.querySelectorAll("[data-wave-drag]").forEach(wl=>{
     wl.addEventListener("dragstart",function(e){
       /* 团长模式：非团长禁止拖拽波次 */
       if(captainLocked()){ e.preventDefault(); e.stopPropagation(); captainLockGuard(); return; }
@@ -5693,17 +6119,26 @@ function bindUltraCharDrag(){
     document.body.appendChild(ghost);
   }
 
-  let pressTimer=null, dragging=false, pressStart={x:0,y:0,time:0};
+  /* 长按+移动才启动拖动：单击、轻触、或长按不移动均不会触发拖动 */
+  const LONG_PRESS=500;   /* 长按阈值(ms)：达到后进入待拖动(armed) */
+  const MOVE_START=8;     /* 待拖动后移动超过此像素才开始真正拖动 */
+  let pressTimer=null, armed=false, dragging=false;
+  let pressStart={x:0,y:0,time:0};
   let srcInfo=null; /* {t, s, charId, owner, name, power} */
   let lastOver=null; /* 当前悬停的目标波数 */
   let windowMove=null, windowUp=null;
 
+  const resetArmed=()=>{
+    clearTimeout(pressTimer); pressTimer=null; armed=false;
+    document.querySelectorAll(".slot.ultra-drag-armed").forEach(el=>el.classList.remove("ultra-drag-armed"));
+  };
   const clearGhost=()=>{
-    dragging=false;
+    dragging=false; armed=false;
     ghost.style.display="none";
     document.querySelectorAll(".ultra-drop-target,.ultra-drop-empty,.ultra-drop-swap")
       .forEach(el=>el.classList.remove("ultra-drop-target","ultra-drop-empty","ultra-drop-swap"));
-    document.querySelectorAll(".slot.ultra-drag-ghosting").forEach(el=>el.classList.remove("ultra-drag-ghosting"));
+    document.querySelectorAll(".slot.ultra-drag-ghosting,.slot.ultra-drag-armed")
+      .forEach(el=>el.classList.remove("ultra-drag-ghosting","ultra-drag-armed"));
   };
 
   slots.forEach(slot=>{
@@ -5720,44 +6155,59 @@ function bindUltraCharDrag(){
       if(!cha) return;
       srcInfo={t,s,charId,owner,name:cha.name,power:cha.power};
       pressStart={x:e.clientX,y:e.clientY,time:Date.now()};
+      resetArmed();
+      /* 立即挂载抬手/移动监听：单击松开即取消长按，杜绝“松手后定时器又触发”的残留 */
+      sl._uDown=true;
+      windowMove=(ev)=>onMove(ev, sl);
+      windowUp=(ev)=>onUp(ev, sl);
+      window.addEventListener("pointermove",windowMove);
+      window.addEventListener("pointerup",windowUp);
+      window.addEventListener("pointercancel",windowUp);
+      /* 长按达到阈值：仅进入「待拖动」状态（细虚线提示），尚未移动则不视为拖动 */
       pressTimer=setTimeout(()=>{
-        dragging=true;
-        window._dragging=true;
-        sl.classList.add("ultra-drag-ghosting");
-        ghost.textContent=owner+"·"+cha.name+"（战力"+cha.power+"）";
-        ghost.style.display="block";
-        moveGhost(e);
-        windowMove=(ev)=>onMove(ev, sl);
-        windowUp=(ev)=>onUp(ev, sl);
-        window.addEventListener("pointermove",windowMove);
-        window.addEventListener("pointerup",windowUp);
-        window.addEventListener("pointercancel",windowUp);
-      },450); /* 长按阈值：450ms */
+        if(!sl._uDown) return; /* 已松手则取消 */
+        armed=true;
+        sl.classList.add("ultra-drag-armed");
+      },LONG_PRESS);
     });
   });
 
   function onMove(e, sl){
-    if(!dragging) {
-      /* 长按前移动超阈值则取消长按（视为滚动） */
-      if(pressTimer && (Math.abs(e.clientX-pressStart.x)>10 || Math.abs(e.clientY-pressStart.y)>10)){
-        clearTimeout(pressTimer); pressTimer=null;
-        sl.classList.remove("ultra-drag-ghosting");
+    if(dragging){
+      const el=e.clientX||e.clientY?document.elementFromPoint(e.clientX,e.clientY):null;
+      const block=el ? el.closest(".team-block.view-ultra[data-wave-num]") : null;
+      if(block && block!==lastOver){
+        if(lastOver){ lastOver.classList.remove("ultra-drop-target","ultra-drop-empty","ultra-drop-swap"); }
+        lastOver=block;
+        classifyDrop(block);
+      } else if(!block && lastOver){
+        lastOver.classList.remove("ultra-drop-target","ultra-drop-empty","ultra-drop-swap");
+        lastOver=null;
+      }
+      /* 更新 ghost 跟随光标 */
+      ghost.style.left=e.clientX+"px";
+      ghost.style.top=e.clientY+"px";
+      return;
+    }
+    if(armed){
+      /* 长按已达成：移动超过阈值才真正启动半透明拖动 */
+      if(Math.abs(e.clientX-pressStart.x)>MOVE_START || Math.abs(e.clientY-pressStart.y)>MOVE_START){
+        dragging=true;
+        window._dragging=true;
+        sl.classList.remove("ultra-drag-armed");
+        sl.classList.add("ultra-drag-ghosting");
+        const o=srcInfo.owner, p=srcInfo.power, n=srcInfo.name;
+        ghost.textContent=o+"·"+n+"（战力"+p+"）";
+        ghost.style.display="block";
+        moveGhost(e);
       }
       return;
     }
-    const el=e.clientX||e.clientY?document.elementFromPoint(e.clientX,e.clientY):null;
-    const block=el ? el.closest(".team-block.view-ultra[data-wave-num]") : null;
-    if(block && block!==lastOver){
-      if(lastOver){ lastOver.classList.remove("ultra-drop-target","ultra-drop-empty","ultra-drop-swap"); }
-      lastOver=block;
-      classifyDrop(block);
-    } else if(!block && lastOver){
-      lastOver.classList.remove("ultra-drop-target","ultra-drop-empty","ultra-drop-swap");
-      lastOver=null;
+    /* 长按前移动超阈值则取消长按（视为滚动/普通拖选） */
+    if(pressTimer && (Math.abs(e.clientX-pressStart.x)>10 || Math.abs(e.clientY-pressStart.y)>10)){
+      resetArmed();
+      sl.classList.remove("ultra-drag-ghosting");
     }
-    /* 更新 ghost 跟随光标 */
-    ghost.style.left=e.clientX+"px";
-    ghost.style.top=e.clientY+"px";
   }
 
   function moveGhost(e){
@@ -5766,7 +6216,6 @@ function bindUltraCharDrag(){
   }
 
   function onUp(e, sl){
-    clearTimeout(pressTimer); pressTimer=null;
     if(dragging){
       /* 抑制长按拖拽引发的后续 click（避免误触发玩家高亮） */
       window._suppressClick=true;
@@ -5775,9 +6224,13 @@ function bindUltraCharDrag(){
       window._dragging=false;
     }
     sl.classList.remove("ultra-drag-ghosting");
+    sl._uDown=false;
     clearGhost();
-    if(windowMove){ window.removeEventListener("pointermove",windowMove); windowMove=null; }
-    if(windowUp){ window.removeEventListener("pointerup",windowUp); windowUp=null; }
+    resetArmed();
+    const mv=windowMove, up=windowUp;
+    if(mv) window.removeEventListener("pointermove",mv);
+    if(up){ window.removeEventListener("pointerup",up); window.removeEventListener("pointercancel",up); }
+    windowMove=null; windowUp=null;
   }
 
   /* 判断目标波放下类型（对调/填入），更新高亮类 */
@@ -5926,10 +6379,12 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
       prevGroup=curGroup;
       curWaveColors=[];
     } else if(!isRaid12 && !isUltra){
+      /* 4人非一览：全宽波次标签（含排序按钮） */
       const wl=document.createElement("div");
       wl.className="wave-label"+(currentWaveHL===(tIdx+1)?" wave-active":"");
       wl.draggable=true;
       wl.dataset.waveDrag=tIdx+1;
+      wl.dataset.waveNum=tIdx+1;
       wl.innerHTML=`<span class="wnum">第 ${tIdx+1} 波</span>${currentWaveHL===(tIdx+1)?'<span class="wave-fight">⚔ 攻坚中</span>':''}<span class="wline"></span>
         <div class="wave-actions">
           <button class="wave-btn" draggable="false" data-wave-act="top" data-wave-num="${tIdx+1}" title="移至最顶">↑↑</button>
@@ -5953,10 +6408,15 @@ function renderTeamsInto(container, viewClass, isUltra, globalUsed, isRaid12, ra
     const ownerOk = owners.size===team.slots.filter(s=>s.charId).length;
     /* 12人团本：标签带波数，如"第1波-红队" */
     const waveNum = isRaid12 ? curGroup : (tIdx+1);
-    const teamLabel = rColor ? `第${waveNum}波-${raidLabels[rColor]}` : `第${tIdx+1}波`;
+    /* 波次标签：12人=整队顶部队列标签；4人一览=极大程度上复用原有横排网格，波次做成紧凑可拖动标签 */
+    const waveTagHtml = isRaid12
+      ? (rColor?`<span class="raid-tag ${rColor}">第${waveNum}波 ${raidLabels[rColor]}</span>`:`第${waveNum}波`)
+      : (isUltra
+          ? `<span class="wtag" draggable="true" data-wave-drag="${tIdx+1}" data-wave-num="${tIdx+1}" title="拖动到其他波次前可插入/调整顺序">第${tIdx+1}波（4人）</span>`
+          : `第${tIdx+1}波`);
     const hDisp = hcount>0 ? hmax : 0;
-    let html=`<div class="team-title"><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${rColor?`<span class="raid-tag ${rColor}">第${waveNum}波 ${raidLabels[rColor]}</span>`:''}${isPackTeam?'<span class="pack-stamp">📦包队</span>':''}${rColor?'':teamLabel}（${owners.size}人）${currentWaveHL===curGroup?'<span class="wave-fight">⚔ 攻坚中</span>':''}
-      <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hDisp}</b> <span style="font-size:0.8em;color:var(--mut)">（C总${csum} + 奶${hDisp}${hcount>1?`(${hcount}奶最高)`:''}）</span> ${ownerOk?'':'<span class=warn>⚠重复</span>'}</span></span>${isUltra?'':`<button class="del-team-btn" draggable="false" data-t="${tIdx}" title="删除此队伍" style="background:none;border:none;color:var(--mut);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;line-height:1;margin-left:auto">✕</button>`}</div><div class="team-grid">`;
+    let html=`<div class="team-title"><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${isPackTeam?'<span class="pack-stamp">📦包队</span>':''}${waveTagHtml}${(!isRaid12 && isUltra)?'':`（${owners.size}人）`}${currentWaveHL===curGroup?'<span class="wave-fight">⚔ 攻坚中</span>':''}
+      <span class="tsum">总战力：<b style="color:var(--yellow)">${csum+hDisp}</b> <span style="font-size:0.8em;color:var(--mut)">（C总${csum} + 奶${hDisp}${hcount>1?`(${hcount}奶最高)`:''}）</span> ${ownerOk?'':'<span class=warn>⚠重复</span>'}${team.belowThr?`<span style="color:#f59e0b;font-weight:bold;margin-left:4px;border:1px dashed #f59e0b;padding:0 6px;border-radius:8px">⚠C总未达${team.thresholdC}</span>`:''}</span></span>${isUltra?'':`<button class="del-team-btn" draggable="false" data-t="${tIdx}" title="删除此队伍" style="background:none;border:none;color:var(--mut);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;line-height:1;margin-left:auto">✕</button>`}</div><div class="team-grid">`;
     /* 补齐空位到4人，支持用户手动分配角色 */
     const slotsForRender = team.slots.slice();
     while(slotsForRender.length<4 && !isUltra){
@@ -6517,12 +6977,66 @@ async function doAutoArrange(){
     if(!confirm("当前已有排表数据，一键排表将覆盖现有排表。是否继续？")) return;
   }
   const opts=readRaid12Config();
+  /* 4人团本：读取C总战力门槛 */
+  if(raidMode!==12){
+    const tc=parseInt(document.getElementById("thresholdC4").value);
+    if(!isNaN(tc)) opts.thresholdC=tc;
+    else delete opts.thresholdC;
+  }
+  /* 4人门槛：预览当前门槛下的达标情况，未达标则询问是否降低门槛 */
+  if(raidMode!==12 && opts.thresholdC!=null){
+    const preview=arrange(charList, raidMode, opts);
+    const below=preview.filter(t=>t.belowThr);
+    if(below.length){
+      const lowest=Math.min(...below.map(t=>t.teamCTotal));
+      const reached=preview.filter(t=>!t.belowThr).length;
+      if(confirm("已按「C 总 ≥ "+opts.thresholdC+"」编排：达标 "+reached+" 支队伍，另有 "+below.length+" 支未达 C 总门槛（会自动标记 ⚠）。\n\n【确定】= 将门槛自动降至最低未达标队伍的 C 总（"+lowest+"）并重新编排，使全部队伍达标\n【取消】= 保留当前编排并标记未达标队伍")){
+        opts.thresholdC=lowest;
+        document.getElementById("thresholdC4").value=lowest;
+        saveThresholdC4();
+      }
+    }
+  }
   pushHistory();
+  _arrSnapshot=JSON.parse(JSON.stringify(teamList||[])); /* 记录排表前的线上编队，供“不保存”回退 */
+  _arrSnapshotRaid=raidMode;
   SYNC.writeStateLocal(st=>{
     st.raid12Config=opts;
     st.teamList=arrange(st.charList, raidMode, opts);
+    /* 4人排表后强制运行最终校验（全角色入队/玩家唯一/角色去重/标准队1奶3C/每队≤4人） */
+    if(raidMode!==12){
+      const vr=validateTeams4(st.teamList, st.charList);
+      if(vr.uncovered.length||vr.dupOwner.length||vr.dupChar.length){
+        console.warn("[4人排表校验未通过]", vr);
+        const msg="排表校验发现异常，请核对角色配置修正后重排（详见控制台）。"
+          +(vr.uncovered.length?" 未入队+"+vr.uncovered.length:"")
+          +(vr.dupOwner.length?" 同队重复玩家+"+vr.dupOwner.length:"")
+          +(vr.dupChar.length?" 角色重复+"+vr.dupChar.length:"");
+        showToast(msg);
+      }
+    }
     return st;
   });
+  showCancelArrBtn();
+}
+/* ——————— 一键排表“不保存”回退到线上编队 ——————— */
+let _arrSnapshot=null, _arrSnapshotRaid=null;
+function showCancelArrBtn(){
+  const b=document.getElementById("cancelArr");
+  if(b) b.style.display="inline-block";
+}
+function hideCancelArrBtn(){
+  const b=document.getElementById("cancelArr");
+  if(b) b.style.display="none";
+  _arrSnapshot=null; _arrSnapshotRaid=null;
+}
+function cancelArrange(){
+  if(!_arrSnapshot) return;
+  /* 点击直接回退，不弹确认；writeStateLocal 会标记未保存并重渲染，回退后仍需手动保存才写回云端 */
+  pushHistory();
+  const snap=_arrSnapshot;
+  SYNC.writeStateLocal(st=>{ st.teamList=snap; return st; });
+  hideCancelArrBtn();
 }
 async function switchMode(m){
   if(m===raidMode) return;
@@ -7930,6 +8444,7 @@ function init(){
 
   bindTab();
   document.getElementById("autoArrange").onclick=doAutoArrange;
+  document.getElementById("cancelArr").onclick=cancelArrange;
   document.getElementById("undoBtn").onclick=doUndo;
   document.getElementById("redoBtn").onclick=doRedo;
   // 键盘快捷键 Ctrl+Z 撤销, Ctrl+Shift+Z / Ctrl+Y 重做
@@ -7966,6 +8481,12 @@ function init(){
       });
     }
   });
+  /* 4人团本C总战力门槛：本地持久化 */
+  const thr4El=document.getElementById("thresholdC4");
+  if(thr4El){
+    thr4El.addEventListener("change",saveThresholdC4);
+    initThresholdC4();
+  }
 
   document.getElementById("importData").onclick=()=>openModal("importModal");
   document.getElementById("closeImport").onclick=()=>closeModal("importModal");
