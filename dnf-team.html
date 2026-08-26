@@ -1561,6 +1561,18 @@ body.captain-lock .slot[data-owner] .cn{cursor:pointer}
         </div>
         <div class="version-entry">
           <div class="version-header">
+            <span class="ver-tag">v1.30.0</span>
+            <span class="ver-date">2026-08-26</span>
+          </div>
+          <ul class="changes-list">
+            <li>4人模式排表优化：角色多的玩家（≥波数）优先占位，C 分配按「玩家角色数降序 → 战力降序」二级排序，避免角色多的玩家被孤立</li>
+            <li>奶配对策略调整：角色少的玩家的奶优先进入标准队，尽早消耗小户角色，为大户 C 腾出更多队伍名额</li>
+            <li>顶级大 C（前 20%）判定改为纯战力排序，不受玩家数权重影响，确保高战 C 优先被保护</li>
+            <li>效果：鸟神周本等角色不均的房间，单人 C 收尾队显著减少，820 等低战混子不再落单</li>
+          </ul>
+        </div>
+        <div class="version-entry">
+          <div class="version-header">
             <span class="ver-tag">v1.29.0</span>
             <span class="ver-date">2026-08-21</span>
           </div>
@@ -3951,7 +3963,13 @@ function arrange4New(chars, opts){
   const thresholdC = (typeof opts.thresholdC==="number" && !isNaN(opts.thresholdC)) ? opts.thresholdC : null;
   const charMap={}; chars.forEach(c=>charMap[c.id]=c);
   const H = chars.filter(c=>c.type==="N").slice().sort((a,b)=>b.power-a.power); // 奶降序
-  const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power); // C降序
+  /* C 排序：玩家角色数降序优先（角色多的玩家优先占位，避免被孤立），同玩家内战力降序 */
+  const __pCC={}; chars.forEach(c=>{ if(c.type==="c") __pCC[c.owner]=(__pCC[c.owner]||0)+1; });
+  const C = chars.filter(c=>c.type==="c").slice().sort((a,b)=>{
+    const ca=__pCC[a.owner]||0, cb=__pCC[b.owner]||0;
+    if(cb!==ca) return cb-ca;       // 玩家角色数多的在前
+    return b.power-a.power;          // 同玩家内战力降序
+  });
   const Hcnt=H.length, Ccnt=C.length;
   const ST = Math.min(Hcnt, Math.floor(Ccnt/3)); // 标准队数最大化
   const isMix = c=>c.power<=1000;                 // 混子阈值
@@ -3975,8 +3993,10 @@ function arrange4New(chars, opts){
     groups[g].slots.push(c); groups[g].cTotal+=c.power;
   });
 
-  /* ---- 混子插入：含顶级大C的组，替换最低非大C ---- */
-  const topSet=new Set(C.slice(0,topN).map(c=>c.id));
+  /* ---- 混子插入：含顶级大C的组，替换最低非大C ----
+     顶级大C取纯战力前20%（与玩家数权重无关，确保战力高者优先被保护） */
+  const CbyPow=chars.filter(c=>c.type==="c").slice().sort((a,b)=>b.power-a.power);
+  const topSet=new Set(CbyPow.slice(0,topN).map(c=>c.id));
   const gHasTop=g=>g.slots.some(c=>topSet.has(c.id));
   const gMix=g=>g.slots.filter(isMix).length;
   const replaced=[];
@@ -4028,8 +4048,13 @@ function arrange4New(chars, opts){
     if(!done) break;
   }
 
-  /* ---- 反向配对（owner感知）：奶降序 <-> C组升序；跳过与组内C同玩家的奶 ---- */
-  const healsDesc=H.slice();
+  /* ---- 反向配对（owner感知）：奶升序 <-> C组升序；跳过与组内C同玩家的奶 ----
+     奶排序：玩家角色数少的奶优先（尽早消耗小户角色，给大户C腾位置），同玩家战力降序 */
+  const healsDesc=H.slice().sort((a,b)=>{
+    const ca=__pCC[a.owner]||0, cb=__pCC[b.owner]||0;
+    if(ca!==cb) return ca-cb;        // 玩家C数少的奶优先（小户优先）
+    return b.power-a.power;           // 同玩家战力降序
+  });
   const cAsc=groups.slice().sort((a,b)=>a.cTotal-b.cTotal);
   const standardTeams=[];
   const usedHeal=new Set();
@@ -4037,7 +4062,7 @@ function arrange4New(chars, opts){
     const g=cAsc[i];
     const gOwners=new Set(g.slots.map(c=>c.owner));
     let pick=null;
-    /* 优先：最强可用奶，且owner不在本组3C；退化：最强未用奶 */
+    /* 优先：小户可用奶，且owner不在本组3C；退化：最强未用奶 */
     for(const h of healsDesc){ if(usedHeal.has(h.id))continue; if(gOwners.has(h.owner))continue; pick=h; break; }
     if(!pick){ for(const h of healsDesc){ if(!usedHeal.has(h.id)){ pick=h; break; } } }
     if(!pick) break;
