@@ -1,0 +1,18 @@
+# 敏感令牌 - 绝不提交
+.cloudflare-token
+
+# DNF 排表工具独立仓库（有自己的 gitee 仓库，不纳入温欣随记仓库）
+dnf-team/
+
+# 浏览器截图/调试产物
+.screenshots/
+
+# Trae 分享/打包缓存
+.trae-html-share-packages/
+
+# 上传/云函数缓存
+.uploads/
+.wrangler/
+
+# 浏览器登录检查截图
+browser_login_check.png
